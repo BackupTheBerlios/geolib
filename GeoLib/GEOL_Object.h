@@ -48,6 +48,8 @@ public:
 	GEOL_Attribute *getNextAttribute(GEOL_Attribute *theAttr);
 	GEOL_Attribute *getPrevAttribute(GEOL_Attribute *theAttr);
 	
+	int getAttributesNum();
+	
 	GEOL_Attribute *getAttributeFromID(char *theAttrID);
 	
 	unsigned char getRefCount();
@@ -109,6 +111,13 @@ inline GEOL_Attribute* GEOL_Object::getFirstAttribute() {
 	}
 }
 
+/*!
+\return
+Number of attributes of the object
+*/
+inline int GEOL_Object::getAttributesNum() {
+	return pAttributeList.size();
+}
 
 /*!
 \return
