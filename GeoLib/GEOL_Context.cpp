@@ -274,7 +274,7 @@ GEOL_PoliProfile* GEOL_Context::createPoliProfile() {
 
 
 /*!
-Add a new object to the context
+Add a new object to the context at the end of the objects list
 
 \param theNewObject
 The object to add
@@ -287,20 +287,6 @@ bool GEOL_Context::addObject(GEOL_Object *theNewObject) {
 	if (!theNewObject)
 		return false;
 	
-	/*if (dynamic_cast<GEOL_PoliProfile*>(theNewObject) || dynamic_cast<GEOL_Profile*>(theNewObject)) {
-		pObjectList.push_front(theNewObject);
-	}
-	else {
-		pObjectList.push_back(theNewObject);
-	}*/
-	
-	/*if (dynamic_cast<GEOL_Point*>(theNewObject)) {
-		pObjectList.push_back(theNewObject);		
-	}
-	else {
-		pObjectList.push_front(theNewObject);
-	}*/
-	
 	pObjectList.push_back(theNewObject);
 	
 	theNewObject -> setContext(this);
@@ -310,7 +296,7 @@ bool GEOL_Context::addObject(GEOL_Object *theNewObject) {
 
 
 /*!
-Remove an object from the context, the object IS DESRTOYED objects lives only within a context
+Remove an object from the context, the object IS DESTROYED objects lives only within a context
 
 \param theObject
 The object to remove
@@ -492,25 +478,21 @@ bool GEOL_Context::deleteObject(GEOL_Object *theObject, bool theNotifyFlag) {
 		
 	bool ret = false;
 	
-	if (theNotifyFlag) {
-		ret = notifyDestruction(theObject);
-	}
-
 	if (ret) {
 		if (dynamic_cast<GEOL_Point*>(theObject)) {
-			ret = deletePoint((GEOL_Point*)theObject);
+			ret = deletePoint((GEOL_Point*)theObject, theNotifyFlag);
 		}
 		else if (dynamic_cast<GEOL_Segment*>(theObject)) {
-			ret = deleteSegment((GEOL_Segment*)theObject);
+			ret = deleteSegment((GEOL_Segment*)theObject, theNotifyFlag);
 		}
 		else if (dynamic_cast<GEOL_Arc*>(theObject)) {
-			ret = deleteArc((GEOL_Arc*)theObject);
+			ret = deleteArc((GEOL_Arc*)theObject, theNotifyFlag);
 		}
 		else if (dynamic_cast<GEOL_Profile*>(theObject)) {
-			ret = deleteProfile((GEOL_Profile*)theObject);
+			ret = deleteProfile((GEOL_Profile*)theObject, theNotifyFlag);
 		}
 		else if (dynamic_cast<GEOL_PoliProfile*>(theObject)) {
-			ret = deletePoliProfile((GEOL_PoliProfile*)theObject);
+			ret = deletePoliProfile((GEOL_PoliProfile*)theObject, theNotifyFlag);
 		}
 		else {
 			ret = false;
@@ -536,15 +518,21 @@ Notify flag, if true the point destruction will be notified to other objects
 */
 bool GEOL_Context::deletePoint(GEOL_Point *thePoint, bool theNotifyFlag) {
 	bool ret = false;
-	bool okNotify = true;
-	if (theNotifyFlag) {
-		okNotify = notifyDestruction(thePoint);
-	}
 	
-	if (okNotify && !thePoint -> decRefCount()) {
-		pObjectList.remove(thePoint);
-		delete thePoint;
-		ret = true;
+	if (!thePoint -> decRefCount()) {
+		bool okNotify = true;
+		if (theNotifyFlag) {
+			okNotify = notifyDestruction(thePoint);
+		}
+		
+		if (okNotify) {
+			pObjectList.remove(thePoint);
+			delete thePoint;
+			ret = true;
+		}
+		else {
+			ret = false;
+		}
 	}
 	
 	return ret;
@@ -565,15 +553,21 @@ Notify flag, if true the segment destruction will be notified to other objects
 */
 bool GEOL_Context::deleteSegment(GEOL_Segment *theSegment, bool theNotifyFlag) {
 	bool ret = false;
-	bool okNotify = true;
-	if (theNotifyFlag) {
-		okNotify = notifyDestruction(theSegment);
-	}
 
-	if (okNotify && !theSegment -> decRefCount()) {
-		pObjectList.remove(theSegment);
-		delete theSegment;
-		ret = true;
+	if (!theSegment -> decRefCount()) {
+		bool okNotify = true;
+		if (theNotifyFlag) {
+			okNotify = notifyDestruction(theSegment);
+		}
+		
+		if (okNotify) {
+			pObjectList.remove(theSegment);
+			delete theSegment;
+			ret = true;
+		}
+		else {
+			ret = false;
+		}
 	}
 	
 	return ret;
@@ -594,15 +588,21 @@ Notify flag, if true the arc destruction will be notified to other objects
 */
 bool GEOL_Context::deleteArc(GEOL_Arc *theArc, bool theNotifyFlag) {
 	bool ret = false;
-	bool okNotify = true;
-	if (theNotifyFlag) {
-		okNotify = notifyDestruction(theArc);
-	}
 
-	if (okNotify && !theArc -> decRefCount()) {
-		pObjectList.remove(theArc);
-		delete theArc;
-		ret = true;
+	if (!theArc -> decRefCount()) {
+		bool okNotify = true;
+		if (theNotifyFlag) {
+			okNotify = notifyDestruction(theArc);
+		}
+		
+		if (okNotify) {
+			pObjectList.remove(theArc);
+			delete theArc;
+			ret = true;
+		}
+		else {
+			ret = false;
+		}
 	}
 	
 	return ret;
@@ -623,15 +623,21 @@ Notify flag, if true the profile destruction will be notified to other objects
 */
 bool GEOL_Context::deleteProfile(GEOL_Profile *theProfile, bool theNotifyFlag) {
 	bool ret = false;
-	bool okNotify = true;
-	if (theNotifyFlag) {
-		okNotify = notifyDestruction(theProfile);
-	}
 
-	if (okNotify && !theProfile -> decRefCount()) {
-		pObjectList.remove(theProfile);
-		delete theProfile;
-		ret = true;
+	if (!theProfile -> decRefCount()) {
+		bool okNotify = true;
+		if (theNotifyFlag) {
+			okNotify = notifyDestruction(theProfile);
+		}
+
+		if (okNotify) {
+			pObjectList.remove(theProfile);
+			delete theProfile;
+			ret = true;
+		}
+		else {
+			ret = false;
+		}
 	}
 	
 	return ret;
@@ -652,15 +658,21 @@ Notify flag, if true the poliprofile destruction will be notified to other objec
 */
 bool GEOL_Context::deletePoliProfile(GEOL_PoliProfile *thePoliProfile, bool theNotifyFlag) {
 	bool ret = false;
-	bool okNotify = true;
-	if (theNotifyFlag) {
-		okNotify = notifyDestruction(thePoliProfile);
-	}
 
-	if (okNotify && !thePoliProfile -> decRefCount()) {
-		pObjectList.remove(thePoliProfile);
-		delete thePoliProfile;
-		ret = true;
+	if (!thePoliProfile -> decRefCount()) {
+		bool okNotify = true;
+		if (theNotifyFlag) {
+			okNotify = notifyDestruction(thePoliProfile);
+		}
+		
+		if (okNotify) {
+			pObjectList.remove(thePoliProfile);
+			delete thePoliProfile;
+			ret = true;
+		}
+		else {
+			ret = false;
+		}
 	}
 	
 	return ret;

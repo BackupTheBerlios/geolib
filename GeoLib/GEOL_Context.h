@@ -70,13 +70,17 @@ public:
 	GEOL_Object* getNextObject(const GEOL_Object *theObject);
 	GEOL_Object* getPrevObject(const GEOL_Object *theObject);
 	
+	/*!
+	\return
+	Number of objects in the context
+	*/
 	int getSize() { return pObjectList.size(); }
 	
 	void removeAllObjects();
 
-	bool notifyDestruction(GEOL_Object *theObject);
 
 private:
+	bool notifyDestruction(GEOL_Object *theObject);
 
 	/*!
 	List of objects, entities or containers, within the context
