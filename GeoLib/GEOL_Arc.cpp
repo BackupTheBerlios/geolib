@@ -298,6 +298,26 @@ double GEOL_Arc::computeLength() const {
 
 
 /*!
+Check if the entity passed is one of the end points of the segment
+
+\param theEntity
+Entity to check
+
+\return
+- true if the entity passed is an end point of the segment
+- false otherwise
+*/
+bool GEOL_Arc::isEndPoint(const GEOL_Entity *theEntity) {
+	bool ret = false;
+	if (theEntity == getBeginEntity() || theEntity == getEndEntity()) {
+		ret = true;
+	}
+	
+	return ret;
+}
+
+
+/*!
 Assignment operator
 
 \param theArc

@@ -40,6 +40,8 @@ public:
 	double pointDistance(const GEOL_Point& thePoint) const;
 	double pointDistance(const GEOL_Point* thePoint) const;
 	double originDistance();
+
+	bool isEndPoint(const GEOL_Entity *theEntity) { return false; }
 	
 protected:
 	GEOL_Point();

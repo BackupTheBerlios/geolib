@@ -151,6 +151,26 @@ double GEOL_Segment::angleWith(const GEOL_Segment& theSegment) const {
 
 
 /*!
+Check if the entity passed is one of the end points of the segment
+
+\param theEntity
+Entity to check
+
+\return
+- true if the entity passed is an end point of the segment
+- false otherwise
+*/
+bool GEOL_Segment::isEndPoint(const GEOL_Entity *theEntity) {
+	bool ret = false;
+	if (theEntity == getBeginEntity() || theEntity == getEndEntity()) {
+		ret = true;
+	}
+	
+	return ret;
+}
+
+
+/*!
 Assignment operator
 
 \param theSegment
@@ -195,5 +215,7 @@ Inequality operator
 bool GEOL_Segment::operator!=(const GEOL_Segment& theSegment) const {
 	return !((*this) == theSegment);
 }
+
+
 
 

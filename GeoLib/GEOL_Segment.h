@@ -50,6 +50,8 @@ public:
 	*/
 	double length() const { return mLength; }
 	
+	bool isEndPoint(const GEOL_Entity *theEntity);
+
 protected:
 	GEOL_Segment();
 	GEOL_Segment(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint);
@@ -81,5 +83,6 @@ inline GEOL_Point* GEOL_Segment::end() const {
 	const GEOL_Entity *endPoint = getEndEntity();
 	return ((GEOL_Point*)endPoint);
 }
+
 
 #endif

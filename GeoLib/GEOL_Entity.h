@@ -36,6 +36,8 @@ public:
 	void setEndEntity(GEOL_Entity *theEnd);
 	
 	bool notifyDestruction(GEOL_Object *theObject);
+	
+	virtual bool isEndPoint(const GEOL_Entity *theEntity) = 0;
 
 protected:
 	/*!

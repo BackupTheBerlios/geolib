@@ -71,6 +71,8 @@ public:
 	void center(GEOL_Point &theCenter) const;
 	void center(double &theXCenter, double &theYCenter) const;
 	
+	bool isEndPoint(const GEOL_Entity *theEntity);
+
 protected:
 	GEOL_Arc();
 	GEOL_Arc(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint, double theRadius, GEOL_ArcVersus theVersus);
