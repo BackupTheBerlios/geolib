@@ -20,7 +20,7 @@
 #ifndef GEOL_PERSISTENCY_H
 #define GEOL_PERSISTENCY_H
 
-#include <fstream.h>
+#include <fstream>
 
 class GEOL_Persistency {
 public:
