@@ -333,11 +333,7 @@ bool GEOL_Context::removeObject(GEOL_Object *theObject) {
 		}
 		else if (dynamic_cast<GEOL_PoliProfile*>(toDel)) {
 			deletePoliProfile((GEOL_PoliProfile*)toDel);
-		}
-		
-		/*pObjectList.remove(toDel);
-		toDel -> setContext(NULL);
-		delete toDel;*/
+		}		
 	}
 	
 	return true;
@@ -352,11 +348,14 @@ void GEOL_Context::removeAllObjects() {
 		GEOL_Object *toDel = *objectIt;
 		objectIt++;
 		
+		bool deleteFlag = false;
 		if (dynamic_cast<GEOL_Segment*>(toDel)) {
 			deleteSegment((GEOL_Segment*)toDel);
+			deleteFlag = true;
 		}
 		else if (dynamic_cast<GEOL_Arc*>(toDel)) {
 			deleteArc((GEOL_Arc*)toDel);
+			deleteFlag = true;
 		}
 		else if (dynamic_cast<GEOL_Profile*>(toDel)) {
 			deleteProfile((GEOL_Profile*)toDel);
@@ -364,6 +363,10 @@ void GEOL_Context::removeAllObjects() {
 		else if (dynamic_cast<GEOL_PoliProfile*>(toDel)) {
 			deletePoliProfile((GEOL_PoliProfile*)toDel);
 		}		
+
+		if (deleteFlag) {
+			objectIt = pObjectList.begin();
+		}
 	}
 
 	for (objectIt = pObjectList.begin() ; objectIt != pObjectList.end() ; ) {
@@ -673,6 +676,154 @@ bool GEOL_Context::deletePoliProfile(GEOL_PoliProfile *thePoliProfile, bool theN
 		else {
 			ret = false;
 		}
+	}
+	
+	return ret;
+}
+
+
+bool GEOL_Context::saveContext(std::ofstream *theStream) {
+	if (!theStream)
+		return false;
+	
+	bool ret = true;
+	GEOL_Object *obj = getFirstObject();
+	for ( ; ret && obj ; obj = getNextObject(obj)) {
+		if (dynamic_cast<GEOL_PoliProfile*>(obj)) {
+			ret = ((GEOL_PoliProfile*)obj) -> SaveBinary(theStream);
+		}
+	}
+	
+	obj = getFirstObject();
+	for ( ; ret && obj ; obj = getNextObject(obj)) {
+		if (dynamic_cast<GEOL_Profile*>(obj)) {
+			GEOL_Attribute *attr = obj -> getAttributeFromID("saved");
+			if (!attr) {
+				ret = ((GEOL_Profile*)obj) -> SaveBinary(theStream);
+			}
+		}
+	}	
+
+	obj = getFirstObject();
+	for ( ; ret && obj ; obj = getNextObject(obj)) {
+		if (dynamic_cast<GEOL_Segment*>(obj)) {
+			GEOL_Attribute *attr = obj -> getAttributeFromID("saved");
+			if (!attr) {
+				ret = ((GEOL_Segment*)obj) -> SaveBinary(theStream);
+			}
+		}
+		if (dynamic_cast<GEOL_Arc*>(obj)) {
+			GEOL_Attribute *attr = obj -> getAttributeFromID("saved");
+			if (!attr) {
+				ret = ((GEOL_Arc*)obj) -> SaveBinary(theStream);
+			}
+		}
+	}	
+
+	obj = getFirstObject();
+	for ( ; ret && obj ; obj = getNextObject(obj)) {
+		GEOL_Attribute *attr = obj -> getAttributeFromID("saved");
+		if (!attr) {
+			ret = obj -> SaveBinary(theStream);
+		}
+	}	
+
+	for (obj = getFirstObject() ; obj ; obj = getNextObject(obj)) {
+		obj -> removeAttribute("saved");
+	}
+	
+	return ret;
+}
+
+
+bool GEOL_Context::loadContext(std::ifstream *theStream) {
+	if (!theStream)
+		return false;
+	
+	bool ret = !theStream -> bad();
+	if (ret) {
+		while (ret && !theStream -> eof()) {
+			GEOL_ObjectType objType = geol_Point;
+			ret = loadBinaryObjectType(theStream, objType);
+			if (ret && !theStream -> eof()) {
+				switch (objType) {
+					case geol_Point:
+						{
+							GEOL_Point *newPoint = createPoint(0.0, 0.0);
+							if (newPoint) {
+								ret = newPoint -> LoadBinary(theStream);
+							}
+							else {
+								ret = false;
+							}
+						}
+						break;
+					case geol_Segment:
+						{
+							GEOL_Segment *newSegment = createSegment();
+							if (newSegment) {
+								ret = newSegment -> LoadBinary(theStream);
+							}
+							else {
+								ret = false;
+							}
+						}
+						break;
+					case geol_Arc:
+						{
+							GEOL_Arc *newArc = createArc();
+							if (newArc) {
+								ret = newArc -> LoadBinary(theStream);
+							}
+							else {
+								ret = false;
+							}
+						}
+						break;
+					case geol_Profile:
+						{
+							GEOL_Profile *newProfile = createProfile();
+							if (newProfile) {
+								ret = newProfile -> LoadBinary(theStream);
+							}
+							else {
+								ret = false;
+							}
+						}
+						break;
+					case geol_PoliProfile:
+						{
+							GEOL_PoliProfile *newPoliProfile = createPoliProfile();
+							if (newPoliProfile) {
+								ret = newPoliProfile -> LoadBinary(theStream);
+							}
+							else {
+								ret = false;
+							}
+						}
+						break;
+					default:
+						ret = false;
+				}
+			}
+		}
+	}
+	
+	return ret;
+}
+
+
+bool GEOL_Context::loadBinaryObjectType(std::ifstream *theStream, GEOL_ObjectType& theObjectType) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+	if (ret) {
+		int objType = 0;
+		theStream -> read((char*)(&objType), sizeof(int));
+		theObjectType = (GEOL_ObjectType)objType;
+	
+		ret = !theStream -> bad();
 	}
 	
 	return ret;

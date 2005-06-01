@@ -78,6 +78,9 @@ public:
 	
 	void removeAllObjects();
 
+	bool saveContext(std::ofstream *theStream);
+	bool loadContext(std::ifstream *theStream);
+	bool loadBinaryObjectType(std::ifstream *theStream, GEOL_ObjectType& theObjectType);
 
 private:
 	bool notifyDestruction(GEOL_Object *theObject);
