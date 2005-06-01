@@ -25,7 +25,7 @@
 Default constructor
 */
 GEOL_Attribute::GEOL_Attribute() {
-	pValue = NULL;
+	mValue.GEOL_AttrVoidValue = NULL;
 	mType = GEOL_AttrVoid;
 	mAttrID[0] = 0;
 	mAttrID[1] = 0;
@@ -36,9 +36,9 @@ GEOL_Attribute::GEOL_Attribute() {
 /*!
 Constructor with all members passed
 */
-GEOL_Attribute::GEOL_Attribute(void *theAttrValue, GEOL_AttributeType theAttrType, char *theAttrID) {
-	pValue = theAttrValue;
-	mType = theAttrType;
+GEOL_Attribute::GEOL_Attribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, char *theAttrID) {
+	mValue = theAttrValue;
+	mType = theAttrType;	
 	if (theAttrID) {
 		mAttrID[0] = theAttrID[0];	
 		mAttrID[1] = theAttrID[1];	
@@ -57,7 +57,7 @@ GEOL_Attribute::GEOL_Attribute(void *theAttrValue, GEOL_AttributeType theAttrTyp
 Default destructor
 */
 GEOL_Attribute::~GEOL_Attribute() {
-	pValue = NULL;
+	mValue.GEOL_AttrVoidValue = NULL;
 	mType = GEOL_AttrVoid;
 	mAttrID[0] = 0;
 }
@@ -148,6 +148,159 @@ bool GEOL_Attribute::isEqualID(const char *theAttributeId) {
 	else {
 		return false;
 	}
+}
+
+
+
+
+/*!
+Load object attributes data from a strem in binary format
+
+\param theStream
+The stream to read from
+
+\return
+- true if the read operation succeed
+- false otherwise
+*/
+bool GEOL_Attribute::LoadBinary(std::ifstream *theStream) {
+	if (!theStream)
+		return false;
+		
+	bool ret = !theStream -> bad();
+	if (ret) {
+		theStream -> read(mAttrID, 4 * sizeof(char));
+		theStream -> read((char*)(&mType), sizeof(GEOL_AttributeType));
+		
+		ret = !theStream -> bad();
+		if (ret) {
+			switch (mType) {
+				case GEOL_AttrInt:
+					{
+						GEOL_AttributeValue value;
+						value.GEOL_AttrIntValue = 0;
+						theStream -> read((char*)(&value), sizeof(int));
+						mValue = value;
+					}
+					break;
+				case GEOL_AttrDouble:
+					{
+						GEOL_AttributeValue value;
+						value.GEOL_AttrDoubleValue = 0.0;
+						theStream -> read((char*)(&value), sizeof(double));
+						mValue = value;
+					}
+					break;
+				case GEOL_AttrString:
+					{
+						GEOL_AttributeValue value;
+						value.GEOL_AttrStringValue = NULL;
+						theStream -> read((char*)(&value), sizeof(char*));
+						mValue = value;
+					}
+					break;
+				case GEOL_AttrEntity:
+					{
+						GEOL_AttributeValue value;
+						value.GEOL_AttrEntityValue = NULL;
+						theStream -> read((char*)(&value), sizeof(GEOL_Entity*));
+						mValue = value;
+					}
+					break;
+				case GEOL_AttrContainer:
+					{
+						GEOL_AttributeValue value;
+						value.GEOL_AttrContainerValue = NULL;
+						theStream -> read((char*)(&value), sizeof(GEOL_Container*));
+						mValue = value;
+					}
+					break;
+				case GEOL_AttrVoid:
+					{
+						GEOL_AttributeValue value;
+						value.GEOL_AttrVoidValue = NULL;
+						theStream -> read((char*)(&value), sizeof(void*));
+						mValue = value;
+					}
+					break;
+				default:
+					mValue.GEOL_AttrVoidValue = NULL;
+					break;
+			}
+		}
+	}
+
+	return ret;
+}
+
+
+/*!
+Save object attributes on a stream in binary mode
+
+\param theStream
+The stream to write on
+
+\return
+- true if the write operation succeed
+- false otherwise
+*/
+bool GEOL_Attribute::SaveBinary(std::ofstream *theStream) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+
+	if (ret) {
+		theStream -> write(mAttrID, 4 * sizeof(char));
+		theStream -> write((char*)(&mType), sizeof(GEOL_AttributeType));
+		
+		ret = !theStream -> bad();
+		if (ret) {
+			switch (mType) {
+				case GEOL_AttrInt:
+					{
+						theStream -> write((char*)(&mValue.GEOL_AttrIntValue), sizeof(int));
+					}
+					break;
+				case GEOL_AttrDouble:
+					{
+						theStream -> write((char*)(&mValue.GEOL_AttrDoubleValue), sizeof(double));
+					}
+					break;
+				case GEOL_AttrString:
+					{
+						theStream -> write((char*)(&mValue.GEOL_AttrStringValue), sizeof(char*));
+					}
+					break;
+				case GEOL_AttrEntity:
+					{
+						theStream -> write((char*)(&mValue.GEOL_AttrEntityValue), sizeof(GEOL_Entity*));
+					}
+					break;
+				case GEOL_AttrContainer:
+					{
+						theStream -> write((char*)(&mValue.GEOL_AttrContainerValue), sizeof(GEOL_Container*));
+					}
+					break;
+				case GEOL_AttrVoid:
+					{
+						theStream -> write((char*)(&mValue.GEOL_AttrVoidValue), sizeof(void*));
+					}
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
+	return ret;
+}
+
+bool GEOL_Attribute::LoadISO(std::ifstream *theStream) {
+	if (!theStream)
+		return false;
+
+	return false;
 }
 
 

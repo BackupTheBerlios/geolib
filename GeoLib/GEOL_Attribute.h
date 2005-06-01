@@ -18,24 +18,38 @@
 #ifndef GEOL_ATTRIBUTE_H
 #define GEOL_ATTRIBUTE_H
 
+#include "GEOL_Persistency.h"
+
+class GEOL_Entity;
+class GEOL_Container;
+
 /*!
 Types of an attribute
 */
 typedef enum { GEOL_AttrInt, GEOL_AttrDouble, GEOL_AttrString, GEOL_AttrEntity, GEOL_AttrContainer, GEOL_AttrVoid } GEOL_AttributeType;
 
+union GEOL_AttributeValue {
+	int GEOL_AttrIntValue;
+	double GEOL_AttrDoubleValue;
+	char *GEOL_AttrStringValue;
+	GEOL_Entity *GEOL_AttrEntityValue;
+	GEOL_Container *GEOL_AttrContainerValue;
+	void *GEOL_AttrVoidValue;
+};
+
 /*!
 Attribute of an object, every object can have a list of attributes that characterize objects with specific
 auxiliary informations not belonging to the object structure, such as markers 
 */
-class GEOL_Attribute {
+class GEOL_Attribute : public GEOL_Persistency {
 public:
 
 	GEOL_Attribute();
-	GEOL_Attribute(void *theAttrValue, GEOL_AttributeType theAttrType, char *theAttrID);
+	GEOL_Attribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, char *theAttrID);
 	~GEOL_Attribute();
 
-	void* getValue();
-	void setValue(void *theValue);
+	GEOL_AttributeValue getValue();
+	void setValue(GEOL_AttributeValue theValue);
 
 	GEOL_AttributeType getType();
 	void setType(GEOL_AttributeType theType);
@@ -46,13 +60,17 @@ public:
 	bool isEqualID(const GEOL_Attribute *theAttribute);
 	bool isEqualID(const char *theAttributeId);
 	
+	virtual bool LoadBinary(std::ifstream *theStream);
+	virtual bool SaveBinary(std::ofstream *theStream);
+	virtual bool LoadISO(std::ifstream *theStream);
+
 private:
 
 	/*!
 	Value of the attribute, can be a number, a pointer to a geometrical entity, to a string or to any other
 	kind of structure
 	*/
-	void *pValue;
+	GEOL_AttributeValue mValue;
 	
 	/*!
 	The type of the attribute, an attribute can belong to a list of "standard" types or can be a custom object
@@ -71,8 +89,8 @@ private:
 \return
 The attribute value
 */
-inline void* GEOL_Attribute::getValue() {
-	return pValue;
+inline GEOL_AttributeValue GEOL_Attribute::getValue() {
+	return mValue;
 }
 
 
@@ -82,8 +100,8 @@ Set the attribute value
 \param theAttribute
 New attribute value
 */
-inline void GEOL_Attribute::setValue(void *theValue) {
-	pValue = theValue;
+inline void GEOL_Attribute::setValue(GEOL_AttributeValue theValue) {
+	mValue = theValue;
 }
 
 /*!
