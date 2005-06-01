@@ -150,4 +150,73 @@ bool GEOL_Point::operator!=(const GEOL_Point& thePoint) const {
 }
 
 
+/*!
+Load point's data from a strem in binary format
+
+\param theStream
+The stream to read from
+
+\return
+- true if the read operation succeed
+- false otherwise
+*/
+bool GEOL_Point::LoadBinary(std::ifstream *theStream) {
+	if (!theStream)
+		return false;
+		
+	bool ret = !theStream -> bad();
+	if (ret) {
+		double xCoord = 0.0;
+		double yCoord = 0.0;
+		theStream -> read((char*)(&xCoord), sizeof(double));
+		theStream -> read((char*)(&yCoord), sizeof(double));
+		ret = !theStream -> bad();
+		if (ret) {
+			x(xCoord);
+			y(yCoord);
+		}	
+	}
+	return ret;
+}
+
+
+/*!
+Save point's data on a stream in binary mode
+
+\param theStream
+The stream to write on
+
+\return
+- true if the write operation succeed
+- false otherwise
+*/
+bool GEOL_Point::SaveBinary(std::ofstream *theStream) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+	if (ret) {
+		ret = saveBinaryObjectInfo(theStream, geol_Point);
+	}
+	if (ret) {
+		double xCoord = x();
+		double yCoord = y();
+		theStream -> write((char*)(&xCoord), sizeof(double));
+		theStream -> write((char*)(&yCoord), sizeof(double));
+		ret = !theStream -> bad();	
+	}
+
+	GEOL_AttributeValue attrVal;
+	attrVal.GEOL_AttrVoidValue = NULL;
+	addAttribute(attrVal, GEOL_AttrVoid, "saved");
+
+	return ret;
+}
+
+bool GEOL_Point::LoadISO(std::ifstream *theStream) {
+	if (!theStream)
+		return false;
+
+	return false;
+}
 

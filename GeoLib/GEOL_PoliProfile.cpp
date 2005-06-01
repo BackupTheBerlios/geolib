@@ -18,6 +18,12 @@
 
 #include "GEOL_Prefix.h"
 
+#include "GEOL_Context.h"
+#include "GEOL_Entity.h"
+#include "GEOL_Point.h"
+#include "GEOL_Segment.h"
+#include "GEOL_Arc.h"
+#include "GEOL_Profile.h"
 #include "GEOL_PoliProfile.h"
 
 
@@ -28,3 +34,139 @@ GEOL_PoliProfile::GEOL_PoliProfile() {
 
 GEOL_PoliProfile::~GEOL_PoliProfile() {
 }
+
+
+bool GEOL_PoliProfile::LoadBinary(std::ifstream *theStream) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+	if (ret) {
+		GEOL_Context *context = getContext();
+
+		int containersNum = 0;
+		theStream -> read((char*)(&containersNum), sizeof(int));
+		GEOL_Container *newContainer = NULL;
+		for (int i = 0 ; i < containersNum && ret ; i++) {
+			GEOL_ObjectType objType = geol_Point;
+			ret = getContext() -> loadBinaryObjectType(theStream, objType);
+			if (ret) {
+				switch(objType) {
+					case geol_PoliProfile:
+						{
+							GEOL_PoliProfile *poliprofile = context -> createPoliProfile();
+							ret = poliprofile -> LoadBinary(theStream);
+							if (ret) {
+								newContainer = poliprofile;
+							}
+						}
+						break;
+					case geol_Profile:
+						{
+							GEOL_Profile *profile = context -> createProfile();
+							ret = ((GEOL_Entity*)profile) -> LoadBinary(theStream);
+							if (ret) {
+								newContainer = profile;
+							}
+						}
+						break;
+					default:
+						ret = false;
+				}
+			}
+			if (ret) {
+				ret = addContainer(newContainer);
+			}
+		}
+		if (ret) {
+			int entitiesNum = 0;
+			theStream -> read((char*)(&entitiesNum), sizeof(int));
+			GEOL_Entity *newEntity = NULL;
+			for (int i = 0 ; i < entitiesNum && ret ; i++) {
+				GEOL_ObjectType objType = geol_Point;
+				ret = getContext() -> loadBinaryObjectType(theStream, objType);
+				if (ret) {
+					switch(objType) {
+						case geol_Point:
+							{
+								GEOL_Point *point = context -> createPoint();
+								ret = ((GEOL_Entity*)point) -> LoadBinary(theStream);
+								if (ret) {
+									newEntity = point;
+								}
+							}
+							break;
+						case geol_Segment:
+							{
+								GEOL_Segment *segment = context -> createSegment();
+								ret = ((GEOL_Entity*)segment) -> LoadBinary(theStream);
+								if (ret) {
+									newEntity = segment;
+								}
+							}
+							break;
+						case geol_Arc:
+							{
+								GEOL_Arc *arc = context -> createArc();
+								ret = ((GEOL_Entity*)arc) -> LoadBinary(theStream);
+								if (ret) {
+									newEntity = arc;
+								}
+							}
+							break;
+						default:
+							ret = false;
+					}
+				}
+				if (ret) {
+					ret = addEntity(newEntity);
+				}
+			}
+		}
+	}
+	if (ret) {
+		ret = !theStream -> bad();
+	}
+	
+	return ret;
+}
+
+bool GEOL_PoliProfile::SaveBinary(std::ofstream *theStream) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+	if (ret) {
+		ret = saveBinaryObjectInfo(theStream, geol_PoliProfile);
+	}
+	if (ret) {
+		int containersNum = getNumOfContainers();
+		theStream -> write((char*)(&containersNum), sizeof(int));
+		for (GEOL_Container *container = getFirstContainer() ; container && ret ; container = getNextContainer(container)) {
+			ret = container -> SaveBinary(theStream);
+		}
+		
+		int entitiesNum = getNumOfEntities();
+		theStream -> write((char*)(&entitiesNum), sizeof(int));
+		for (GEOL_Entity *entity = getFirstEntity() ; entity && ret ; entity = getNextEntity(entity)) {
+			ret = entity -> SaveBinary(theStream);
+		}
+	}
+	if (ret) {
+		ret = !theStream -> bad();
+	}
+	
+	GEOL_AttributeValue attrVal;
+	attrVal.GEOL_AttrVoidValue = NULL;
+	addAttribute(attrVal, GEOL_AttrVoid, "saved");
+
+	return ret;
+}
+
+bool GEOL_PoliProfile::LoadISO(std::ifstream *theStream) {
+	if (!theStream)
+		return false;
+
+	return false;
+}
+

@@ -30,6 +30,11 @@ public:
 protected:
 	GEOL_Profile();
 	~GEOL_Profile();
+
+	virtual bool LoadBinary(std::ifstream *theStream);
+	virtual bool SaveBinary(std::ofstream *theStream);
+	virtual bool LoadISO(std::ifstream *theStream);
+
 };
 
 

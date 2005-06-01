@@ -48,6 +48,10 @@ protected:
 	GEOL_Point(const GEOL_Point& thePoint);
 	GEOL_Point(double theXCoord, double theYCoord);
 	~GEOL_Point();
+	
+	virtual bool LoadBinary(std::ifstream *theStream);
+	virtual bool SaveBinary(std::ofstream *theStream);
+	virtual bool LoadISO(std::ifstream *theStream);
 };
 
 
