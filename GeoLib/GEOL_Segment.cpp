@@ -50,16 +50,16 @@ GEOL_Segment::GEOL_Segment(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint) :
 Default destructor
 */
 GEOL_Segment::~GEOL_Segment() {
-	if (mBegin) {
-		GEOL_Point *beginPoint = (GEOL_Point*)(getBeginEntity());		
+	GEOL_Point *beginPoint = (GEOL_Point*)(getBeginEntity());		
+	GEOL_Point *endPoint = (GEOL_Point*)(getEndEntity());
+	if (beginPoint) {
 		getContext() -> deletePoint(beginPoint);
-		mBegin = 0.0;
 	}
-	if (mEnd) {
-		GEOL_Point *endPoint = (GEOL_Point*)(getEndEntity());
+	if (endPoint) {
 		getContext() -> deletePoint(endPoint);
-		mEnd = 0.0;
 	}
+	mBegin = 0.0;
+	mEnd = 0.0;
 	mLength = 0.0;
 }
 
@@ -139,11 +139,11 @@ double GEOL_Segment::angleWith(const GEOL_Segment& theSegment) const {
 	double thisAngle = angle();
 	double segmentAngle = theSegment.angle();
 	double angleDiff = thisAngle - segmentAngle;
-	if (angleDiff < - M_PI) {
-		angleDiff += 2.0 * M_PI;
+	if (angleDiff < - GEOL_PI) {
+		angleDiff += 2.0 * GEOL_PI;
 	}
-	else if (angleDiff > M_PI) {
-		angleDiff -= 2.0 * M_PI;
+	else if (angleDiff > GEOL_PI) {
+		angleDiff -= 2.0 * GEOL_PI;
 	}
 	
 	return angleDiff;
@@ -218,4 +218,71 @@ bool GEOL_Segment::operator!=(const GEOL_Segment& theSegment) const {
 
 
 
+bool GEOL_Segment::LoadBinary(std::ifstream *theStream) {
+	if (!theStream)
+		return false;
+
+	GEOL_ObjectType objType = geol_Point;
+
+	bool ret = !theStream -> bad();
+	if (ret) {
+		GEOL_Context *context = getContext();
+				
+		ret = context -> loadBinaryObjectType(theStream, objType);
+		if (ret && objType == geol_Point) {
+			GEOL_Point *pt1 = context -> createPoint();
+			ret = ((GEOL_Entity*)pt1) -> LoadBinary(theStream);
+			if (ret) {
+				ret = context -> loadBinaryObjectType(theStream, objType);
+				if (ret && objType == geol_Point) {
+					GEOL_Point *pt2 = context -> createPoint();
+					ret = ((GEOL_Entity*)pt2) -> LoadBinary(theStream);
+					if (ret) {
+						setBeginEntity(pt1);
+						setEndEntity(pt2);
+						theStream -> read((char*)(&mLength), sizeof(double));
+						ret = !theStream -> bad();
+					}
+				}
+			}
+		}
+	}
+
+	return ret;
+}
+
+bool GEOL_Segment::SaveBinary(std::ofstream *theStream) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+	if (ret) {
+		ret = saveBinaryObjectInfo(theStream, geol_Segment);
+		if (ret) {
+			ret = ((GEOL_Entity*)getBeginEntity()) -> SaveBinary(theStream);
+			if (ret) {
+				ret = ((GEOL_Entity*)getEndEntity()) -> SaveBinary(theStream);
+				if (ret) {
+					theStream -> write((char*)(&mLength), sizeof(double));
+				}			
+			}
+		}
+	}
+	if (ret) {
+		ret = !theStream -> bad();
+	}
+	
+	GEOL_AttributeValue attrVal;
+	attrVal.GEOL_AttrVoidValue = NULL;
+	addAttribute(attrVal, GEOL_AttrVoid, "saved");
+
+	return ret;
+}
+
+bool GEOL_Segment::LoadISO(std::ifstream *theStream) {
+	if (!theStream)
+		return false;
+
+	return false;
+}
 

@@ -57,6 +57,10 @@ protected:
 	GEOL_Segment(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint);
 	~GEOL_Segment();
 
+	virtual bool LoadBinary(std::ifstream *theStream);
+	virtual bool SaveBinary(std::ofstream *theStream);
+	virtual bool LoadISO(std::ifstream *theStream);
+
 private:
 	/*!
 	Length of the segment
