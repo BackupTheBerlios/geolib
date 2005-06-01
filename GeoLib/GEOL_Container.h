@@ -38,6 +38,10 @@ public:
 	void removeAllEntities();
 	void removeAllContainers();
 	
+	int getNumOfEntities();
+	int getNumOfContainers();
+	int getNumOfObjects();
+	
 	GEOL_Entity* getFirstEntity();
 	GEOL_Entity* getNextEntity(const GEOL_Entity *theEntity);
 	GEOL_Entity* getPrevEntity(const GEOL_Entity *theEntity);

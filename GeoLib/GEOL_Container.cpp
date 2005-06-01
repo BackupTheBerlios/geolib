@@ -409,3 +409,30 @@ bool GEOL_Container::notifyDestruction(GEOL_Object *theObject) {
 	return ret;
 }
 
+
+/*!
+\return
+The number of entities in the container
+*/
+int GEOL_Container::getNumOfEntities() {
+	return pEntityList.size();
+}
+
+
+/*!
+\return
+The number of other containers in the container
+*/
+int GEOL_Container::getNumOfContainers() {
+	return pContainerList.size();
+}
+
+
+/*!
+\return
+The total number of objects in the container
+*/
+int GEOL_Container::getNumOfObjects() {
+	return pEntityList.size() + pContainerList.size();
+}
+
