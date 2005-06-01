@@ -76,16 +76,16 @@ GEOL_Arc::GEOL_Arc(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint, double th
 Default destructor
 */
 GEOL_Arc::~GEOL_Arc() {
-	if (mBegin) {
-		GEOL_Point *beginPoint = (GEOL_Point*)(getBeginEntity());
+	GEOL_Point *beginPoint = (GEOL_Point*)(getBeginEntity());
+	GEOL_Point *endPoint = (GEOL_Point*)(getEndEntity());
+	if (beginPoint) {
 		getContext() -> deletePoint(beginPoint);
-		mBegin = 0.0;
 	}
-	if (mEnd) {
-		GEOL_Point *endPoint = (GEOL_Point*)(getEndEntity());
+	if (endPoint) {
 		getContext() -> deletePoint(endPoint);
-		mEnd = 0.0;
 	}
+	mBegin = 0.0;
+	mEnd = 0.0;
 	mRadius = 0.0;
 }
 
@@ -366,3 +366,72 @@ bool GEOL_Arc::operator!=(const GEOL_Arc& theArc) const {
 }
 
 
+bool GEOL_Arc::LoadBinary(std::ifstream *theStream) {
+	if (!theStream)
+		return false;
+
+	GEOL_ObjectType objType = geol_Point;
+
+	bool ret = !theStream -> bad();
+	if (ret) {
+		GEOL_Context *context = getContext();
+		
+		ret = context -> loadBinaryObjectType(theStream, objType);
+		if (ret && objType == geol_Point) {
+			GEOL_Point *pt1 = context -> createPoint();
+			ret = ((GEOL_Entity*)pt1) -> LoadBinary(theStream);
+			if (ret) {
+				ret = context -> loadBinaryObjectType(theStream, objType);
+				if (ret && objType == geol_Point) {
+					GEOL_Point *pt2 = context -> createPoint();
+					ret = ((GEOL_Entity*)pt2) -> LoadBinary(theStream);
+					if (ret) {
+						setBeginEntity(pt1);
+						setEndEntity(pt2);
+						theStream -> read((char*)(&mRadius), sizeof(double));
+						theStream -> read((char*)(&mLength), sizeof(double));
+						ret = !theStream -> bad();
+					}
+				}
+			}
+		}
+	}
+
+	return ret;
+}
+
+bool GEOL_Arc::SaveBinary(std::ofstream *theStream) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+	if (ret) {
+		ret = saveBinaryObjectInfo(theStream, geol_Arc);
+		if (ret) {
+			ret = ((GEOL_Entity*)getBeginEntity()) -> SaveBinary(theStream);
+			if (ret) {
+				ret = ((GEOL_Entity*)getEndEntity()) -> SaveBinary(theStream);
+				if (ret) {
+					theStream -> write((char*)(&mRadius), sizeof(double));
+					theStream -> write((char*)(&mLength), sizeof(double));
+				}			
+			}
+		}
+	}
+	if (ret) {
+		ret = !theStream -> bad();
+	}
+	
+	GEOL_AttributeValue attrVal;
+	attrVal.GEOL_AttrVoidValue = NULL;
+	addAttribute(attrVal, GEOL_AttrVoid, "saved");
+
+	return ret;
+}
+
+bool GEOL_Arc::LoadISO(std::ifstream *theStream) {
+	if (!theStream)
+		return false;
+
+	return false;
+}

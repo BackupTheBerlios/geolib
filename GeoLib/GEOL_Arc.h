@@ -78,6 +78,10 @@ protected:
 	GEOL_Arc(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint, double theRadius, GEOL_ArcVersus theVersus);
 	~GEOL_Arc();
 
+	virtual bool LoadBinary(std::ifstream *theStream);
+	virtual bool SaveBinary(std::ofstream *theStream);
+	virtual bool LoadISO(std::ifstream *theStream);
+
 private:
 	double computeLength() const;
 
