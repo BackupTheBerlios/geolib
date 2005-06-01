@@ -20,6 +20,7 @@
 #define GEOL_OBJECT_H
 
 #include "GEOL_Attribute.h"
+#include "GEOL_Persistency.h"
 
 class GEOL_Context;
 
@@ -27,7 +28,7 @@ class GEOL_Context;
 This abstract class is the abstraction of a geometrical object, at this level all abjects within a context has the
 same properties and functionalities, all the aspects common to all objects is managed within this class.
 */
-class GEOL_Object {
+class GEOL_Object : public GEOL_Persistency {
 public:
 	GEOL_Object();
 	virtual ~GEOL_Object() = 0;
@@ -37,7 +38,7 @@ public:
 	
 	virtual bool notifyDestruction(GEOL_Object *theObject) = 0;
 	
-	bool addAttribute(void *theAttrValue, GEOL_AttributeType theAttrType, char *theAttrID);
+	bool addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, char *theAttrID);
 	bool addAttribute(GEOL_Attribute *theAttr);
 	bool removeAttribute(char *theAttrID);
 	bool removeAttribute(GEOL_Attribute *theAttr);
@@ -55,6 +56,10 @@ public:
 	unsigned char getRefCount();
 	bool incRefCount();
 	bool decRefCount();
+
+protected:
+	bool saveBinaryObjectInfo(std::ofstream *theStream, GEOL_ObjectType theObjectType);
+
 private:
 	/*!
 	Pointer to the context that owns the object

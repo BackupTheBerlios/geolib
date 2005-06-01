@@ -48,7 +48,7 @@ Id of the new attribute
 - true if the new attribute is correctly added to the list
 - false otherwise
 */
-bool GEOL_Object::addAttribute(void *theAttrValue, GEOL_AttributeType theAttrType, char *theAttrID) {
+bool GEOL_Object::addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, char *theAttrID) {
 	if (!theAttrID)
 		return false;
 	
@@ -319,6 +319,33 @@ bool GEOL_Object::decRefCount() {
 	if (mRefCount > 0) {
 		mRefCount--;
 		ret = true;
+	}
+	
+	return ret;
+}
+
+
+
+
+bool GEOL_Object::saveBinaryObjectInfo(std::ofstream *theStream, GEOL_ObjectType theObjectType) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+	if (ret) {
+		int objType = (int)theObjectType;
+		theStream -> write((char*)(&objType), sizeof(int));
+
+		ret = !theStream -> bad();
+	}
+	
+	if (ret) {
+		int attrNum = getAttributesNum();
+	
+		theStream -> write((char*)(&attrNum), sizeof(int));
+		for (GEOL_Attribute *attribute = getFirstAttribute() ; attribute && ret ; attribute = getNextAttribute(attribute)) {
+			ret = attribute -> SaveBinary(theStream);
+		}
 	}
 	
 	return ret;
