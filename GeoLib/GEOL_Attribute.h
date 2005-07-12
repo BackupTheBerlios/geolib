@@ -80,7 +80,7 @@ private:
 	/*!
 	Id of the attribute, used to distinguish between many attributes of the same type, must be unique
 	*/
-	char mAttrID[4];
+	char mAttrID[5];
 
 };
 
