@@ -390,7 +390,7 @@ bool GEOL_Arc::LoadBinary(std::ifstream *theStream) {
 						setEndEntity(pt2);
 						theStream -> read((char*)(&mRadius), sizeof(double));
 						theStream -> read((char*)(&mLength), sizeof(double));
-						ret = !theStream -> bad();
+						ret = laodBinaryObjectAttributes(theStream);
 					}
 				}
 			}
@@ -414,6 +414,7 @@ bool GEOL_Arc::SaveBinary(std::ofstream *theStream) {
 				if (ret) {
 					theStream -> write((char*)(&mRadius), sizeof(double));
 					theStream -> write((char*)(&mLength), sizeof(double));
+					ret = saveBinaryObjectAttributes(theStream);
 				}			
 			}
 		}
