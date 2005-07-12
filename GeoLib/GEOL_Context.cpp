@@ -319,6 +319,8 @@ bool GEOL_Context::removeObject(GEOL_Object *theObject) {
 	else {
 		GEOL_Object *toDel = *objectIt;
 		
+		toDel -> removeAllAttributes();
+
 		if (dynamic_cast<GEOL_Point*>(toDel)) {
 			deletePoint((GEOL_Point*)toDel);
 		}
@@ -347,6 +349,8 @@ void GEOL_Context::removeAllObjects() {
 	for (objectIt = pObjectList.begin() ; objectIt != pObjectList.end() ; ) {
 		GEOL_Object *toDel = *objectIt;
 		objectIt++;
+		
+		toDel -> removeAllAttributes();
 		
 		bool deleteFlag = false;
 		if (dynamic_cast<GEOL_Segment*>(toDel)) {
