@@ -241,7 +241,7 @@ bool GEOL_Segment::LoadBinary(std::ifstream *theStream) {
 						setBeginEntity(pt1);
 						setEndEntity(pt2);
 						theStream -> read((char*)(&mLength), sizeof(double));
-						ret = !theStream -> bad();
+						ret = laodBinaryObjectAttributes(theStream);
 					}
 				}
 			}
@@ -264,6 +264,7 @@ bool GEOL_Segment::SaveBinary(std::ofstream *theStream) {
 				ret = ((GEOL_Entity*)getEndEntity()) -> SaveBinary(theStream);
 				if (ret) {
 					theStream -> write((char*)(&mLength), sizeof(double));
+					ret = saveBinaryObjectAttributes(theStream);
 				}			
 			}
 		}

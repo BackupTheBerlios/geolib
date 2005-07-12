@@ -174,6 +174,7 @@ bool GEOL_Point::LoadBinary(std::ifstream *theStream) {
 		if (ret) {
 			x(xCoord);
 			y(yCoord);
+			ret = laodBinaryObjectAttributes(theStream);
 		}	
 	}
 	return ret;
@@ -203,12 +204,14 @@ bool GEOL_Point::SaveBinary(std::ofstream *theStream) {
 		double yCoord = y();
 		theStream -> write((char*)(&xCoord), sizeof(double));
 		theStream -> write((char*)(&yCoord), sizeof(double));
-		ret = !theStream -> bad();	
+		ret = saveBinaryObjectAttributes(theStream);		
 	}
 
-	GEOL_AttributeValue attrVal;
-	attrVal.GEOL_AttrVoidValue = NULL;
-	addAttribute(attrVal, GEOL_AttrVoid, "saved");
+	if (ret) {
+		GEOL_AttributeValue attrVal;
+		attrVal.GEOL_AttrVoidValue = NULL;
+		addAttribute(attrVal, GEOL_AttrVoid, "saved");
+	}
 
 	return ret;
 }

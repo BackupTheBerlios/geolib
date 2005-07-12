@@ -122,6 +122,7 @@ bool GEOL_PoliProfile::LoadBinary(std::ifstream *theStream) {
 					ret = addEntity(newEntity);
 				}
 			}
+			ret = laodBinaryObjectAttributes(theStream);		
 		}
 	}
 	if (ret) {
@@ -151,6 +152,7 @@ bool GEOL_PoliProfile::SaveBinary(std::ofstream *theStream) {
 		for (GEOL_Entity *entity = getFirstEntity() ; entity && ret ; entity = getNextEntity(entity)) {
 			ret = entity -> SaveBinary(theStream);
 		}
+		ret = saveBinaryObjectAttributes(theStream);
 	}
 	if (ret) {
 		ret = !theStream -> bad();

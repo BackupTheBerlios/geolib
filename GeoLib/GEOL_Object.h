@@ -59,6 +59,8 @@ public:
 
 protected:
 	bool saveBinaryObjectInfo(std::ofstream *theStream, GEOL_ObjectType theObjectType);
+	bool saveBinaryObjectAttributes(std::ofstream *theStream);
+	bool laodBinaryObjectAttributes(std::ifstream *theStream);
 
 private:
 	/*!

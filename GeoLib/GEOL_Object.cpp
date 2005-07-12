@@ -24,6 +24,7 @@
 GEOL_Object::GEOL_Object() {
 	mContext = NULL;
 	mRefCount = 0;
+	attributeIt = pAttributeList.begin();
 }
 
 
@@ -338,7 +339,16 @@ bool GEOL_Object::saveBinaryObjectInfo(std::ofstream *theStream, GEOL_ObjectType
 
 		ret = !theStream -> bad();
 	}
-	
+
+	return ret;
+}
+
+
+bool GEOL_Object::saveBinaryObjectAttributes(std::ofstream *theStream) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
 	if (ret) {
 		int attrNum = getAttributesNum();
 	
@@ -351,4 +361,25 @@ bool GEOL_Object::saveBinaryObjectInfo(std::ofstream *theStream, GEOL_ObjectType
 	return ret;
 }
 
+bool GEOL_Object::laodBinaryObjectAttributes(std::ifstream *theStream) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+	if (ret) {
+		int attrNum = 0;
+		theStream -> read((char*)(&attrNum), sizeof(int));
+		
+		ret = !theStream -> bad();
+		if (ret && attrNum > 0) {
+			for (int i = 0 ; ret && i < attrNum ; i++) {
+				GEOL_Attribute *newAttr = new GEOL_Attribute;
+				newAttr -> LoadBinary(theStream);
+				ret = addAttribute(newAttr);
+			}
+		}
+	}
+	
+	return ret;
+}
 
