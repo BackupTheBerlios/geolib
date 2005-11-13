@@ -31,10 +31,7 @@ class GEOL_Container : public GEOL_Object {
 public:
 	GEOL_Container();
 	virtual ~GEOL_Container() = 0;
-	
-	bool addEntity(GEOL_Entity *theNewEntity);
-	bool removeEntity(GEOL_Entity *theEntity);
-	
+
 	void removeAllEntities();
 	void removeAllContainers();
 	
@@ -58,9 +55,11 @@ public:
 	bool isContained(const GEOL_Entity *theEntity) const;
 	bool isContained(const GEOL_Container *theContainer) const;
 	
-	bool notifyDestruction(GEOL_Object *theObject);
+	virtual bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) = 0;
 
-private:
+protected:
+	bool addEntity(GEOL_Entity *theNewEntity);
+	bool removeEntity(GEOL_Entity *theEntity);
 	bool checkForContainmentCycles();
 
 	/*!
@@ -97,7 +96,7 @@ inline GEOL_Entity* GEOL_Container::getFirstEntity() {
 		entityIt = pEntityList.begin();
 		return pEntityList.front();
 	}
-};
+}
 
 
 /*!
@@ -112,7 +111,7 @@ inline GEOL_Entity* GEOL_Container::getLastEntity() {
 		entityIt = pEntityList.end();
 		return pEntityList.back();
 	}
-};
+}
 
 
 /*!
@@ -127,7 +126,7 @@ inline GEOL_Container* GEOL_Container::getFirstContainer() {
 		containerIt = pContainerList.begin();
 		return pContainerList.front();
 	}
-};
+}
 
 
 /*!
@@ -142,7 +141,7 @@ inline GEOL_Container* GEOL_Container::getLastContainer() {
 		containerIt = pContainerList.end();
 		return pContainerList.back();
 	}
-};
+}
 
 
 

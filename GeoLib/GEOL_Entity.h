@@ -29,13 +29,16 @@ public:
 	GEOL_Entity();
 	virtual ~GEOL_Entity() = 0;
 	
+	bool operator==(const GEOL_Entity& theEntity) const;
+	bool operator!=(const GEOL_Entity& theEntity) const;
+
 	const GEOL_Entity* getBeginEntity() const;
 	const GEOL_Entity* getEndEntity() const;
 
 	void setBeginEntity(GEOL_Entity *theBegin);
 	void setEndEntity(GEOL_Entity *theEnd);
 	
-	bool notifyDestruction(GEOL_Object *theObject);
+	virtual bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) = 0;
 	
 	virtual bool isEndPoint(const GEOL_Entity *theEntity) = 0;
 

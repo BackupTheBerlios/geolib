@@ -372,42 +372,6 @@ bool GEOL_Container::checkForContainmentCycles() {
 }
 
 
-/*!
-Remove the object passed from the list of object contained
-
-\param theObject
-Object that will be destroyed
-
-\return
-- true if the notification is correctly carried out
-- false otherwise, or it theObject is NULL
-*/
-bool GEOL_Container::notifyDestruction(GEOL_Object *theObject) {
-	if (!theObject)
-		return false;
-	
-	bool ret = true;
-	
-	list<GEOL_Container*>::const_iterator contIt;
-	for (contIt = pContainerList.begin() ; ret && contIt != pContainerList.end() ; ) {
-		GEOL_Container *cont = *contIt;
-		contIt++;
-		if ((GEOL_Object*)cont == theObject) {
-			ret = removeContainer(cont);
-		}
-	}
-	
-	list<GEOL_Entity*>::const_iterator entIt;
-	for (entIt = pEntityList.begin() ; ret && entIt != pEntityList.end() ; ) {
-		GEOL_Entity *ent = *entIt;
-		entIt++;
-		if ((GEOL_Object*)ent == theObject) {
-			ret = removeEntity(ent);
-		}
-	}
-	
-	return ret;
-}
 
 
 /*!

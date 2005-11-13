@@ -18,6 +18,10 @@
 
 #include "GEOL_Prefix.h"
 
+#include "GEOL_Point.h"
+#include "GEOL_Segment.h"
+#include "GEOL_Arc.h"
+
 #include "GEOL_Entity.h"
 
 
@@ -33,6 +37,50 @@ GEOL_Entity::~GEOL_Entity() {
 	mEnd = 0.0;
 }
 
+
+/*!
+Equality operator, two entities are equal if they are of the same type and are equal
+
+\param theEntity
+Entity to compare with this
+
+\return
+- true if the entities are equal
+- false otherwise
+*/
+bool GEOL_Entity::operator==(const GEOL_Entity& theEntity) const {
+	bool ret = false;
+	
+	GEOL_Entity *thisEntity = (GEOL_Entity*)this;
+	GEOL_Entity *entity = (GEOL_Entity*)(&theEntity);
+	if (dynamic_cast<GEOL_Point*>(thisEntity) && dynamic_cast<GEOL_Point*>(entity)) {
+		if ((*((GEOL_Point*)thisEntity)) == (*((GEOL_Point*)entity))) {
+			ret = true;
+		}
+	}
+	else if (dynamic_cast<GEOL_Segment*>(thisEntity) && dynamic_cast<GEOL_Segment*>(entity)) {
+		if ((*((GEOL_Segment*)thisEntity)) == (*((GEOL_Segment*)entity))) {
+			ret = true;
+		}
+	}
+	else if (dynamic_cast<GEOL_Arc*>(thisEntity) && dynamic_cast<GEOL_Arc*>(entity)) {
+		if ((*((GEOL_Arc*)thisEntity)) == (*((GEOL_Arc*)entity))) {
+			ret = true;
+		}
+	}
+	
+	return ret;
+}
+
+
+/*!
+Inequality operator
+
+\sa operator==(const GEOL_Entity& theEntity)
+*/
+bool GEOL_Entity::operator!=(const GEOL_Entity& theEntity) const {
+	return !((*this) == theEntity);
+}
 
 
 
@@ -102,22 +150,4 @@ void GEOL_Entity::setEndEntity(GEOL_Entity *theEnd) {
 	}
 }
 
-
-/*!
-Entities is unaffected by the destruction of other objects, so this method does nothing except the check of
-parameters correctness
-
-\param theObject
-The object that will be destroyed
-
-\return
-- true if theObject is non null
-- false otherwise
-*/
-bool GEOL_Entity::notifyDestruction(GEOL_Object *theObject) {
-	if (theObject)
-		return true;
-	else
-		return false;
-}
 
