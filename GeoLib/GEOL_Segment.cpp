@@ -53,10 +53,10 @@ GEOL_Segment::~GEOL_Segment() {
 	GEOL_Point *beginPoint = (GEOL_Point*)(getBeginEntity());		
 	GEOL_Point *endPoint = (GEOL_Point*)(getEndEntity());
 	if (beginPoint) {
-		getContext() -> deletePoint(beginPoint);
+		getContext() -> deleteObject(beginPoint);
 	}
 	if (endPoint) {
-		getContext() -> deletePoint(endPoint);
+		getContext() -> deleteObject(endPoint);
 	}
 	mBegin = 0.0;
 	mEnd = 0.0;
@@ -164,6 +164,22 @@ bool GEOL_Segment::isEndPoint(const GEOL_Entity *theEntity) {
 	bool ret = false;
 	if (theEntity == getBeginEntity() || theEntity == getEndEntity()) {
 		ret = true;
+	}
+	
+	return ret;
+}
+
+
+/*!
+*/
+bool GEOL_Segment::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) {
+	theDestroyFlag = false;
+	if (!theObject)
+		return false;
+		
+	bool ret = true;
+	if (isEndPoint((GEOL_Entity*)theObject)) {
+		theDestroyFlag = true;
 	}
 	
 	return ret;

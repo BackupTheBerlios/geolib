@@ -22,11 +22,14 @@
 #include "GEOL_Container.h"
 
 /*!
-Description
 */
 class GEOL_PoliProfile : public GEOL_Container {
 friend class GEOL_Context;
 public:
+	bool addEntity(GEOL_Entity *theNewEntity);
+
+	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
+
 protected:
 	GEOL_PoliProfile();
 	~GEOL_PoliProfile();

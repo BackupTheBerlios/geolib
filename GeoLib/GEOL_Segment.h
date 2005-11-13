@@ -50,6 +50,7 @@ public:
 	*/
 	double length() const { return mLength; }
 	
+	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 	bool isEndPoint(const GEOL_Entity *theEntity);
 
 protected:

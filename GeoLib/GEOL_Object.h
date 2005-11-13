@@ -36,7 +36,7 @@ public:
 	GEOL_Context* getContext();
 	void setContext(GEOL_Context *theContext);
 	
-	virtual bool notifyDestruction(GEOL_Object *theObject) = 0;
+	virtual bool notifyDestruction(GEOL_Object *theObject, bool &theDestroyFlag) = 0;
 	
 	bool addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, char *theAttrID);
 	bool addAttribute(GEOL_Attribute *theAttr);
