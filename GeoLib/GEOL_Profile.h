@@ -22,14 +22,21 @@
 #include "GEOL_Container.h"
 
 /*!
-Description
 */
 class GEOL_Profile : public GEOL_Container {
 friend class GEOL_Context;
 public:
+	bool addEntityTail(GEOL_Entity *theNewEntity);
+	bool addEntityFront(GEOL_Entity *theNewEntity);
+	
+	bool isClosed();
+
+	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
+
 protected:
 	GEOL_Profile();
 	~GEOL_Profile();
+
 
 	virtual bool LoadBinary(std::ifstream *theStream);
 	virtual bool SaveBinary(std::ofstream *theStream);
