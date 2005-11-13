@@ -56,14 +56,8 @@ public:
 	GEOL_PoliProfile* createPoliProfile();
 
 	bool deleteObject(GEOL_Object *theObject, bool theNotifyFlag = false);
-	bool deletePoint(GEOL_Point *thePoint, bool theNotifyFlag = false);
-	bool deleteSegment(GEOL_Segment *theSegment, bool theNotifyFlag = false);
-	bool deleteArc(GEOL_Arc *theArc, bool theNotifyFlag = false);
-	bool deleteProfile(GEOL_Profile *theProfile, bool theNotifyFlag = false);
-	bool deletePoliProfile(GEOL_PoliProfile *thePoliProfile, bool theNotifyFlag = false);
 	
 	bool addObject(GEOL_Object *theNewObject);
-	bool removeObject(GEOL_Object *theObject);
 	
 	GEOL_Object* getFirstObject();
 	GEOL_Object* getLastObject();
@@ -83,6 +77,11 @@ public:
 	bool loadBinaryObjectType(std::ifstream *theStream, GEOL_ObjectType& theObjectType);
 
 private:
+	bool deletePoint(GEOL_Point *thePoint, bool theNotifyFlag = false);
+	bool deleteSegment(GEOL_Segment *theSegment, bool theNotifyFlag = false);
+	bool deleteArc(GEOL_Arc *theArc, bool theNotifyFlag = false);
+	bool deleteProfile(GEOL_Profile *theProfile, bool theNotifyFlag = false);
+	bool deletePoliProfile(GEOL_PoliProfile *thePoliProfile, bool theNotifyFlag = false);
 	bool notifyDestruction(GEOL_Object *theObject);
 
 	/*!
@@ -94,11 +93,21 @@ private:
 	Objects itertor
 	*/
 	list<GEOL_Object*>::iterator objectIt;
+
+	/*!
+	List of the objects remaining to delete during a delete/notify procedure, when an object is deleted
+	other objects can has to be deleted as well.
+	This list contains this objects
+	*/
+	list<GEOL_Object*> pDeletionObjList;
 };
 
 
 
-
+/*!
+\return
+The first object of the context
+*/
 inline GEOL_Object* GEOL_Context::getFirstObject() {
 	if (pObjectList.size() == 0) {
 		return NULL;
@@ -107,9 +116,13 @@ inline GEOL_Object* GEOL_Context::getFirstObject() {
 		objectIt = pObjectList.begin();
 		return pObjectList.front();
 	}
-};
+}
 
 
+/*!
+\return
+The last object of the context
+*/
 inline GEOL_Object* GEOL_Context::getLastObject() {
 	if (pObjectList.size() == 0) {
 		return NULL;
@@ -118,7 +131,7 @@ inline GEOL_Object* GEOL_Context::getLastObject() {
 		objectIt = pObjectList.end();
 		return pObjectList.back();
 	}
-};
+}
 
 
 #endif

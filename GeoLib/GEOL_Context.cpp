@@ -29,6 +29,8 @@
 
 
 GEOL_Context::GEOL_Context() {
+	pObjectList.clear();
+	pDeletionObjList.clear();
 }
 
 /*!
@@ -39,7 +41,12 @@ GEOL_Context::~GEOL_Context() {
 }
 
 
+/*!
+Create a point with null coordinates
 
+\return
+The pointer to the new point
+*/
 GEOL_Point* GEOL_Context::createPoint() {
 	GEOL_Point *newPoint = new GEOL_Point();
 	if (newPoint)
@@ -48,6 +55,17 @@ GEOL_Point* GEOL_Context::createPoint() {
 }
 
 
+/*!
+Create a new point with the passed coordinates
+
+\param theXCoord
+Horizontal coordinate of the new point
+\param theYCoord
+Vertical coordinate of the new point
+
+\return
+The pointer to the new point
+*/
 GEOL_Point* GEOL_Context::createPoint(double theXCoord, double theYCoord) {
 	GEOL_Point *newPoint = new GEOL_Point(theXCoord, theYCoord);
 	if (newPoint)
@@ -56,6 +74,15 @@ GEOL_Point* GEOL_Context::createPoint(double theXCoord, double theYCoord) {
 }
 
 
+/*!
+Create a copy of the point passed
+
+\param thePoint
+Point to copy
+
+\return
+The pointer of the new point
+*/
 GEOL_Point* GEOL_Context::createPoint(const GEOL_Point& thePoint) {
 	GEOL_Point *newPoint = new GEOL_Point(thePoint);
 	if (newPoint)
@@ -64,6 +91,12 @@ GEOL_Point* GEOL_Context::createPoint(const GEOL_Point& thePoint) {
 }
 
 
+/*!
+Create a new segment with null points
+
+\return
+The pointer to the new segment
+*/
 GEOL_Segment* GEOL_Context::createSegment() {
 	GEOL_Segment *newSegment = new GEOL_Segment();
 	if (newSegment)
@@ -72,6 +105,17 @@ GEOL_Segment* GEOL_Context::createSegment() {
 }
 
 
+/*!
+Create a new segment coping the extreme points passed
+
+\param theBeginPoint
+Begin point of the segment
+\param theEndPoint
+End point of the segment
+
+\return
+The pointer to the new segment
+*/
 GEOL_Segment* GEOL_Context::createSegment(const GEOL_Point& theBeginPoint, const GEOL_Point& theEndPoint) {
 	if (theBeginPoint == theEndPoint) {
 		return NULL;
@@ -99,6 +143,18 @@ GEOL_Segment* GEOL_Context::createSegment(const GEOL_Point& theBeginPoint, const
 }
 
 
+
+/*!
+Create a new segment with the extreme points passed
+
+\param theBeginPoint
+Begin point of the segment
+\param theEndPoint
+End point of the segment
+
+\return
+The pointer to the new segment
+*/
 GEOL_Segment* GEOL_Context::createSegment(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint) {
 	if ((*theBeginPoint) == (*theEndPoint)) {
 		return NULL;
@@ -120,6 +176,15 @@ GEOL_Segment* GEOL_Context::createSegment(GEOL_Point* theBeginPoint, GEOL_Point*
 }
 
 
+/*!
+Create a copy of the segment passed
+
+\param theSegment
+Segment to copy
+
+\return
+The pointer to the new segment
+*/
 GEOL_Segment* GEOL_Context::createSegment(const GEOL_Segment& theSegment) {
 	GEOL_Point *newBeginPoint = new GEOL_Point(*(theSegment.begin()));
 	if (!newBeginPoint)
@@ -140,6 +205,18 @@ GEOL_Segment* GEOL_Context::createSegment(const GEOL_Segment& theSegment) {
 }
 
 
+/*!
+Create a new segment with the coordinates passed
+
+\param theXStart
+Horizontal coordinate of the segment start point
+\param theYStart
+Vertical coordinate of the segment start point
+\param theXEnd
+Horizontal coordinate of the segment end point
+\param theYEnd
+Vertical coordinate of the segment end point
+*/
 GEOL_Segment* GEOL_Context::createSegment(double theXStart, double theYStart, double theXEnd, double theYEnd) {
 	GEOL_Point *beginPoint = new GEOL_Point(theXStart, theYStart);
 	if (!beginPoint)
@@ -169,6 +246,12 @@ GEOL_Segment* GEOL_Context::createSegment(double theXStart, double theYStart, do
 }
 
 
+/*!
+Create a new arc with null points and radius
+
+\return
+The pointer to the new arc
+*/
 GEOL_Arc* GEOL_Context::createArc() {
 	GEOL_Arc *newArc = new GEOL_Arc();
 	if (newArc)
@@ -177,6 +260,21 @@ GEOL_Arc* GEOL_Context::createArc() {
 }
 
 
+/*!
+Create a new arc with the specified extreme points, radius and versus
+
+\param theBeginPoint
+Begin point of the arc
+\param theEndPoint
+End point of the arc
+\param theRadius
+Radius of the arc
+\param theVersus
+Versus of the new arc (colckwise or counterclockwise)
+
+\return
+The pointer to the new arc
+*/
 GEOL_Arc* GEOL_Context::createArc(const GEOL_Point& theBeginPoint, const GEOL_Point& theEndPoint, double theRadius, GEOL_ArcVersus theVersus) {
 	double halfPointDist = theBeginPoint.pointDistance(theEndPoint) / 2.0;
 	if (theBeginPoint == theEndPoint || (theRadius < halfPointDist && fabs(theRadius - halfPointDist) > GEOL_EQUAL_DIST)) {
@@ -204,6 +302,15 @@ GEOL_Arc* GEOL_Context::createArc(const GEOL_Point& theBeginPoint, const GEOL_Po
 }
 
 
+/*!
+Create a copy of the arc passed
+
+\param theArc
+Arc to copy
+
+\return
+The pointer to the new arc
+*/
 GEOL_Arc* GEOL_Context::createArc(const GEOL_Arc& theArc) {
 	GEOL_Point *newBeginPoint = new GEOL_Point(*(theArc.begin()));
 	if (!newBeginPoint)
@@ -226,6 +333,26 @@ GEOL_Arc* GEOL_Context::createArc(const GEOL_Arc& theArc) {
 }
 
 
+
+/*!
+Create a new arc with the specified coordinates, radius and versus
+
+\param theXStart
+Horizontal coordinate of the arc start point
+\param theYStart
+Vertical coordinate of the arc start point
+\param theXEnd
+Horizontal coordinate of the arc end point
+\param theYEnd
+Vertical coordinate of the arc end point
+\param theRadius
+Radius of the arc
+\param theVersus
+Versus of the new arc (colckwise or counterclockwise)
+
+\return
+The pointer to the new arc
+*/
 GEOL_Arc* GEOL_Context::createArc(double theXStart, double theYStart, double theXEnd, double theYEnd, double theRadius, GEOL_ArcVersus theVersus) {
 	GEOL_Point *beginPoint = new GEOL_Point(theXStart, theYStart);
 	if (!beginPoint)
@@ -256,7 +383,12 @@ GEOL_Arc* GEOL_Context::createArc(double theXStart, double theYStart, double the
 }
 
 
+/*!
+Create a new empty profile
 
+\return
+The pointer to the new profile
+*/
 GEOL_Profile* GEOL_Context::createProfile() {
 	GEOL_Profile *newProfile = new GEOL_Profile();
 	if (newProfile)
@@ -265,6 +397,12 @@ GEOL_Profile* GEOL_Context::createProfile() {
 }
 
 	
+/*!
+Create a new empty poliprofile
+
+\return
+The pointer to the new poliprofile
+*/
 GEOL_PoliProfile* GEOL_Context::createPoliProfile() {
 	GEOL_PoliProfile *newPoliProfile = new GEOL_PoliProfile();
 	if (newPoliProfile)
@@ -305,7 +443,7 @@ The object to remove
 - true if the object has been removed correctly
 - false otherwise
 */
-bool GEOL_Context::removeObject(GEOL_Object *theObject) {
+/*bool GEOL_Context::removeObject(GEOL_Object *theObject) {
 	if (!theObject)
 		return false;
 
@@ -339,7 +477,7 @@ bool GEOL_Context::removeObject(GEOL_Object *theObject) {
 	}
 	
 	return true;
-}
+}*/
 
 
 /*!
@@ -439,6 +577,7 @@ GEOL_Object* GEOL_Context::getPrevObject(const GEOL_Object *theObject) {
 }
 
 
+
 /*!
 Notify to all the objects within the context the imminent destruction of an object
 
@@ -459,7 +598,11 @@ bool GEOL_Context::notifyDestruction(GEOL_Object *theObject) {
 		GEOL_Object *obj = *it;
 		
 		if (obj != theObject) {
-			ret = obj -> notifyDestruction(theObject);
+			bool destroyFlag = false;
+			ret = obj -> notifyDestruction(theObject, destroyFlag);
+			if (destroyFlag) {
+				pDeletionObjList.push_back(obj);
+			}
 		}
 	}
 
@@ -469,6 +612,9 @@ bool GEOL_Context::notifyDestruction(GEOL_Object *theObject) {
 
 /*!
 Delete an object from the context, the object will be deallocated if its reference counter becomes negative
+This is the only method usable to destroy an object, the object is deleted, this deletion is notified, the
+notification procedure eventually adds other objects to delete in the pDeletionObjList list, the method ends
+when the list of objects to delete is empty
 
 \param theObject
 Object to delete
@@ -483,29 +629,38 @@ bool GEOL_Context::deleteObject(GEOL_Object *theObject, bool theNotifyFlag) {
 	if (!theObject)
 		return false;
 		
-	bool ret = false;
+	bool ret = true;
 	
-	if (ret) {
-		if (dynamic_cast<GEOL_Point*>(theObject)) {
-			ret = deletePoint((GEOL_Point*)theObject, theNotifyFlag);
+	pDeletionObjList.clear();
+	pDeletionObjList.push_back(theObject);
+	
+	for ( ; ret && !pDeletionObjList.empty() ; ) {
+		GEOL_Object *toDel = pDeletionObjList.front();
+
+		if (dynamic_cast<GEOL_Point*>(toDel)) {
+			ret = deletePoint((GEOL_Point*)toDel, theNotifyFlag);
 		}
-		else if (dynamic_cast<GEOL_Segment*>(theObject)) {
-			ret = deleteSegment((GEOL_Segment*)theObject, theNotifyFlag);
+		else if (dynamic_cast<GEOL_Segment*>(toDel)) {
+			ret = deleteSegment((GEOL_Segment*)toDel, theNotifyFlag);
 		}
-		else if (dynamic_cast<GEOL_Arc*>(theObject)) {
-			ret = deleteArc((GEOL_Arc*)theObject, theNotifyFlag);
+		else if (dynamic_cast<GEOL_Arc*>(toDel)) {
+			ret = deleteArc((GEOL_Arc*)toDel, theNotifyFlag);
 		}
-		else if (dynamic_cast<GEOL_Profile*>(theObject)) {
-			ret = deleteProfile((GEOL_Profile*)theObject, theNotifyFlag);
+		else if (dynamic_cast<GEOL_Profile*>(toDel)) {
+			ret = deleteProfile((GEOL_Profile*)toDel, theNotifyFlag);
 		}
-		else if (dynamic_cast<GEOL_PoliProfile*>(theObject)) {
-			ret = deletePoliProfile((GEOL_PoliProfile*)theObject, theNotifyFlag);
+		else if (dynamic_cast<GEOL_PoliProfile*>(toDel)) {
+			ret = deletePoliProfile((GEOL_PoliProfile*)toDel, theNotifyFlag);
 		}
 		else {
 			ret = false;
 		}
+		
+		pDeletionObjList.pop_front();
 	}
-	
+
+	pDeletionObjList.clear();
+
 	return ret;
 }
 
@@ -686,6 +841,8 @@ bool GEOL_Context::deletePoliProfile(GEOL_PoliProfile *thePoliProfile, bool theN
 }
 
 
+/*!
+*/
 bool GEOL_Context::saveContext(std::ofstream *theStream) {
 	if (!theStream)
 		return false;
