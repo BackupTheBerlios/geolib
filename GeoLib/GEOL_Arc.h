@@ -71,6 +71,7 @@ public:
 	void center(GEOL_Point &theCenter) const;
 	void center(double &theXCenter, double &theYCenter) const;
 	
+	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 	bool isEndPoint(const GEOL_Entity *theEntity);
 
 protected:
