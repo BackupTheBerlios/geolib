@@ -99,6 +99,24 @@ double GEOL_Point::originDistance() {
 }
 
 
+/*!
+Points is unaffected by the destruction of other objects, so this method does nothing except the check of
+parameters correctness
+
+\param theObject
+The object that will be destroyed
+
+\return
+- true if theObject is non null
+- false otherwise
+*/
+bool GEOL_Point::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) {
+	theDestroyFlag = false;
+	if (theObject)
+		return true;
+	else
+		return false;
+}
 
 
 

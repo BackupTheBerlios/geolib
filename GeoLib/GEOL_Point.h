@@ -41,6 +41,7 @@ public:
 	double pointDistance(const GEOL_Point* thePoint) const;
 	double originDistance();
 
+	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 	bool isEndPoint(const GEOL_Entity *theEntity) { return false; }
 	
 protected:
