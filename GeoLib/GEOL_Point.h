@@ -44,6 +44,10 @@ public:
 	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 	bool isEndPoint(const GEOL_Entity *theEntity) { return false; }
 	
+	double length() const { return 0.0; }
+
+	GEOL_BBox getBBox();
+
 protected:
 	GEOL_Point();
 	GEOL_Point(const GEOL_Point& thePoint);

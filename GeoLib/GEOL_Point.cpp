@@ -27,6 +27,7 @@ Default constructor
 GEOL_Point::GEOL_Point() : GEOL_Entity() {
 	mBegin = 0.0;
 	mEnd = 0.0;
+	mObjType = geol_Point;
 }
 
 
@@ -50,6 +51,7 @@ The Y coordinate
 GEOL_Point::GEOL_Point(double theXCoord, double theYCoord) : GEOL_Entity() {	
 	mBegin = theXCoord;
 	mEnd = theYCoord;
+	mObjType = geol_Point;
 }
 
 
@@ -59,6 +61,7 @@ Copy constructor
 GEOL_Point::GEOL_Point(const GEOL_Point& thePoint) : GEOL_Entity() {
 	mBegin = thePoint.x();
 	mEnd = thePoint.y();
+	mObjType = geol_Point;
 }
 
 
@@ -116,6 +119,12 @@ bool GEOL_Point::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag)
 		return true;
 	else
 		return false;
+}
+
+
+
+GEOL_BBox GEOL_Point::getBBox() {
+	return GEOL_BBox();
 }
 
 

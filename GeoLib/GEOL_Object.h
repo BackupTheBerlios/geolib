@@ -19,6 +19,7 @@
 #ifndef GEOL_OBJECT_H
 #define GEOL_OBJECT_H
 
+#include "GEOL_BBox.h"
 #include "GEOL_Attribute.h"
 #include "GEOL_Persistency.h"
 
@@ -36,42 +37,71 @@ public:
 	GEOL_Context* getContext();
 	void setContext(GEOL_Context *theContext);
 	
+	//************************
+	//* Notification mechanism
+	//************************
 	virtual bool notifyDestruction(GEOL_Object *theObject, bool &theDestroyFlag) = 0;
 	
-	bool addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, char *theAttrID);
+	//*******************
+	//* Object attributes
+	//*******************
+	bool addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, const char *theAttrID);
 	bool addAttribute(GEOL_Attribute *theAttr);
 	bool removeAttribute(char *theAttrID);
 	bool removeAttribute(GEOL_Attribute *theAttr);
 	void removeAllAttributes();
-	
 	GEOL_Attribute *getFirstAttribute();
 	GEOL_Attribute *getLastAttribute();
 	GEOL_Attribute *getNextAttribute(GEOL_Attribute *theAttr);
 	GEOL_Attribute *getPrevAttribute(GEOL_Attribute *theAttr);
-	
 	int getAttributesNum();
-	
 	GEOL_Attribute *getAttributeFromID(char *theAttrID);
+	virtual GEOL_BBox getBBox() = 0;
+	void setBBox(GEOL_BBox theBBox);
 	
+	//********************
+	//* Reference counting
+	//********************
 	unsigned char getRefCount();
 	bool incRefCount();
 	bool decRefCount();
+	void resetRefCount();
+	
+	//****************************
+	//* Object type identification
+	//****************************
+	bool isPoint() const;
+	bool isSegment() const;
+	bool isArc() const;
+	bool isProfile() const;
+	bool isPoliProfile() const;
+	bool isEntity() const;
+	bool isContainer() const;
 
 protected:
 	bool saveBinaryObjectInfo(std::ofstream *theStream, GEOL_ObjectType theObjectType);
 	bool saveBinaryObjectAttributes(std::ofstream *theStream);
 	bool laodBinaryObjectAttributes(std::ifstream *theStream);
 
+	/*!
+	Type of the object
+	*/
+	GEOL_ObjectType mObjType;
+
+	/*!
+	Pointer to the bounding box of the object
+	*/
+	GEOL_BBox *mBBox;
 private:
 	/*!
 	Pointer to the context that owns the object
 	*/
 	GEOL_Context *mContext;
-	
+		
 	/*!
 	Object reference counter
 	*/
-	unsigned char mRefCount;
+	unsigned char mRefCount;	
 	
 	/*!
 	List of attributes
@@ -141,11 +171,61 @@ inline GEOL_Attribute* GEOL_Object::getLastAttribute() {
 
 
 /*!
-Return the reference counter of the object
+\return
+The reference counter of the object
 */
 inline unsigned char GEOL_Object::getRefCount() {
 	return mRefCount;
 }
 
+
+/*!
+\return
+- true if the object is a point
+- false otherwise
+*/
+inline bool GEOL_Object::isPoint() const {
+	return mObjType == geol_Point;
+}
+
+
+/*!
+\return
+- true if the object is a segment
+- false otherwise
+*/
+inline bool GEOL_Object::isSegment() const {
+	return mObjType == geol_Segment;
+}
+
+
+/*!
+\return
+- true if the object is a arc
+- false otherwise
+*/
+inline bool GEOL_Object::isArc() const {
+	return mObjType == geol_Arc;
+}
+
+
+/*!
+\return
+- true if the object is a profile
+- false otherwise
+*/
+inline bool GEOL_Object::isProfile() const {
+	return mObjType == geol_Profile;
+}
+
+
+/*!
+\return
+- true if the object is a poliprofile
+- false otherwise
+*/
+inline bool GEOL_Object::isPoliProfile() const {
+	return mObjType == geol_PoliProfile;
+}
 
 #endif

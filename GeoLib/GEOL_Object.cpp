@@ -24,6 +24,8 @@
 GEOL_Object::GEOL_Object() {
 	mContext = NULL;
 	mRefCount = 0;
+	mObjType = geol_Undefined;
+	mBBox = NULL;
 	attributeIt = pAttributeList.begin();
 }
 
@@ -49,7 +51,7 @@ Id of the new attribute
 - true if the new attribute is correctly added to the list
 - false otherwise
 */
-bool GEOL_Object::addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, char *theAttrID) {
+bool GEOL_Object::addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, const char *theAttrID) {
 	if (!theAttrID)
 		return false;
 	
@@ -325,6 +327,41 @@ bool GEOL_Object::decRefCount() {
 	return ret;
 }
 
+
+
+
+/*!
+Reset the object reference counter
+*/
+void GEOL_Object::resetRefCount() {
+	mRefCount = 0;
+}
+
+bool GEOL_Object::isEntity() const {
+	if (isPoint() || isSegment() || isArc())
+		return true;
+	else
+		return false;
+}
+
+
+bool GEOL_Object::isContainer() const {
+	if (isProfile() || isPoliProfile())
+		return true;
+	else
+		return false;
+}
+
+
+
+void GEOL_Object::setBBox(GEOL_BBox theBBox) {
+	if (!mBBox) {
+		mBBox = new GEOL_BBox(theBBox);
+	}
+	else {
+		(*mBBox) = theBBox;
+	}
+}
 
 
 
