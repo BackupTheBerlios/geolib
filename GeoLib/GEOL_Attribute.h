@@ -45,7 +45,7 @@ class GEOL_Attribute : public GEOL_Persistency {
 public:
 
 	GEOL_Attribute();
-	GEOL_Attribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, char *theAttrID);
+	GEOL_Attribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, const char *theAttrID);
 	~GEOL_Attribute();
 
 	GEOL_AttributeValue getValue();

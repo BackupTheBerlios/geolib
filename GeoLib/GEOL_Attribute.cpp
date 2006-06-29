@@ -36,7 +36,7 @@ GEOL_Attribute::GEOL_Attribute() {
 /*!
 Constructor with all members passed
 */
-GEOL_Attribute::GEOL_Attribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, char *theAttrID) {
+GEOL_Attribute::GEOL_Attribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, const char *theAttrID) {
 	mValue = theAttrValue;
 	mType = theAttrType;	
 	if (theAttrID) {
