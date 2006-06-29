@@ -53,6 +53,8 @@ public:
 	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 	bool isEndPoint(const GEOL_Entity *theEntity);
 
+	GEOL_BBox getBBox();
+
 protected:
 	GEOL_Segment();
 	GEOL_Segment(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint);

@@ -28,6 +28,7 @@ Default constructor
 */
 GEOL_Segment::GEOL_Segment() : GEOL_Entity() {
 	mLength = 0.0;
+	mObjType = geol_Segment;
 }
 
 
@@ -43,6 +44,7 @@ GEOL_Segment::GEOL_Segment(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint) :
 	setBeginEntity((GEOL_Entity*)theBeginPoint);
 	setEndEntity((GEOL_Entity*)theEndPoint);
 	mLength = theBeginPoint -> pointDistance(theEndPoint);
+	mObjType = geol_Segment;
 }
 
 
@@ -52,15 +54,21 @@ Default destructor
 GEOL_Segment::~GEOL_Segment() {
 	GEOL_Point *beginPoint = (GEOL_Point*)(getBeginEntity());		
 	GEOL_Point *endPoint = (GEOL_Point*)(getEndEntity());
-	if (beginPoint) {
-		getContext() -> deleteObject(beginPoint);
-	}
-	if (endPoint) {
-		getContext() -> deleteObject(endPoint);
-	}
+
 	mBegin = 0.0;
 	mEnd = 0.0;
 	mLength = 0.0;
+
+	if (beginPoint) {
+		if (!beginPoint -> decRefCount()) {
+			getContext() -> deleteObject(beginPoint, true);
+		}
+	}
+	if (endPoint) {
+		if (!endPoint -> decRefCount()) {
+			getContext() -> deleteObject(endPoint, true);
+		}
+	}
 }
 
 
@@ -184,6 +192,36 @@ bool GEOL_Segment::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFla
 	
 	return ret;
 }
+
+
+
+GEOL_BBox GEOL_Segment::getBBox() {
+	if (!mBBox || !mBBox -> isValid()) {
+		GEOL_BBox bbox;
+		GEOL_Point *beginPoint = begin();
+		GEOL_Point *endPoint = end();
+		if (beginPoint -> x() < endPoint -> x()) {
+			bbox.setMinX(beginPoint -> x());
+			bbox.setMaxX(endPoint -> x());
+		}
+		else {
+			bbox.setMinX(endPoint -> x());
+			bbox.setMaxX(beginPoint -> x());
+		}
+		if (beginPoint -> y() < endPoint -> y()) {
+			bbox.setMinY(beginPoint -> y());
+			bbox.setMaxY(endPoint -> y());
+		}
+		else {
+			bbox.setMinY(endPoint -> y());
+			bbox.setMaxY(beginPoint -> y());
+		}
+		setBBox(bbox);
+	}
+	
+	return *mBBox;
+}
+
 
 
 /*!
