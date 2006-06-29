@@ -40,4 +40,5 @@ private:
 inline GEOL_Persistency::~GEOL_Persistency() {}
 
 
+
 #endif

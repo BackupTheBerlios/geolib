@@ -51,7 +51,7 @@ using namespace std;
 /*!
 Type of an object
 */
-typedef enum {geol_Point, geol_Segment, geol_Arc, geol_Profile, geol_PoliProfile} GEOL_ObjectType;
+typedef enum {geol_Point, geol_Segment, geol_Arc, geol_Profile, geol_PoliProfile, geol_Undefined} GEOL_ObjectType;
 /*!
 Versus of an arc
 */
