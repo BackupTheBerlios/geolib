@@ -28,6 +28,7 @@
 
 
 GEOL_Profile::GEOL_Profile() {
+	mObjType = geol_Profile;
 }
 
 
@@ -36,7 +37,7 @@ GEOL_Profile::~GEOL_Profile() {
 
 
 /*!
-Check if the profile is closed, a profile is a list of concatenated segments, so to verify its closure is enough to
+Check if the profile is closed, a profile is a list of concatenated segments, so to verify its clousure is enough to
 verify that its extreme points are equal
 
 \return
@@ -73,10 +74,10 @@ Segment or arc to add
 - true if the new segment or arc is added succesfully
 - false otherwise
 */
-bool GEOL_Profile::addEntityTail(GEOL_Entity *theNewEntity) {
+bool GEOL_Profile::addEdgeTail(GEOL_Entity *theNewEntity) {
 	if (!theNewEntity)
 		return false;
-	if (dynamic_cast<GEOL_Point*>(theNewEntity))
+	if (!theNewEntity -> isSegment() && !theNewEntity -> isArc())
 		return false;
 	if (isClosed())
 		return false;
@@ -114,10 +115,10 @@ Segment or arc to add
 - true if the new segment or arc is added succesfully
 - false otherwise
 */
-bool GEOL_Profile::addEntityFront(GEOL_Entity *theNewEntity) {
+bool GEOL_Profile::addEdgeFront(GEOL_Entity *theNewEntity) {
 	if (!theNewEntity)
 		return false;
-	if (dynamic_cast<GEOL_Point*>(theNewEntity))
+	if (!theNewEntity -> isSegment() && !theNewEntity -> isArc())
 		return false;
 	if (isClosed())
 		return false;
@@ -144,6 +145,154 @@ bool GEOL_Profile::addEntityFront(GEOL_Entity *theNewEntity) {
 }
 
 
+/*!
+Remove and destroy a segment/arc from the profile, the resulting profile can be reshaped extendig the adiacent
+segments to keep the profile "connection"
+
+\param theEntity
+Entity (segment or arc) to remove
+\param theReshapeFlag
+If true the profile is reshaped in order to mantain its connection, that is stay close if the profile is closed
+and don't brake in many pieces.
+If false removal of a segment from a closed profile generates an open profile, and removal of a segment from an open
+profile will be allowed only from its extremity
+
+\return
+- ture if the entity is succesfully removed
+- false otherwise, removal not allowed or error
+*/
+bool GEOL_Profile::removeEdge(GEOL_Entity *theEntity, bool theReshapeFlag) {
+	if (!theEntity)
+		return false;
+		
+	return releaseEdgeAndReshape(theEntity, theReshapeFlag, true);
+}
+
+
+
+/*!
+Remove all the edges from profile, destroy them if its reference counter is 0
+*/
+void GEOL_Profile::removeAllEdges() {
+	return removeAllEntities();
+}
+
+
+
+/*!
+Detach a segment/arc from the profile, the resulting profile can be reshaped extendig the adiacent
+segments to keep the profile "connection"
+
+\param theEntity
+Entity (segment or arc) to detach
+\param theReshapeFlag
+If true the profile is reshaped in order to mantain its connection, that is stay close if the profile is closed
+and don't brake in many pieces.
+If false removal of a segment from a closed profile generates an open profile, and removal of a segment from an open
+profile will be allowed only from its extremity
+
+\return
+- ture if the entity is succesfully detached
+- false otherwise, detach not allowed or error
+*/
+bool GEOL_Profile::detachEdge(GEOL_Entity *theEntity, bool theReshapeFlag) {
+	if (!theEntity)
+		return false;
+		
+	return releaseEdgeAndReshape(theEntity, theReshapeFlag, false);
+}
+
+
+/*!
+Remove or detach a entity from the profile and reshepe the profile
+
+\param theEntity
+Entity to remove or detach
+\param theReshapeFlag
+If true the profile is reshaped after removal
+\param theRemoveFlag
+If true the entity is removed from the profile, if false the entity is simply detached
+
+\return
+- ture if the entity is succesfully removed/detached
+- false otherwise, remove/detach not allowed or error
+*/
+bool GEOL_Profile::releaseEdgeAndReshape(GEOL_Entity *theEntity, bool theReshapeFlag, bool theRemoveFlag) {
+	if (!theEntity)
+		return false;
+	
+	bool closedFlag = isClosed();
+	
+	// Removal/Detach not allowed
+	if (closedFlag && theReshapeFlag && getNumOfEntities() <= 3) {
+		return false;
+	}
+	
+	// Search the entity to remove/detach within the profile
+	GEOL_Entity *prevEntity = NULL;
+	if (closedFlag) {
+		prevEntity = getLastEntity();
+	}
+	bool foundFlag = false;
+	for (mEntityIt = pEntityList.begin() ; !foundFlag && mEntityIt != pEntityList.end() ; mEntityIt++) {
+		if (*mEntityIt == theEntity) {
+			foundFlag = true;
+		}
+		else {
+			prevEntity = *mEntityIt;
+		}
+	}
+	
+	// Entity not found
+	if (!foundFlag) {
+		return false;
+	}
+	
+	bool ret = false;
+	if (theReshapeFlag) {
+		GEOL_Entity *nextEntity = NULL;
+		mEntityIt++;
+		if (mEntityIt != pEntityList.end()) {
+			nextEntity = *mEntityIt;
+		}
+		else {
+			if (closedFlag) {
+				nextEntity = getFirstEntity();
+			}
+		}
+		
+		// Remove/Detach the entity and reshape the profile
+		if (theRemoveFlag) {
+			ret = removeEntity(theEntity);
+		}
+		else {
+			ret = detachEntity(theEntity);
+		}
+		if (ret) {
+			if (prevEntity && nextEntity) {
+				assert(prevEntity != nextEntity);
+				*((GEOL_Point*)(prevEntity -> getEndEntity())) = *((GEOL_Point*)(nextEntity -> getBeginEntity()));
+			}
+		}
+	}
+	else {
+		// Removal/Detach not allowed
+		if (!closedFlag && theEntity != getLastEntity() && theEntity != getFirstEntity()) {
+			ret = false;
+		}
+		else {
+			// Remove/Detach the entity
+			if (theRemoveFlag) {
+				ret = removeEntity(theEntity);
+			}
+			else {
+				ret = detachEntity(theEntity);
+			}
+		}
+	}
+	
+	return ret;
+}
 
 
 /*!
@@ -166,6 +315,31 @@ bool GEOL_Profile::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFla
 	bool ret = true;
 	return ret;
 }
+
+
+
+double GEOL_Profile::length() const {
+	double ret = 0.0;
+	list<GEOL_Entity*>::const_iterator entityIt;
+	for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() ; entityIt++) {
+		ret += (*entityIt) -> length();
+	}
+	
+	return ret;
+}
+
+
+
+GEOL_BBox GEOL_Profile::getBBox() {
+	if (!mBBox || !mBBox -> isValid()) {
+		GEOL_BBox bbox;
+		// to do
+		setBBox(bbox);
+	}
+	
+	return *mBBox;
+}
+
 
 
 bool GEOL_Profile::LoadBinary(std::ifstream *theStream) {

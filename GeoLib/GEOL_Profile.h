@@ -26,22 +26,29 @@
 class GEOL_Profile : public GEOL_Container {
 friend class GEOL_Context;
 public:
-	bool addEntityTail(GEOL_Entity *theNewEntity);
-	bool addEntityFront(GEOL_Entity *theNewEntity);
+	bool addEdgeTail(GEOL_Entity *theNewEntity);
+	bool addEdgeFront(GEOL_Entity *theNewEntity);
+	
+	bool removeEdge(GEOL_Entity *theEntity, bool theReshapeFlag);
+	bool detachEdge(GEOL_Entity *theEntity, bool theReshapeFlag);
+	void removeAllEdges();
 	
 	bool isClosed();
+	double length() const;
 
 	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
+
+	GEOL_BBox getBBox();
 
 protected:
 	GEOL_Profile();
 	~GEOL_Profile();
-
+	
+	bool releaseEdgeAndReshape(GEOL_Entity *theEntity, bool theReshapeFlag, bool theRemoveFlag);
 
 	virtual bool LoadBinary(std::ifstream *theStream);
 	virtual bool SaveBinary(std::ofstream *theStream);
 	virtual bool LoadISO(std::ifstream *theStream);
-
 };
 
 
