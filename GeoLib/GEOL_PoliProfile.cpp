@@ -29,6 +29,7 @@
 
 
 GEOL_PoliProfile::GEOL_PoliProfile() {
+	mObjType = geol_PoliProfile;
 }
 
 
@@ -77,21 +78,38 @@ bool GEOL_PoliProfile::notifyDestruction(GEOL_Object *theObject, bool& theDestro
 }
 
 
-/*!
-Add a new entity to the entities list
-
-\param theNewEntity
-Entity to add
-
-\return
-- true if the new entity has been added correctly
-- false if theNewEntity is NULL
-*/
-bool GEOL_PoliProfile::addEntity(GEOL_Entity *theNewEntity) {
-	if (!theNewEntity)
+bool GEOL_PoliProfile::addProfile(GEOL_Profile *theNewProfile) {
+	if (!theNewProfile)
 		return false;
+		
+	return addContainer(theNewProfile);
+}
+
+
+bool GEOL_PoliProfile::removeProfile(GEOL_Profile *theProfile) {
+	if (!theProfile)
+		return false;
+
+	return removeContainer(theProfile);
+}
+
+
+bool GEOL_PoliProfile::detachProfile(GEOL_Profile *theProfile) {
+	if (!theProfile)
+		return false;
+
+	return detachContainer(theProfile);
+}
+
+
+GEOL_BBox GEOL_PoliProfile::getBBox() {
+	if (!mBBox || !mBBox -> isValid()) {
+		GEOL_BBox bbox;
+		// to do
+		setBBox(bbox);
+	}
 	
-	return GEOL_Container::addEntity(theNewEntity);
+	return *mBBox;
 }
 
 

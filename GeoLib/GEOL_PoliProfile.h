@@ -26,9 +26,13 @@
 class GEOL_PoliProfile : public GEOL_Container {
 friend class GEOL_Context;
 public:
-	bool addEntity(GEOL_Entity *theNewEntity);
+	bool addProfile(GEOL_Profile *theNewProfile);
+	bool removeProfile(GEOL_Profile *theProfile);
+	bool detachProfile(GEOL_Profile *theProfile);
 
 	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
+
+	GEOL_BBox getBBox();
 
 protected:
 	GEOL_PoliProfile();
