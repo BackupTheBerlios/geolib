@@ -53,17 +53,17 @@ bool GEOL_Entity::operator==(const GEOL_Entity& theEntity) const {
 	
 	GEOL_Entity *thisEntity = (GEOL_Entity*)this;
 	GEOL_Entity *entity = (GEOL_Entity*)(&theEntity);
-	if (dynamic_cast<GEOL_Point*>(thisEntity) && dynamic_cast<GEOL_Point*>(entity)) {
+	if (thisEntity -> isPoint() && entity -> isPoint()) {
 		if ((*((GEOL_Point*)thisEntity)) == (*((GEOL_Point*)entity))) {
 			ret = true;
 		}
 	}
-	else if (dynamic_cast<GEOL_Segment*>(thisEntity) && dynamic_cast<GEOL_Segment*>(entity)) {
+	else if (thisEntity -> isSegment() && entity -> isSegment()) {
 		if ((*((GEOL_Segment*)thisEntity)) == (*((GEOL_Segment*)entity))) {
 			ret = true;
 		}
 	}
-	else if (dynamic_cast<GEOL_Arc*>(thisEntity) && dynamic_cast<GEOL_Arc*>(entity)) {
+	else if (thisEntity -> isArc() && entity -> isArc()) {
 		if ((*((GEOL_Arc*)thisEntity)) == (*((GEOL_Arc*)entity))) {
 			ret = true;
 		}
@@ -127,11 +127,16 @@ Set the first entity component (x coordinate for GEOL_Point)
 Pointer to the entity to set
 */
 void GEOL_Entity::setBeginEntity(GEOL_Entity *theBegin) {
-	char *entityPtr = (char*)&theBegin;
-	char *beginPtr = (char*)&mBegin;
-	
-	for (short i = 0 ; i < 4 ; i++) {
-		*(beginPtr + i) = *(entityPtr + i);
+	if (theBegin) {
+		char *entityPtr = (char*)&theBegin;
+		char *beginPtr = (char*)&mBegin;
+		
+		for (short i = 0 ; i < 4 ; i++) {
+			*(beginPtr + i) = *(entityPtr + i);
+		}
+	}
+	else {
+		mBegin = 0.0;
 	}
 }
 
@@ -142,11 +147,16 @@ Set the second entity component (x coordinate for GEOL_Point)
 Pointer to the entity to set
 */
 void GEOL_Entity::setEndEntity(GEOL_Entity *theEnd) {
-	char *entityPtr = (char*)&theEnd;
-	char *endPtr = (char*)&mEnd;
-	
-	for (short i = 0 ; i < 4 ; i++) {
-		*(endPtr + i) = *(entityPtr + i);
+	if (theEnd) {
+		char *entityPtr = (char*)&theEnd;
+		char *endPtr = (char*)&mEnd;
+		
+		for (short i = 0 ; i < 4 ; i++) {
+			*(endPtr + i) = *(entityPtr + i);
+		}
+	}
+	else {
+		mEnd = 0.0;
 	}
 }
 

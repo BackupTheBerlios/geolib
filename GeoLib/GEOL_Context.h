@@ -36,6 +36,10 @@ public:
 	GEOL_Context();
 	~GEOL_Context();
 
+	//**********
+	//* Creation
+	//**********
+	
 	GEOL_Point* createPoint();
 	GEOL_Point* createPoint(double theXCoord, double theYCoord);
 	GEOL_Point* createPoint(const GEOL_Point& thePoint);
@@ -55,28 +59,37 @@ public:
 	
 	GEOL_PoliProfile* createPoliProfile();
 
+	//*************
+	//* Destruction
+	//*************
+
 	bool deleteObject(GEOL_Object *theObject, bool theNotifyFlag = false);
+	void removeAllObjects();
 	
-	bool addObject(GEOL_Object *theNewObject);
-	
+	//************
+	//* Navigation
+	//************
+
 	GEOL_Object* getFirstObject();
 	GEOL_Object* getLastObject();
 	GEOL_Object* getNextObject(const GEOL_Object *theObject);
 	GEOL_Object* getPrevObject(const GEOL_Object *theObject);
-	
-	/*!
-	\return
-	Number of objects in the context
-	*/
-	int getSize() { return pObjectList.size(); }
-	
-	void removeAllObjects();
+		
+	//*************
+	//* Persistency
+	//*************
 
 	bool saveContext(std::ofstream *theStream);
 	bool loadContext(std::ifstream *theStream);
 	bool loadBinaryObjectType(std::ifstream *theStream, GEOL_ObjectType& theObjectType);
 
+	/*!
+	\return
+	Number of objects in the context
+	*/
+	int getSize() { return pObjectList.size(); }
 private:
+	bool addObject(GEOL_Object *theNewObject);
 	bool deletePoint(GEOL_Point *thePoint, bool theNotifyFlag = false);
 	bool deleteSegment(GEOL_Segment *theSegment, bool theNotifyFlag = false);
 	bool deleteArc(GEOL_Arc *theArc, bool theNotifyFlag = false);
@@ -102,36 +115,6 @@ private:
 	list<GEOL_Object*> pDeletionObjList;
 };
 
-
-
-/*!
-\return
-The first object of the context
-*/
-inline GEOL_Object* GEOL_Context::getFirstObject() {
-	if (pObjectList.size() == 0) {
-		return NULL;
-	}
-	else {
-		objectIt = pObjectList.begin();
-		return pObjectList.front();
-	}
-}
-
-
-/*!
-\return
-The last object of the context
-*/
-inline GEOL_Object* GEOL_Context::getLastObject() {
-	if (pObjectList.size() == 0) {
-		return NULL;
-	}
-	else {
-		objectIt = pObjectList.end();
-		return pObjectList.back();
-	}
-}
 
 
 #endif

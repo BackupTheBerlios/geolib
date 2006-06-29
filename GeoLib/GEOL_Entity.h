@@ -21,7 +21,7 @@
 #include "GEOL_Object.h"
 
 /*!
-This abstract class rapresents the primitive geometrical objects such as points, segments and arcs, contains two pointers
+This abstract class represents the primitive geometrical objects such as points, segments and arcs, contains two pointers
 to other objects of this class, used to store the x,y coordinates for points
 */
 class GEOL_Entity : public GEOL_Object {
@@ -39,8 +39,8 @@ public:
 	void setEndEntity(GEOL_Entity *theEnd);
 	
 	virtual bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) = 0;
-	
 	virtual bool isEndPoint(const GEOL_Entity *theEntity) = 0;
+	virtual double length() const = 0;
 
 protected:
 	/*!
