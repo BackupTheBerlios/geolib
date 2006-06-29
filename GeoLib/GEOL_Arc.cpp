@@ -33,6 +33,7 @@ Default constructor
 GEOL_Arc::GEOL_Arc() : GEOL_Entity(){
 	mRadius = 0.0;
 	mLength = 0.0;
+	mObjType = geol_Arc;
 }
 
 
@@ -69,6 +70,7 @@ GEOL_Arc::GEOL_Arc(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint, double th
 		mRadius = linearLength / 2.0;
 		mLength = GEOL_PI * mRadius;
 	}
+	mObjType = geol_Arc;
 }
 
 
@@ -330,6 +332,104 @@ bool GEOL_Arc::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) {
 	}
 	
 	return ret;
+}
+
+
+
+
+GEOL_BBox GEOL_Arc::getBBox() {
+	if (!mBBox || !mBBox -> isValid()) {
+		GEOL_BBox bbox;
+		
+		GEOL_ArcVersus arcVersus = versus();
+		double xCenter = 0.0;
+		double yCenter = 0.0;
+		center(xCenter, yCenter);
+		
+		GEOL_Point *beginPoint = begin();
+		GEOL_Point *endPoint = end();
+
+		int beginQuad = -1;
+		if (beginPoint -> x() <= xCenter && beginPoint -> y() > yCenter) {
+			beginQuad = 0;
+		}
+		else if (beginPoint -> x() > xCenter && beginPoint -> y() > yCenter) {
+			beginQuad = 1;
+		}
+		else if (beginPoint -> x() > xCenter && beginPoint -> y() <= yCenter) {
+			beginQuad = 2;
+		}
+		else if (beginPoint -> x() <= xCenter && beginPoint -> y() <= yCenter) {
+			beginQuad = 3;
+		}
+		
+		int endQuad = -1;
+		if (endPoint -> x() <= xCenter && endPoint -> y() > yCenter) {
+			endQuad = 0;
+		}
+		else if (endPoint -> x() > xCenter && endPoint -> y() > yCenter) {
+			endQuad = 1;
+		}
+		else if (endPoint -> x() > xCenter && endPoint -> y() <= yCenter) {
+			endQuad = 2;
+		}
+		else if (endPoint -> x() <= xCenter && endPoint -> y() <= yCenter) {
+			endQuad = 3;
+		}
+
+		bool quadCrossingFlags[4];
+		for (int i = 0 ; i < 4 ; i++) {
+			quadCrossingFlags[i] = false;
+		}
+		
+		if (beginQuad != endQuad) {
+			int quad = beginQuad;
+			do {
+				if (arcVersus == GEOL_ArcClockwise) {
+					quad = (quad + 1) % 4;
+				}
+				else {
+					quad = (quad - 1) % 4;
+				}
+				quadCrossingFlags[quad] = true;
+			}
+			while (quad != endQuad);
+		}
+
+		if (beginPoint -> x() < endPoint -> x()) {
+			bbox.setMinX(beginPoint -> x());
+			bbox.setMaxX(endPoint -> x());
+		}
+		else {
+			bbox.setMinX(endPoint -> x());
+			bbox.setMaxX(beginPoint -> x());
+		}
+		if (beginPoint -> y() < endPoint -> y()) {
+			bbox.setMinY(beginPoint -> y());
+			bbox.setMaxY(endPoint -> y());
+		}
+		else {
+			bbox.setMinY(endPoint -> y());
+			bbox.setMaxY(beginPoint -> y());
+		}
+		
+		if (quadCrossingFlags[0]) {
+			bbox.setMinX(xCenter - mRadius);
+		}
+		else if (quadCrossingFlags[1]) {
+			bbox.setMaxY(yCenter + mRadius);
+		}
+		else if (quadCrossingFlags[2]) {
+			bbox.setMaxX(xCenter + mRadius);
+		}
+		else if (quadCrossingFlags[3]) {
+			bbox.setMinY(yCenter - mRadius);
+		}
+		
+		setBBox(bbox);
+	}
+	
+	return *mBBox;
 }
 
 

@@ -74,6 +74,8 @@ public:
 	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 	bool isEndPoint(const GEOL_Entity *theEntity);
 
+	GEOL_BBox getBBox();
+
 protected:
 	GEOL_Arc();
 	GEOL_Arc(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint, double theRadius, GEOL_ArcVersus theVersus);
