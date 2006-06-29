@@ -28,24 +28,20 @@ objects such as polygons, this class manage the relationship between containers 
 be entities or other containers.
 */
 class GEOL_Container : public GEOL_Object {
+friend class TestBasicIntegrity;
 public:
 	GEOL_Container();
 	virtual ~GEOL_Container() = 0;
-
-	void removeAllEntities();
-	void removeAllContainers();
 	
-	int getNumOfEntities();
-	int getNumOfContainers();
-	int getNumOfObjects();
+	int getNumOfEntities() const;
+	int getNumOfContainers() const;
+	int getNumOfObjects() const;
 	
 	GEOL_Entity* getFirstEntity();
 	GEOL_Entity* getNextEntity(const GEOL_Entity *theEntity);
 	GEOL_Entity* getPrevEntity(const GEOL_Entity *theEntity);
 	GEOL_Entity* getLastEntity();
 	
-	bool addContainer(GEOL_Container *theNewContainer);
-	bool removeContainer(GEOL_Container *theContainer);
 	
 	GEOL_Container* getFirstContainer();
 	GEOL_Container* getNextContainer(const GEOL_Container *theContainer);
@@ -60,6 +56,14 @@ public:
 protected:
 	bool addEntity(GEOL_Entity *theNewEntity);
 	bool removeEntity(GEOL_Entity *theEntity);
+	bool detachEntity(GEOL_Entity *theEntity);
+	void removeAllEntities();
+
+	bool addContainer(GEOL_Container *theNewContainer);
+	bool removeContainer(GEOL_Container *theContainer);
+	bool detachContainer(GEOL_Container *theContainer);
+	void removeAllContainers();
+
 	bool checkForContainmentCycles();
 
 	/*!
@@ -75,12 +79,12 @@ protected:
 	/*!
 	Entities iterator
 	*/
-	list<GEOL_Entity*>::iterator entityIt;
+	list<GEOL_Entity*>::iterator mEntityIt;
 	
 	/*!
 	Containers itertor
 	*/
-	list<GEOL_Container*>::iterator containerIt;
+	list<GEOL_Container*>::iterator mContainerIt;
 };
 
 
@@ -93,7 +97,7 @@ inline GEOL_Entity* GEOL_Container::getFirstEntity() {
 		return NULL;
 	}
 	else {
-		entityIt = pEntityList.begin();
+		mEntityIt = pEntityList.begin();
 		return pEntityList.front();
 	}
 }
@@ -108,7 +112,7 @@ inline GEOL_Entity* GEOL_Container::getLastEntity() {
 		return NULL;
 	}
 	else {
-		entityIt = pEntityList.end();
+		mEntityIt = pEntityList.end();
 		return pEntityList.back();
 	}
 }
@@ -123,7 +127,7 @@ inline GEOL_Container* GEOL_Container::getFirstContainer() {
 		return NULL;
 	}
 	else {
-		containerIt = pContainerList.begin();
+		mContainerIt = pContainerList.begin();
 		return pContainerList.front();
 	}
 }
@@ -138,7 +142,7 @@ inline GEOL_Container* GEOL_Container::getLastContainer() {
 		return NULL;
 	}
 	else {
-		containerIt = pContainerList.end();
+		mContainerIt = pContainerList.end();
 		return pContainerList.back();
 	}
 }

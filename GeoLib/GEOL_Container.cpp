@@ -18,12 +18,13 @@
 
 #include "GEOL_Prefix.h"
 
+#include "GEOL_Context.h"
 #include "GEOL_Container.h"
 
 
 GEOL_Container::GEOL_Container() {
-	entityIt = pEntityList.begin();
-	containerIt = pContainerList.begin();
+	mEntityIt = pEntityList.begin();
+	mContainerIt = pContainerList.begin();
 }
 
 
@@ -34,7 +35,8 @@ GEOL_Container::~GEOL_Container() {
 
 
 /*!
-Add a new entity to the entities list
+Add a new entity to the entities list, and increment the reference counter of the entity added.
+If the entity is already contained don't add and return false
 
 \param theNewEntity
 Entity to add
@@ -46,8 +48,11 @@ Entity to add
 bool GEOL_Container::addEntity(GEOL_Entity *theNewEntity) {
 	if (!theNewEntity)
 		return false;
+	if (isContained(theNewEntity))
+		return false;
 	
 	pEntityList.push_back(theNewEntity);
+	((GEOL_Object*)theNewEntity) -> incRefCount();
 	return true;
 }
 
@@ -55,7 +60,8 @@ bool GEOL_Container::addEntity(GEOL_Entity *theNewEntity) {
 
 
 /*!
-Remove an entity from the entities list, the entity is NOT destroyed but simply removed from the list
+Remove an entity from the entities list, the entity is removed from the list, its reference counter is
+decremented, and if the counter is zero the entity will be deleted
 
 \param theEntity
 Entity to remove
@@ -68,16 +74,51 @@ bool GEOL_Container::removeEntity(GEOL_Entity *theEntity) {
 	if (!theEntity)
 		return false;
 
-	if (*entityIt != theEntity) {
-		for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() && *entityIt != theEntity ; entityIt++) {}
+	if (*mEntityIt != theEntity) {
+		for (mEntityIt = pEntityList.begin() ; mEntityIt != pEntityList.end() && *mEntityIt != theEntity ; mEntityIt++) {}
 	}
 
-	if (entityIt == pEntityList.end()) {
+	if (mEntityIt == pEntityList.end()) {
 		return false;
 	}
 	else {
-		GEOL_Entity *toDel = *entityIt;
-		entityIt++;		
+		GEOL_Entity *toDel = *mEntityIt;
+		pEntityList.remove(toDel);
+		if (!((GEOL_Object*)toDel) -> decRefCount()) {
+			if (!getContext() -> deleteObject((GEOL_Object*)toDel, true)) {
+				return false;
+			}
+		}
+	}
+	
+	return true;
+}
+
+
+/*!
+Just detach an entity from its container
+
+\param theEntity
+Entity to detach
+
+\return
+- true if the new entity has been detached correctly
+- false if theEntity is NULL or is not in the list
+*/
+bool GEOL_Container::detachEntity(GEOL_Entity *theEntity) {
+	if (!theEntity)
+		return false;
+	
+	if (*mEntityIt != theEntity) {
+		for (mEntityIt = pEntityList.begin() ; mEntityIt != pEntityList.end() && *mEntityIt != theEntity ; mEntityIt++) {}
+	}
+
+	if (mEntityIt == pEntityList.end()) {
+		return false;
+	}
+	else {
+		GEOL_Entity *toDel = *mEntityIt;
+		((GEOL_Object*)toDel) -> decRefCount();
 		pEntityList.remove(toDel);
 	}
 	
@@ -85,17 +126,20 @@ bool GEOL_Container::removeEntity(GEOL_Entity *theEntity) {
 }
 
 
-
 /*!
-Remove all entities from the container,  the entities are NOT destroyed but simply removed from the list
+Remove all entities from the container,  the entities are NOT destroyed but simply removed from the list, destruction
+occours only if its reference counter is 0
 */
 void GEOL_Container::removeAllEntities() {
+	for (mEntityIt = pEntityList.begin() ; mEntityIt != pEntityList.end() ; ) {
+		GEOL_Entity *toDel = *mEntityIt;	
+		mEntityIt++;
+
+		if (!((GEOL_Object*)toDel) -> decRefCount()) {
+			getContext() -> deleteObject((GEOL_Object*)toDel, true);
+		}
+	}
 	pEntityList.clear();
-	/*for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() ; ) {
-		GEOL_Entity *toDel = *entityIt;	
-		entityIt++;
-		pEntityList.remove(toDel);
-	}*/
 }
 
 
@@ -111,16 +155,16 @@ The next entity of theEntity in the list, or NULL if theEntity is NULL, is the l
 in the list
 */
 GEOL_Entity* GEOL_Container::getNextEntity(const GEOL_Entity *theEntity) {
-	if (*entityIt != theEntity) {
-		for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() && *entityIt != theEntity ; entityIt++) {}
+	if (*mEntityIt != theEntity) {
+		for (mEntityIt = pEntityList.begin() ; mEntityIt != pEntityList.end() && *mEntityIt != theEntity ; mEntityIt++) {}
 	}
 
 	GEOL_Entity *ret = NULL;
 
-	if (entityIt != pEntityList.end()) {
-		entityIt++;
-		if (entityIt != pEntityList.end()) {
-			ret = *entityIt;
+	if (mEntityIt != pEntityList.end()) {
+		mEntityIt++;
+		if (mEntityIt != pEntityList.end()) {
+			ret = *mEntityIt;
 		}
 	}
 
@@ -140,16 +184,16 @@ The previous entity of theEntity in the list, or NULL if theEntity is NULL, is t
 in the list
 */
 GEOL_Entity* GEOL_Container::getPrevEntity(const GEOL_Entity *theEntity) {
-	if (*entityIt != theEntity) {
-		for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() && *entityIt != theEntity ; entityIt++) {}
+	if (*mEntityIt != theEntity) {
+		for (mEntityIt = pEntityList.begin() ; mEntityIt != pEntityList.end() && *mEntityIt != theEntity ; mEntityIt++) {}
 	}
 
 	GEOL_Entity *ret = NULL;
 
-	if (entityIt != pEntityList.end()) {
-		if (entityIt != pEntityList.begin()) {
-			entityIt--;
-			ret = *entityIt;
+	if (mEntityIt != pEntityList.end()) {
+		if (mEntityIt != pEntityList.begin()) {
+			mEntityIt--;
+			ret = *mEntityIt;
 		}		
 	}
 
@@ -160,7 +204,8 @@ GEOL_Entity* GEOL_Container::getPrevEntity(const GEOL_Entity *theEntity) {
 
 
 /*!
-Add a new container to the containers list
+Add a new container to the containers list, and increment the reference counter of the container added.
+If the container ir already contained or originates a cycle don't add and return false
 
 \param theNewContainer
 Container to add
@@ -172,11 +217,16 @@ Container to add
 bool GEOL_Container::addContainer(GEOL_Container *theNewContainer) {
 	if (!theNewContainer)
 		return false;
+	if (isContained(theNewContainer))
+		return false;
 	
 	pContainerList.push_back(theNewContainer);
 	if (checkForContainmentCycles()) {
 		pContainerList.remove(theNewContainer);
 		return false;
+	}
+	else {
+		((GEOL_Object*)theNewContainer) -> incRefCount();
 	}
 	
 	return true;
@@ -198,17 +248,21 @@ bool GEOL_Container::removeContainer(GEOL_Container *theContainer) {
 	if (!theContainer)
 		return false;
 
-	if (*containerIt != theContainer) {
-		for (containerIt = pContainerList.begin() ; containerIt != pContainerList.end() && *containerIt != theContainer ; containerIt++) {}
+	if (*mContainerIt != theContainer) {
+		for (mContainerIt = pContainerList.begin() ; mContainerIt != pContainerList.end() && *mContainerIt != theContainer ; mContainerIt++) {}
 	}
 
-	if (containerIt == pContainerList.end()) {
+	if (mContainerIt == pContainerList.end()) {
 		return false;
 	}
 	else {
-		GEOL_Container *toDel = *containerIt;
-		containerIt++;
+		GEOL_Container *toDel = *mContainerIt;
 		pContainerList.remove(toDel);
+		if (!((GEOL_Object*)toDel) -> decRefCount()) {
+			if (!getContext() -> deleteObject((GEOL_Object*)toDel, true)) {
+				return false;
+			}
+		}
 	}
 	
 	return true;
@@ -217,15 +271,49 @@ bool GEOL_Container::removeContainer(GEOL_Container *theContainer) {
 
 
 /*!
+Just detach a container from its container
+
+\param theContainer
+Container to detach
+
+\return
+- true if the new container is removed correctly
+- false if theContainer is NULL or is not in the list
+*/
+bool GEOL_Container::detachContainer(GEOL_Container *theContainer) {
+	if (!theContainer)
+		return false;
+	
+	if (*mContainerIt != theContainer) {
+		for (mContainerIt = pContainerList.begin() ; mContainerIt != pContainerList.end() && *mContainerIt != theContainer ; mContainerIt++) {}
+	}
+
+	if (mContainerIt == pContainerList.end()) {
+		return false;
+	}
+	else {
+		GEOL_Container *toDel = *mContainerIt;
+		((GEOL_Object*)toDel) -> decRefCount();
+		pContainerList.remove(toDel);
+	}
+	
+	return true;
+}
+
+
+/*!
 Remove all container from the container, the containers are NOT destroyed but simply removed from the list
 */
 void GEOL_Container::removeAllContainers() {
+	for (mContainerIt = pContainerList.begin() ; mContainerIt != pContainerList.end() ; ) {
+		GEOL_Container *toDel = *mContainerIt;		
+		mContainerIt++;
+
+		if (!((GEOL_Object*)toDel) -> decRefCount()) {
+			getContext() -> deleteObject((GEOL_Object*)toDel, true);
+		}
+	}
 	pContainerList.clear();
-	/*for (containerIt = pContainerList.begin() ; containerIt != pContainerList.end() ; ) {
-		GEOL_Container *toDel = *containerIt;		
-		containerIt++;
-		pContainerList.remove(toDel);
-	}*/
 }
 
 
@@ -240,16 +328,16 @@ The next container of theContainer in the list, or NULL if theContainer is NULL,
 in the list
 */
 GEOL_Container* GEOL_Container::getNextContainer(const GEOL_Container *theContainer) {
-	if (*containerIt != theContainer) {
-		for (containerIt = pContainerList.begin() ; containerIt != pContainerList.end() && *containerIt != theContainer ; containerIt++) {}
+	if (*mContainerIt != theContainer) {
+		for (mContainerIt = pContainerList.begin() ; mContainerIt != pContainerList.end() && *mContainerIt != theContainer ; mContainerIt++) {}
 	}
 
 	GEOL_Container *ret = NULL;
 
-	if (containerIt != pContainerList.end()) {
-		containerIt++;
-		if (containerIt != pContainerList.end()) {
-			ret = *containerIt;
+	if (mContainerIt != pContainerList.end()) {
+		mContainerIt++;
+		if (mContainerIt != pContainerList.end()) {
+			ret = *mContainerIt;
 		}
 	}
 
@@ -269,16 +357,16 @@ The previous container of theContainer in the list, or NULL if theContainer is N
 in the list
 */
 GEOL_Container* GEOL_Container::getPrevContainer(const GEOL_Container *theContainer) {
-	if (*containerIt != theContainer) {
-		for (containerIt = pContainerList.begin() ; containerIt != pContainerList.end() && *containerIt != theContainer ; containerIt++) {}
+	if (*mContainerIt != theContainer) {
+		for (mContainerIt = pContainerList.begin() ; mContainerIt != pContainerList.end() && *mContainerIt != theContainer ; mContainerIt++) {}
 	}
 
 	GEOL_Container *ret = NULL;
 
-	if (containerIt != pContainerList.end()) {
-		if (containerIt != pContainerList.begin()) {
-			containerIt--;
-			ret = *containerIt;
+	if (mContainerIt != pContainerList.end()) {
+		if (mContainerIt != pContainerList.begin()) {
+			mContainerIt--;
+			ret = *mContainerIt;
 		}		
 	}
 
@@ -378,7 +466,7 @@ bool GEOL_Container::checkForContainmentCycles() {
 \return
 The number of entities in the container
 */
-int GEOL_Container::getNumOfEntities() {
+int GEOL_Container::getNumOfEntities() const {
 	return pEntityList.size();
 }
 
@@ -387,7 +475,7 @@ int GEOL_Container::getNumOfEntities() {
 \return
 The number of other containers in the container
 */
-int GEOL_Container::getNumOfContainers() {
+int GEOL_Container::getNumOfContainers() const {
 	return pContainerList.size();
 }
 
@@ -396,7 +484,7 @@ int GEOL_Container::getNumOfContainers() {
 \return
 The total number of objects in the container
 */
-int GEOL_Container::getNumOfObjects() {
+int GEOL_Container::getNumOfObjects() const {
 	return pEntityList.size() + pContainerList.size();
 }
 
