@@ -22,6 +22,8 @@
 #include "GEOL_Container.h"
 
 /*!
+A simple container constituted only with primitive objects, in a profile arcs and segments is placed side by side to form an
+open strip or a closed shape.
 */
 class GEOL_Profile : public GEOL_Container {
 friend class GEOL_Context;
@@ -33,8 +35,9 @@ public:
 	bool detachEdge(GEOL_Entity *theEntity, bool theReshapeFlag);
 	void removeAllEdges();
 	
-	bool isClosed();
+	bool isClosed() const;
 	double length() const;
+	double area() const;
 
 	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 
@@ -46,9 +49,9 @@ protected:
 	
 	bool releaseEdgeAndReshape(GEOL_Entity *theEntity, bool theReshapeFlag, bool theRemoveFlag);
 
-	virtual bool LoadBinary(std::ifstream *theStream);
-	virtual bool SaveBinary(std::ofstream *theStream);
-	virtual bool LoadISO(std::ifstream *theStream);
+	virtual bool LoadBinary(ifstream *theStream);
+	virtual bool SaveBinary(ofstream *theStream);
+	virtual bool LoadISO(ifstream *theStream);
 };
 
 

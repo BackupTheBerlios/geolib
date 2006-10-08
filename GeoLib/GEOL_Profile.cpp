@@ -44,12 +44,12 @@ verify that its extreme points are equal
 - true if the profile is closed, i.e. has more than one segment and the extreme points are equal
 - false otherwise
 */
-bool GEOL_Profile::isClosed() {
+bool GEOL_Profile::isClosed() const {
 	bool ret = false;
 	
 	if (getNumOfEntities() > 1) {
-		GEOL_Entity *lastProfileEntity = getLastEntity();
-		GEOL_Entity *firstProfileEntity = getFirstEntity();
+		GEOL_Entity *lastProfileEntity = const_cast<GEOL_Profile*>(this) -> getLastEntity();
+		GEOL_Entity *firstProfileEntity = const_cast<GEOL_Profile*>(this) -> getFirstEntity();
 		if (lastProfileEntity && firstProfileEntity) {
 			GEOL_Point *lastProfilePoint = (GEOL_Point*)(lastProfileEntity -> getEndEntity());
 			GEOL_Point *firstProfilePoint = (GEOL_Point*)(firstProfileEntity -> getBeginEntity());
@@ -313,13 +313,37 @@ bool GEOL_Profile::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFla
 		return false;
 	
 	bool ret = true;
+
+	list<GEOL_Container*>::const_iterator contIt;
+	for (contIt = pContainerList.begin() ; ret && contIt != pContainerList.end() ; ) {
+		GEOL_Container *cont = *contIt;
+		contIt++;
+		if ((GEOL_Object*)cont == theObject) {
+			ret = detachContainer(cont);
+		}
+	}
+	
+	list<GEOL_Entity*>::const_iterator entIt;
+	for (entIt = pEntityList.begin() ; ret && entIt != pEntityList.end() ; ) {
+		GEOL_Entity *ent = *entIt;
+		entIt++;
+		if ((GEOL_Object*)ent == theObject) {
+			ret = detachEntity(ent);
+		}
+	}
+
 	return ret;
 }
 
 
 
+/*!
+\return
+The length of profile contour
+*/
 double GEOL_Profile::length() const {
 	double ret = 0.0;
+	
 	list<GEOL_Entity*>::const_iterator entityIt;
 	for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() ; entityIt++) {
 		ret += (*entityIt) -> length();
@@ -330,10 +354,39 @@ double GEOL_Profile::length() const {
 
 
 
+/*!
+\return
+The area of a closed profile, or 0 if the profile is open
+*/
+double GEOL_Profile::area() const {
+	double ret = 0.0;
+	
+	if (isClosed()) {
+		list<GEOL_Entity*>::const_iterator entityIt;
+		for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() ; entityIt++) {
+			ret += (*entityIt) -> area();
+		}
+		ret = fabs(ret);
+	}
+	
+	return ret;
+}
+
+
+
+/*!
+\return
+The bounding box of the profile
+*/
 GEOL_BBox GEOL_Profile::getBBox() {
 	if (!mBBox || !mBBox -> isValid()) {
 		GEOL_BBox bbox;
-		// to do
+		
+		list<GEOL_Entity*>::const_iterator entityIt;
+		for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() ; entityIt++) {
+			bbox = bbox + (*entityIt) -> getBBox();
+		}
+		
 		setBBox(bbox);
 	}
 	
@@ -342,7 +395,7 @@ GEOL_BBox GEOL_Profile::getBBox() {
 
 
 
-bool GEOL_Profile::LoadBinary(std::ifstream *theStream) {
+bool GEOL_Profile::LoadBinary(ifstream *theStream) {
 	if (!theStream)
 		return false;
 
@@ -399,13 +452,13 @@ bool GEOL_Profile::LoadBinary(std::ifstream *theStream) {
 	return ret;
 }
 
-bool GEOL_Profile::SaveBinary(std::ofstream *theStream) {
+bool GEOL_Profile::SaveBinary(ofstream *theStream) {
 	if (!theStream)
 		return false;
 
 	bool ret = !theStream -> bad();
 	if (ret) {
-		ret = saveBinaryObjectInfo(theStream, geol_Profile);
+		ret = saveBinaryObjectInfo(theStream);
 	}
 	if (ret) {
 		int entitiesNum = getNumOfEntities();
@@ -426,7 +479,7 @@ bool GEOL_Profile::SaveBinary(std::ofstream *theStream) {
 	return ret;
 }
 
-bool GEOL_Profile::LoadISO(std::ifstream *theStream) {
+bool GEOL_Profile::LoadISO(ifstream *theStream) {
 	if (!theStream)
 		return false;
 
