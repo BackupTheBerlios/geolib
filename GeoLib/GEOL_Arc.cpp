@@ -18,8 +18,6 @@
 
 #include "GEOL_Prefix.h"
 
-#include <math.h>
-
 #include "GEOL_Context.h"
 #include "GEOL_Point.h"
 #include "GEOL_Arc.h"
@@ -54,13 +52,12 @@ GEOL_Arc::GEOL_Arc(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint, double th
 	setBeginEntity((GEOL_Entity*)theBeginPoint);
 	setEndEntity((GEOL_Entity*)theEndPoint);
 	
-	if (theVersus == GEOL_ArcClockwise) {
+	if (theVersus == geol_ArcClockwise) {
 		mRadius = fabs(theRadius);
 	}
 	else {
 		mRadius = -fabs(theRadius);
 	}
-	mRadius = theRadius;
 	
 	double linearLength = (theBeginPoint) -> pointDistance(theEndPoint);
 	if (2.0 * fabs(mRadius) > linearLength) {
@@ -203,7 +200,7 @@ has negative radius
 Versus of the arc
 */
 void GEOL_Arc::versus(GEOL_ArcVersus theVersus) {
-	if (theVersus == GEOL_ArcClockwise) {
+	if (theVersus == geol_ArcClockwise) {
 		mRadius = fabs(mRadius);
 	}
 	else {
@@ -218,13 +215,13 @@ The versus of the arc based on the sing of its radius, clockwise versus has posi
 versus has negative radius
 */
 GEOL_ArcVersus GEOL_Arc::versus() const {
-	GEOL_ArcVersus ret = GEOL_ArcClockwise;
+	GEOL_ArcVersus ret = geol_ArcClockwise;
 	
 	if (mRadius >= 0.0) {
-		ret = GEOL_ArcClockwise;
+		ret = geol_ArcClockwise;
 	}
 	else {
-		ret = GEOL_ArcCounterClockwise;
+		ret = geol_ArcCounterClockwise;
 	}
 	
 	return ret;
@@ -247,6 +244,10 @@ double GEOL_Arc::angle() const {
 
 
 /*!
+Return the center coordinates of the arc in the point passed
+
+\param theCenter
+On exit contains the coordinates of the center
 */
 void GEOL_Arc::center(GEOL_Point &theCenter) const {
 	double xCenter = 0.0;
@@ -258,15 +259,31 @@ void GEOL_Arc::center(GEOL_Point &theCenter) const {
 
 
 /*!
+Return the center coordinates of the arc in the two passed variables, center calculation is carried out
+measuring the distance between the center of the arc and the mid point of the begin-end segment using only
+the radius and the arc angle.
+With this distance and the direction of the normal to the begin-end segment is easy to compute the center
+coordinates
+
+\param theXCenter
+On exit contains the x coordinate of the center
+\param theYCenter
+On exit contains the y coordinate of the center
 */
 void GEOL_Arc::center(double &theXCenter, double &theYCenter) const {
+	// Normalized vector of begin-end direction
 	double deltaX = end() -> x() - begin() -> x();
 	double deltaY = end() -> y() - begin() -> y();
 	double linearLength = ((GEOL_Point*)getBeginEntity()) -> pointDistance((GEOL_Point*)getEndEntity());
 	deltaX /= linearLength;
 	deltaY /= linearLength;
+	
+	// Mid point on the segment from begin to end points
 	double midX = begin() -> x() + ((end() -> x() - begin() -> x()) / 2.0);
 	double midY = begin() -> y() + ((end() -> y() - begin() -> y()) / 2.0);
+	
+	// Direction of the normal to the segment from begin to end, at the right of the segment if mRadius > 0 and
+	// arc is clockwise, at the left otherwise
 	if (mRadius > 0.0) {
 		double tmp = deltaX;
 		deltaX = deltaY;
@@ -274,12 +291,15 @@ void GEOL_Arc::center(double &theXCenter, double &theYCenter) const {
 	}
 	else {
 		double tmp = deltaX;
-		deltaX = deltaY;
+		deltaX = - deltaY;
 		deltaY = tmp;
 	}
-	
+
+	// Distance from the center of the arc and the center of the begin-end segment
 	double arcAngle = angle();
+	assert(arcAngle < GEOL_PI);
 	double centerDist = mRadius * cos(arcAngle / 2.0);
+	
 	theXCenter = midX + fabs(centerDist) * deltaX;
 	theYCenter = midY + fabs(centerDist) * deltaY;
 }
@@ -320,6 +340,17 @@ bool GEOL_Arc::isEndPoint(const GEOL_Entity *theEntity) {
 
 
 /*!
+Notification on object destruction, if the object destroied is an end point of the arc, the arc itself has
+to be destroyed
+
+\param theObject
+Object destroyed
+\param theDestroyFlag
+On exit its true if the arc itself has to be destroyed, false otherwise
+
+\return
+- true if the notification succeeds
+- false otherwise
 */
 bool GEOL_Arc::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) {
 	theDestroyFlag = false;
@@ -336,7 +367,172 @@ bool GEOL_Arc::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) {
 
 
 
+/*!
+\return
+The area between the arc and the x axis (integral), is a signed value that is if the arc is counterclockwise the area
+will be negative
+Computation can be divided in two cases :
+- The arc is all in the semicircle above or below the circle horizontal axis
+  The area is A = Q + S - T, where Q is the trapezoid formed by the extremities of the arc and its projection on x axes,
+  S is the area of the circle sector below the arc and T is the triangle defined by the extremities and the center of the
+  arc
+- The arc is not all in the semicircle above or below the circle horizontal axis
+  Dividing the arc in two pieces where the horizontal axis is intersected, the computation can be reduced at the previous case
+*/
+double GEOL_Arc::area() const {
+	double ret = -1.0;
+	double xCenter = 0.0;
+	double yCenter = 0.0;
+	center(xCenter, yCenter);
 
+	int beginQuad = getBeginQuad(xCenter, yCenter);
+	int endQuad = getEndQuad(xCenter, yCenter);
+
+	double trapezoidArea = 0.0;
+	double arcSectorArea = 0.0;
+	double triangleArea = 0.0;
+
+	if ((beginQuad < geol_BottomLeft && endQuad < geol_BottomLeft) || (beginQuad > geol_TopLeft && endQuad > geol_TopLeft)) {
+		// Arc is all above or below x axis
+		
+		GEOL_Point *beginPoint = NULL;
+		GEOL_Point *endPoint = NULL;
+		if(versus() == geol_ArcClockwise) {
+			beginPoint = begin();
+			endPoint = end();
+		}
+		else {
+			beginPoint = end();
+			endPoint = begin();
+		}
+
+		double alfa = endPoint -> angle(xCenter, yCenter);
+		double beta = beginPoint -> angle(xCenter, yCenter);
+		
+		if (fabs(alfa - GEOL_PI) < GEOL_EQUAL_ANGLE) {
+			if (endPoint -> x() < beginPoint -> x()) {
+				alfa = alfa - GEOL_2PI;
+			}
+		}
+		if (fabs(beta - GEOL_PI) < GEOL_EQUAL_ANGLE) {
+			if (endPoint -> x() > beginPoint -> x()) {
+				beta = beta - GEOL_2PI;
+			}
+		}
+
+		trapezoidArea = ((endPoint -> x() - beginPoint -> x()) * (beginPoint -> y() + endPoint -> y())) / 2.0;
+		arcSectorArea = ((beta - alfa) * radius() * radius()) / 2.0;
+		triangleArea = (radius() * radius() * sin(beta - alfa)) / 2.0;
+	}
+	else {
+		// Arc cross x axis
+		
+		GEOL_Point *beginPoint = NULL;
+		GEOL_Point *endPoint = NULL;
+		if(versus() == geol_ArcClockwise) {
+			beginPoint = begin();
+			endPoint = end();
+		}
+		else {
+			beginPoint = end();
+			endPoint = begin();
+		}
+
+		double alfa = endPoint -> angle(xCenter, yCenter);
+		double beta = beginPoint -> angle(xCenter, yCenter);
+
+		if (beginQuad == geol_TopRight || beginQuad == geol_TopLeft) {
+			// begin above x axis, end below
+			
+			double xQuad = xCenter + radius();
+			double yQuad = yCenter;
+			
+			double deltaAngle = fabs(beta - alfa);
+			if (deltaAngle > GEOL_PI) {
+				deltaAngle = GEOL_2PI - deltaAngle;
+			}
+
+			trapezoidArea = ((xQuad - beginPoint -> x()) * (beginPoint -> y() + yQuad)) / 2.0;
+			trapezoidArea += ((endPoint -> x() - xQuad) * (endPoint -> y() + yQuad)) / 2.0;
+			arcSectorArea = (deltaAngle * radius() * radius()) / 2.0;
+			triangleArea = (radius() * radius() * sin(-alfa)) / 2.0;
+			triangleArea += (radius() * radius() * sin(beta)) / 2.0;
+		}
+		else {
+			// begin below x axis, end above
+			
+			double xQuad = xCenter - radius();
+			double yQuad = yCenter;
+			
+			double deltaAngle = fabs(alfa - beta);
+			if (deltaAngle > GEOL_PI) {
+				deltaAngle = GEOL_2PI - deltaAngle;
+			}
+
+			trapezoidArea = ((xQuad - beginPoint -> x()) * (beginPoint -> y() + yQuad)) / 2.0;
+			trapezoidArea += ((endPoint -> x() - xQuad) * (endPoint -> y() + yQuad)) / 2.0;
+			arcSectorArea = (deltaAngle * radius() * radius()) / 2.0;
+			triangleArea = (radius() * radius() * sin(alfa)) / 2.0;
+			triangleArea += (radius() * radius() * sin(-beta)) / 2.0;
+		}
+	}
+
+	ret = trapezoidArea + arcSectorArea - triangleArea;
+	
+	if (versus() == geol_ArcCounterClockwise) {
+		ret = -ret;
+	}
+	
+	return ret;
+}
+
+
+
+/*!
+Return the quadrant of the begin point of the arc
+
+\param theXCenter
+x coordinate of the arc center
+\param theYCenter
+y coordinate of the arc center
+
+\return
+The quadrant in the usual way
+geol_TopRight    = x+y+ (0)
+geol_TopLeft     = x+y- (1)
+geol_BottomLeft  = x-y- (2)
+geol_BottomRight = x-y+ (3)
+*/
+GEOL_Quadrant GEOL_Arc::getBeginQuad(double theXCenter, double theYCenter) const {
+	return begin() -> quadrant(theXCenter, theYCenter);
+}
+
+
+
+/*!
+Return the quadrant of the end point of the arc
+
+\param theXCenter
+x coordinate of the arc center
+\param theYCenter
+y coordinate of the arc center
+
+\return
+The quadrant in the usual way
+geol_TopRight    = x+y+ (0)
+geol_TopLeft     = x+y- (1)
+geol_BottomLeft  = x-y- (2)
+geol_BottomRight = x-y+ (3)
+*/
+GEOL_Quadrant GEOL_Arc::getEndQuad(double theXCenter, double theYCenter) const {
+	return end() -> quadrant(theXCenter, theYCenter);
+}
+
+
+/*!
+\return
+The bounding box of the arc
+*/
 GEOL_BBox GEOL_Arc::getBBox() {
 	if (!mBBox || !mBBox -> isValid()) {
 		GEOL_BBox bbox;
@@ -349,33 +545,8 @@ GEOL_BBox GEOL_Arc::getBBox() {
 		GEOL_Point *beginPoint = begin();
 		GEOL_Point *endPoint = end();
 
-		int beginQuad = -1;
-		if (beginPoint -> x() <= xCenter && beginPoint -> y() > yCenter) {
-			beginQuad = 0;
-		}
-		else if (beginPoint -> x() > xCenter && beginPoint -> y() > yCenter) {
-			beginQuad = 1;
-		}
-		else if (beginPoint -> x() > xCenter && beginPoint -> y() <= yCenter) {
-			beginQuad = 2;
-		}
-		else if (beginPoint -> x() <= xCenter && beginPoint -> y() <= yCenter) {
-			beginQuad = 3;
-		}
-		
-		int endQuad = -1;
-		if (endPoint -> x() <= xCenter && endPoint -> y() > yCenter) {
-			endQuad = 0;
-		}
-		else if (endPoint -> x() > xCenter && endPoint -> y() > yCenter) {
-			endQuad = 1;
-		}
-		else if (endPoint -> x() > xCenter && endPoint -> y() <= yCenter) {
-			endQuad = 2;
-		}
-		else if (endPoint -> x() <= xCenter && endPoint -> y() <= yCenter) {
-			endQuad = 3;
-		}
+		GEOL_Quadrant beginQuad = getBeginQuad(xCenter, yCenter);		
+		GEOL_Quadrant endQuad = getEndQuad(xCenter, yCenter);
 
 		bool quadCrossingFlags[4];
 		for (int i = 0 ; i < 4 ; i++) {
@@ -383,15 +554,16 @@ GEOL_BBox GEOL_Arc::getBBox() {
 		}
 		
 		if (beginQuad != endQuad) {
-			int quad = beginQuad;
+			GEOL_Quadrant quad = beginQuad;
 			do {
-				if (arcVersus == GEOL_ArcClockwise) {
-					quad = (quad + 1) % 4;
+				if (arcVersus == geol_ArcClockwise) {
+					quadCrossingFlags[quad] = true;
+					quad = getPrevQuadrant(quad);
 				}
 				else {
-					quad = (quad - 1) % 4;
+					quad = getNextQuadrant(quad);
+					quadCrossingFlags[quad] = true;
 				}
-				quadCrossingFlags[quad] = true;
 			}
 			while (quad != endQuad);
 		}
@@ -413,17 +585,17 @@ GEOL_BBox GEOL_Arc::getBBox() {
 			bbox.setMaxY(beginPoint -> y());
 		}
 		
-		if (quadCrossingFlags[0]) {
-			bbox.setMinX(xCenter - mRadius);
+		if (quadCrossingFlags[0]) { // geol_BottomRight to geol_TopRight crossing
+			bbox.setMaxX(xCenter + fabs(mRadius));
 		}
-		else if (quadCrossingFlags[1]) {
-			bbox.setMaxY(yCenter + mRadius);
+		else if (quadCrossingFlags[1]) {	// geol_TopRight to geol_TopLeft crossing
+			bbox.setMaxY(yCenter + fabs(mRadius));
 		}
-		else if (quadCrossingFlags[2]) {
-			bbox.setMaxX(xCenter + mRadius);
+		else if (quadCrossingFlags[2]) { // geol_TopLeft to geol_BottomLeft crossing
+			bbox.setMinX(xCenter - fabs(mRadius));
 		}
-		else if (quadCrossingFlags[3]) {
-			bbox.setMinY(yCenter - mRadius);
+		else if (quadCrossingFlags[3]) { // geol_BottomLeft to geol_BottomRight crossing
+			bbox.setMinY(yCenter - fabs(mRadius));
 		}
 		
 		setBBox(bbox);
@@ -432,6 +604,21 @@ GEOL_BBox GEOL_Arc::getBBox() {
 	return *mBBox;
 }
 
+
+
+
+/*!
+Translate an arc
+
+\param theDX
+x translation
+\param theDY
+y translation
+*/
+void GEOL_Arc::translate(double theDX, double theDY) {
+	((GEOL_Point*)getBeginEntity()) -> translate(theDX, theDY);
+	((GEOL_Point*)getEndEntity()) -> translate(theDX, theDY);
+}
 
 
 
@@ -484,7 +671,7 @@ bool GEOL_Arc::operator!=(const GEOL_Arc& theArc) const {
 }
 
 
-bool GEOL_Arc::LoadBinary(std::ifstream *theStream) {
+bool GEOL_Arc::LoadBinary(ifstream *theStream) {
 	if (!theStream)
 		return false;
 
@@ -518,13 +705,13 @@ bool GEOL_Arc::LoadBinary(std::ifstream *theStream) {
 	return ret;
 }
 
-bool GEOL_Arc::SaveBinary(std::ofstream *theStream) {
+bool GEOL_Arc::SaveBinary(ofstream *theStream) {
 	if (!theStream)
 		return false;
 
 	bool ret = !theStream -> bad();
 	if (ret) {
-		ret = saveBinaryObjectInfo(theStream, geol_Arc);
+		ret = saveBinaryObjectInfo(theStream);
 		if (ret) {
 			ret = ((GEOL_Entity*)getBeginEntity()) -> SaveBinary(theStream);
 			if (ret) {
@@ -548,7 +735,7 @@ bool GEOL_Arc::SaveBinary(std::ofstream *theStream) {
 	return ret;
 }
 
-bool GEOL_Arc::LoadISO(std::ifstream *theStream) {
+bool GEOL_Arc::LoadISO(ifstream *theStream) {
 	if (!theStream)
 		return false;
 

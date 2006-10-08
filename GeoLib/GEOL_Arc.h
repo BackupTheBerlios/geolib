@@ -22,10 +22,11 @@
 
 
 /*!
-2dimensional circle arc, it points to its begin and end extremities through the pointers contained in its
+2dimensional circle arc, points to its begin-end extremities through the pointers contained in its
 superclass (GEOL_Entity), the radius of the arc is a member variable, when the radius is positive the center of
 the arc is at right of the segment connecting arc extremities, when negative the center is at left.
 The length of the arc is also manteined in a class attribute (mLength).
+The arc angle is always in the range [0,PI]
 */
 class GEOL_Arc : public GEOL_Entity {
 friend class GEOL_Context;
@@ -62,6 +63,7 @@ public:
 	The length of the arc
 	*/
 	double length() const { return mLength; }
+	double area() const;
 	
 	GEOL_ArcVersus versus() const;
 	void versus(GEOL_ArcVersus theVersus);
@@ -73,6 +75,8 @@ public:
 	
 	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 	bool isEndPoint(const GEOL_Entity *theEntity);
+	
+	void translate(double theDX, double theDY);
 
 	GEOL_BBox getBBox();
 
@@ -81,12 +85,14 @@ protected:
 	GEOL_Arc(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint, double theRadius, GEOL_ArcVersus theVersus);
 	~GEOL_Arc();
 
-	virtual bool LoadBinary(std::ifstream *theStream);
-	virtual bool SaveBinary(std::ofstream *theStream);
-	virtual bool LoadISO(std::ifstream *theStream);
+	virtual bool LoadBinary(ifstream *theStream);
+	virtual bool SaveBinary(ofstream *theStream);
+	virtual bool LoadISO(ifstream *theStream);
 
 private:
 	double computeLength() const;
+	GEOL_Quadrant getBeginQuad(double theXCenter, double theYCenter) const;
+	GEOL_Quadrant getEndQuad(double theXCenter, double theYCenter) const;
 
 	/*!
 	Radius of the arc, if positive the arc clockwise, the center of the arc is on the left of the segment
