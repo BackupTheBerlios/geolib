@@ -60,9 +60,9 @@ public:
 	bool isEqualID(const GEOL_Attribute *theAttribute);
 	bool isEqualID(const char *theAttributeId);
 	
-	virtual bool LoadBinary(std::ifstream *theStream);
-	virtual bool SaveBinary(std::ofstream *theStream);
-	virtual bool LoadISO(std::ifstream *theStream);
+	virtual bool LoadBinary(ifstream *theStream);
+	virtual bool SaveBinary(ofstream *theStream);
+	virtual bool LoadISO(ifstream *theStream);
 
 private:
 

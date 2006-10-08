@@ -163,7 +163,7 @@ The stream to read from
 - true if the read operation succeed
 - false otherwise
 */
-bool GEOL_Attribute::LoadBinary(std::ifstream *theStream) {
+bool GEOL_Attribute::LoadBinary(ifstream *theStream) {
 	if (!theStream)
 		return false;
 		
@@ -244,7 +244,7 @@ The stream to write on
 - true if the write operation succeed
 - false otherwise
 */
-bool GEOL_Attribute::SaveBinary(std::ofstream *theStream) {
+bool GEOL_Attribute::SaveBinary(ofstream *theStream) {
 	if (!theStream)
 		return false;
 
@@ -296,7 +296,7 @@ bool GEOL_Attribute::SaveBinary(std::ofstream *theStream) {
 	return ret;
 }
 
-bool GEOL_Attribute::LoadISO(std::ifstream *theStream) {
+bool GEOL_Attribute::LoadISO(ifstream *theStream) {
 	if (!theStream)
 		return false;
 
