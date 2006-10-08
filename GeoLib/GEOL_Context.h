@@ -74,14 +74,20 @@ public:
 	GEOL_Object* getLastObject();
 	GEOL_Object* getNextObject(const GEOL_Object *theObject);
 	GEOL_Object* getPrevObject(const GEOL_Object *theObject);
+	
+	//****************
+	//* Interrogations
+	//****************
+	
+	GEOL_Object* getEntityContainer(const GEOL_Object *theObject) const;
 		
 	//*************
 	//* Persistency
 	//*************
 
-	bool saveContext(std::ofstream *theStream);
-	bool loadContext(std::ifstream *theStream);
-	bool loadBinaryObjectType(std::ifstream *theStream, GEOL_ObjectType& theObjectType);
+	bool saveContext(ofstream *theStream);
+	bool loadContext(ifstream *theStream);
+	bool loadBinaryObjectType(ifstream *theStream, GEOL_ObjectType& theObjectType);
 
 	/*!
 	\return

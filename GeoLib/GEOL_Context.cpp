@@ -389,31 +389,30 @@ bool GEOL_Context::addObject(GEOL_Object *theNewObject) {
 Remove and DESTROY all the objects of the context
 */
 void GEOL_Context::removeAllObjects() {
-	for (objectIt = pObjectList.begin() ; objectIt != pObjectList.end() ; ) {
-		GEOL_Object *toDel = *objectIt;
-		objectIt++;
+	for ( ; !pObjectList.empty() ; ) {
+		GEOL_Object *toDel = pObjectList.front();
 		
 		// Delete object attributes
 		toDel -> removeAllAttributes();
 		
 		if (toDel -> isPoint()) {
-			deletePoint((GEOL_Point*)toDel);
+			deletePoint((GEOL_Point*)toDel, true);
 		}
 		else if (toDel -> isSegment()) {
 			((GEOL_Entity*)toDel) -> setBeginEntity(NULL);
 			((GEOL_Entity*)toDel) -> setEndEntity(NULL);
-			deleteSegment((GEOL_Segment*)toDel);
+			deleteSegment((GEOL_Segment*)toDel, true);
 		}
 		else if (toDel -> isArc()) {
 			((GEOL_Entity*)toDel) -> setBeginEntity(NULL);
 			((GEOL_Entity*)toDel) -> setEndEntity(NULL);
-			deleteArc((GEOL_Arc*)toDel);
+			deleteArc((GEOL_Arc*)toDel, true);
 		}
 		else if (toDel -> isProfile()) {
-			deleteProfile((GEOL_Profile*)toDel);
+			deleteProfile((GEOL_Profile*)toDel, true);
 		}
 		else if (toDel -> isPoliProfile()) {
-			deletePoliProfile((GEOL_PoliProfile*)toDel);
+			deletePoliProfile((GEOL_PoliProfile*)toDel, true);
 		}		
 	}
 }
@@ -775,13 +774,44 @@ bool GEOL_Context::deletePoliProfile(GEOL_PoliProfile *thePoliProfile, bool theN
 }
 
 
+
+/*!
+Find the container of a given entity
+
+\param theEntity
+The given entity
+
+\return
+The pointer to the container that contains theEntity, or NULL if theEntity is null, or is not an entity or has
+no container
+*/
+GEOL_Object* GEOL_Context::getEntityContainer(const GEOL_Object *theEntity) const {
+	if (!theEntity || !theEntity -> isEntity())
+		return NULL;
+		
+	GEOL_Object *ret = NULL;
+	list<GEOL_Object*>::const_iterator objIt;
+	for (objIt = pObjectList.begin() ; !ret  && objIt != pObjectList.end() ; objIt++) {
+		GEOL_Object *obj = *objIt;
+		if (obj && obj -> isContainer()) {
+			if (((GEOL_Container*)obj) -> isContained((GEOL_Entity*)theEntity)) {
+				ret = obj;
+			}
+		}
+	}
+	
+	return ret;
+}
+
+
+
 /*!
 Save the context objects on the stream provided in binary format
 
 \param theStream
 Output stream
 */
-bool GEOL_Context::saveContext(std::ofstream *theStream) {
+bool GEOL_Context::saveContext(ofstream *theStream) {
 	if (!theStream)
 		return false;
 	
@@ -841,7 +871,7 @@ Laod the context objects from the stream provided
 \param theStream
 Input stream
 */
-bool GEOL_Context::loadContext(std::ifstream *theStream) {
+bool GEOL_Context::loadContext(ifstream *theStream) {
 	if (!theStream)
 		return false;
 	
@@ -930,7 +960,7 @@ On output contains the type of the next object to read
 - true if the object type is readed successfully
 - false otherwise (streame becomes bad)
 */
-bool GEOL_Context::loadBinaryObjectType(std::ifstream *theStream, GEOL_ObjectType& theObjectType) {
+bool GEOL_Context::loadBinaryObjectType(ifstream *theStream, GEOL_ObjectType& theObjectType) {
 	if (!theStream)
 		return false;
 
