@@ -22,6 +22,7 @@
 #include "GEOL_Container.h"
 
 /*!
+A complex container that can be constituted with primitive objects and with other containers (profiles or poliprofiles as well).
 */
 class GEOL_PoliProfile : public GEOL_Container {
 friend class GEOL_Context;
@@ -38,9 +39,9 @@ protected:
 	GEOL_PoliProfile();
 	~GEOL_PoliProfile();
 
-	virtual bool LoadBinary(std::ifstream *theStream);
-	virtual bool SaveBinary(std::ofstream *theStream);
-	virtual bool LoadISO(std::ifstream *theStream);
+	virtual bool LoadBinary(ifstream *theStream);
+	virtual bool SaveBinary(ofstream *theStream);
+	virtual bool LoadISO(ifstream *theStream);
 
 };
 

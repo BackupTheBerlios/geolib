@@ -61,7 +61,7 @@ bool GEOL_PoliProfile::notifyDestruction(GEOL_Object *theObject, bool& theDestro
 		GEOL_Container *cont = *contIt;
 		contIt++;
 		if ((GEOL_Object*)cont == theObject) {
-			ret = removeContainer(cont);
+			ret = detachContainer(cont);
 		}
 	}
 	
@@ -70,7 +70,7 @@ bool GEOL_PoliProfile::notifyDestruction(GEOL_Object *theObject, bool& theDestro
 		GEOL_Entity *ent = *entIt;
 		entIt++;
 		if ((GEOL_Object*)ent == theObject) {
-			ret = removeEntity(ent);
+			ret = detachEntity(ent);
 		}
 	}
 	
@@ -78,6 +78,17 @@ bool GEOL_PoliProfile::notifyDestruction(GEOL_Object *theObject, bool& theDestro
 }
 
 
+
+/*!
+Add a profile to the poliprofile
+
+\param theNewProfile
+Profile to add
+
+\return
+- true if the operation succeed
+- false otherwise
+*/
 bool GEOL_PoliProfile::addProfile(GEOL_Profile *theNewProfile) {
 	if (!theNewProfile)
 		return false;
@@ -86,6 +97,17 @@ bool GEOL_PoliProfile::addProfile(GEOL_Profile *theNewProfile) {
 }
 
 
+
+/*!
+Remove a profile from the poliprofile, the profile is destroyed if its reference counter is 0
+
+\param theProfile
+Profile to remove
+
+\return
+- true if the operation succeed
+- false otherwise
+*/
 bool GEOL_PoliProfile::removeProfile(GEOL_Profile *theProfile) {
 	if (!theProfile)
 		return false;
@@ -94,6 +116,17 @@ bool GEOL_PoliProfile::removeProfile(GEOL_Profile *theProfile) {
 }
 
 
+
+/*!
+Detach a profile from the poliprofile, the profile is NOT destroyed, just detached from the list
+
+\param theProfile
+Profile to detach
+
+\return
+- true if the operation succeed
+- false otherwise
+*/
 bool GEOL_PoliProfile::detachProfile(GEOL_Profile *theProfile) {
 	if (!theProfile)
 		return false;
@@ -102,10 +135,24 @@ bool GEOL_PoliProfile::detachProfile(GEOL_Profile *theProfile) {
 }
 
 
+
+/*!
+\return
+The bounding box of the poliprofile
+*/
 GEOL_BBox GEOL_PoliProfile::getBBox() {
 	if (!mBBox || !mBBox -> isValid()) {
 		GEOL_BBox bbox;
-		// to do
+		
+		list<GEOL_Container*>::const_iterator containerIt;
+		for (containerIt = pContainerList.begin() ; containerIt != pContainerList.end() ; containerIt++) {
+			bbox = bbox + (*containerIt) -> getBBox();
+		}
+		list<GEOL_Entity*>::const_iterator entityIt;
+		for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() ; entityIt++) {
+			bbox = bbox + (*entityIt) -> getBBox();
+		}
+
 		setBBox(bbox);
 	}
 	
@@ -113,7 +160,7 @@ GEOL_BBox GEOL_PoliProfile::getBBox() {
 }
 
 
-bool GEOL_PoliProfile::LoadBinary(std::ifstream *theStream) {
+bool GEOL_PoliProfile::LoadBinary(ifstream *theStream) {
 	if (!theStream)
 		return false;
 
@@ -209,13 +256,13 @@ bool GEOL_PoliProfile::LoadBinary(std::ifstream *theStream) {
 	return ret;
 }
 
-bool GEOL_PoliProfile::SaveBinary(std::ofstream *theStream) {
+bool GEOL_PoliProfile::SaveBinary(ofstream *theStream) {
 	if (!theStream)
 		return false;
 
 	bool ret = !theStream -> bad();
 	if (ret) {
-		ret = saveBinaryObjectInfo(theStream, geol_PoliProfile);
+		ret = saveBinaryObjectInfo(theStream);
 	}
 	if (ret) {
 		int containersNum = getNumOfContainers();
@@ -242,7 +289,7 @@ bool GEOL_PoliProfile::SaveBinary(std::ofstream *theStream) {
 	return ret;
 }
 
-bool GEOL_PoliProfile::LoadISO(std::ifstream *theStream) {
+bool GEOL_PoliProfile::LoadISO(ifstream *theStream) {
 	if (!theStream)
 		return false;
 
