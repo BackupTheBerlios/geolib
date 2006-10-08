@@ -31,7 +31,7 @@ class GEOL_Container : public GEOL_Object {
 friend class TestBasicIntegrity;
 public:
 	GEOL_Container();
-	virtual ~GEOL_Container() = 0;
+	virtual ~GEOL_Container();
 	
 	int getNumOfEntities() const;
 	int getNumOfContainers() const;

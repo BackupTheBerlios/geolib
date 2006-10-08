@@ -131,14 +131,18 @@ Remove all entities from the container,  the entities are NOT destroyed but simp
 occours only if its reference counter is 0
 */
 void GEOL_Container::removeAllEntities() {
-	for (mEntityIt = pEntityList.begin() ; mEntityIt != pEntityList.end() ; ) {
-		GEOL_Entity *toDel = *mEntityIt;	
-		mEntityIt++;
+	for ( ; !pEntityList.empty() ; ) {
+		GEOL_Entity *toDel = pEntityList.front();
 
 		if (!((GEOL_Object*)toDel) -> decRefCount()) {
 			getContext() -> deleteObject((GEOL_Object*)toDel, true);
 		}
+
+		if (!pEntityList.empty()) {
+			pEntityList.pop_front();
+		}
 	}
+	
 	pEntityList.clear();
 }
 
@@ -235,7 +239,8 @@ bool GEOL_Container::addContainer(GEOL_Container *theNewContainer) {
 
 
 /*!
-Remove a container from the containers list, the container is NOT destroyed but simply removed from the list
+Remove a container from the containers list, the container is removed from the list, its reference counter is
+decremented, and if the counter is zero the container will be deleted
 
 \param theContainer
 Container to remove
@@ -305,14 +310,18 @@ bool GEOL_Container::detachContainer(GEOL_Container *theContainer) {
 Remove all container from the container, the containers are NOT destroyed but simply removed from the list
 */
 void GEOL_Container::removeAllContainers() {
-	for (mContainerIt = pContainerList.begin() ; mContainerIt != pContainerList.end() ; ) {
-		GEOL_Container *toDel = *mContainerIt;		
-		mContainerIt++;
+	for ( ; !pContainerList.empty() ; ) {
+		GEOL_Container *toDel = pContainerList.front();
 
 		if (!((GEOL_Object*)toDel) -> decRefCount()) {
 			getContext() -> deleteObject((GEOL_Object*)toDel, true);
 		}
+
+		if (!pContainerList.empty()) {
+			pContainerList.pop_front();
+		}
 	}
+	
 	pContainerList.clear();
 }
 
