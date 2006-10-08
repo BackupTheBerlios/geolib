@@ -27,7 +27,7 @@ to other objects of this class, used to store the x,y coordinates for points
 class GEOL_Entity : public GEOL_Object {
 public:
 	GEOL_Entity();
-	virtual ~GEOL_Entity() = 0;
+	virtual ~GEOL_Entity();
 	
 	bool operator==(const GEOL_Entity& theEntity) const;
 	bool operator!=(const GEOL_Entity& theEntity) const;
@@ -41,6 +41,9 @@ public:
 	virtual bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) = 0;
 	virtual bool isEndPoint(const GEOL_Entity *theEntity) = 0;
 	virtual double length() const = 0;
+	virtual double area() const = 0;
+	
+	virtual void translate(double theDX, double theDY) = 0;
 
 protected:
 	/*!

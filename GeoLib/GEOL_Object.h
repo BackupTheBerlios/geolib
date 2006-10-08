@@ -32,7 +32,7 @@ same properties and functionalities, all the aspects common to all objects is ma
 class GEOL_Object : public GEOL_Persistency {
 public:
 	GEOL_Object();
-	virtual ~GEOL_Object() = 0;
+	virtual ~GEOL_Object();
 	
 	GEOL_Context* getContext();
 	void setContext(GEOL_Context *theContext);
@@ -79,9 +79,9 @@ public:
 	bool isContainer() const;
 
 protected:
-	bool saveBinaryObjectInfo(std::ofstream *theStream, GEOL_ObjectType theObjectType);
-	bool saveBinaryObjectAttributes(std::ofstream *theStream);
-	bool laodBinaryObjectAttributes(std::ifstream *theStream);
+	bool saveBinaryObjectInfo(ofstream *theStream);
+	bool saveBinaryObjectAttributes(ofstream *theStream);
+	bool laodBinaryObjectAttributes(ifstream *theStream);
 
 	/*!
 	Type of the object

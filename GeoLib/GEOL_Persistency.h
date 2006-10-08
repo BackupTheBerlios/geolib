@@ -29,9 +29,9 @@ public:
 	
 	//virtual bool Load() = 0;
 	//virtual bool Save() = 0;
-	virtual bool LoadBinary(std::ifstream *theStream) = 0;
-	virtual bool SaveBinary(std::ofstream *theStream) = 0;
-	virtual bool LoadISO(std::ifstream *theStream) = 0;
+	virtual bool LoadBinary(ifstream *theStream) = 0;
+	virtual bool SaveBinary(ofstream *theStream) = 0;
+	virtual bool LoadISO(ifstream *theStream) = 0;
 private:
 };
 

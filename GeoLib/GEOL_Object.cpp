@@ -337,6 +337,13 @@ void GEOL_Object::resetRefCount() {
 	mRefCount = 0;
 }
 
+
+
+/*!
+\return
+- true if the object is an entity
+- false otherwise
+*/
 bool GEOL_Object::isEntity() const {
 	if (isPoint() || isSegment() || isArc())
 		return true;
@@ -345,6 +352,12 @@ bool GEOL_Object::isEntity() const {
 }
 
 
+
+/*!
+\return
+- true if the object is a container
+- false otherwise
+*/
 bool GEOL_Object::isContainer() const {
 	if (isProfile() || isPoliProfile())
 		return true;
@@ -354,6 +367,12 @@ bool GEOL_Object::isContainer() const {
 
 
 
+/*!
+Set the bounding box of the object with the parameter passed, allocate a new GEOL_BBox object if needed
+
+\param theBBox
+Bounding box to assign to the object
+*/
 void GEOL_Object::setBBox(GEOL_BBox theBBox) {
 	if (!mBBox) {
 		mBBox = new GEOL_BBox(theBBox);
@@ -365,13 +384,23 @@ void GEOL_Object::setBBox(GEOL_BBox theBBox) {
 
 
 
-bool GEOL_Object::saveBinaryObjectInfo(std::ofstream *theStream, GEOL_ObjectType theObjectType) {
+/*!
+Save the object type info on a binary file
+
+\param theStream
+Binary file
+
+\return
+- true if the operation succeed
+- false otherwise
+*/
+bool GEOL_Object::saveBinaryObjectInfo(ofstream *theStream) {
 	if (!theStream)
 		return false;
 
 	bool ret = !theStream -> bad();
 	if (ret) {
-		int objType = (int)theObjectType;
+		int objType = (int)mObjType;
 		theStream -> write((char*)(&objType), sizeof(int));
 
 		ret = !theStream -> bad();
@@ -381,7 +410,17 @@ bool GEOL_Object::saveBinaryObjectInfo(std::ofstream *theStream, GEOL_ObjectType
 }
 
 
-bool GEOL_Object::saveBinaryObjectAttributes(std::ofstream *theStream) {
+/*!
+Save the object attributes on a binary file
+
+\param theStream
+Binary file
+
+\return
+- true if the operation succeed
+- false otherwise
+*/
+bool GEOL_Object::saveBinaryObjectAttributes(ofstream *theStream) {
 	if (!theStream)
 		return false;
 
@@ -398,7 +437,7 @@ bool GEOL_Object::saveBinaryObjectAttributes(std::ofstream *theStream) {
 	return ret;
 }
 
-bool GEOL_Object::laodBinaryObjectAttributes(std::ifstream *theStream) {
+bool GEOL_Object::laodBinaryObjectAttributes(ifstream *theStream) {
 	if (!theStream)
 		return false;
 
