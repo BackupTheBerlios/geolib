@@ -39,12 +39,20 @@ public:
 	void xy(double theXCoord, double theYCoord);
 	double pointDistance(const GEOL_Point& thePoint) const;
 	double pointDistance(const GEOL_Point* thePoint) const;
-	double originDistance();
+	double originDistance() const;
+	double angle() const;
+	double angle(double theXOrigin, double theYOrigin) const;
+	double angle(GEOL_Point theOrigin) const;
+	GEOL_Quadrant quadrant() const;
+	GEOL_Quadrant quadrant(double theXOrigin, double theYOrigin) const;
 
 	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 	bool isEndPoint(const GEOL_Entity *theEntity) { return false; }
 	
 	double length() const { return 0.0; }
+	double area() const { return 0.0; }
+
+	void translate(double theDX, double theDY);
 
 	GEOL_BBox getBBox();
 
@@ -54,9 +62,9 @@ protected:
 	GEOL_Point(double theXCoord, double theYCoord);
 	~GEOL_Point();
 	
-	virtual bool LoadBinary(std::ifstream *theStream);
-	virtual bool SaveBinary(std::ofstream *theStream);
-	virtual bool LoadISO(std::ifstream *theStream);
+	virtual bool LoadBinary(ifstream *theStream);
+	virtual bool SaveBinary(ofstream *theStream);
+	virtual bool LoadISO(ifstream *theStream);
 };
 
 
@@ -114,5 +122,18 @@ inline void GEOL_Point::xy(double theXCoord, double theYCoord) {
 }
 
 
+
+/*!
+Translate a point
+
+\param theDX
+x translation
+\param theDY
+y translation
+*/
+inline void GEOL_Point::translate(double theDX, double theDY) {
+	mBegin += theDX;
+	mEnd += theDY;
+}
 
 #endif

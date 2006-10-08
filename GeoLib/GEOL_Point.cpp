@@ -97,9 +97,80 @@ Compute the distance between this point and the axis origin
 \return
 The distance between this point and the axis origin
 */
-double GEOL_Point::originDistance() {
+double GEOL_Point::originDistance() const {
 	return sqrt(mBegin * mBegin + mEnd * mEnd);	
 }
+
+
+
+/*!
+\return
+The angle between x axis and the segment from origint to the point
+*/
+double GEOL_Point::angle() const {
+	return atan2(mBegin, mEnd);
+}
+
+
+
+/*!
+\return
+The angle between x axis and the segment from origin passed as parameter to the point
+*/
+double GEOL_Point::angle(GEOL_Point theOrigin) const {
+	double xPoint = mBegin - theOrigin.x();
+	double yPoint = mEnd - theOrigin.y();
+	return atan2(yPoint, xPoint);
+}
+
+
+
+/*!
+\return
+The angle between x axis and the segment from origin passed as parameter to the point
+*/
+double GEOL_Point::angle(double theXOrigin, double theYOrigin) const {
+	double xPoint = mBegin - theXOrigin;
+	double yPoint = mEnd - theYOrigin;
+	return atan2(yPoint, xPoint);
+}
+
+
+
+
+/*!
+\return
+The quadrant of the point, respect to the coordinate system origin
+*/
+GEOL_Quadrant GEOL_Point::quadrant() const {
+	return quadrant(0.0, 0.0);
+}
+
+
+
+/*!
+\return
+The quadrant of the point, respect to the passed origin
+*/
+GEOL_Quadrant GEOL_Point::quadrant(double theXOrigin, double theYOrigin) const {
+	GEOL_Quadrant ret = geol_TopRight;
+	if (x() > theXOrigin && y() > theYOrigin) {
+		ret = geol_TopRight;
+	}
+	else if (x() <= theXOrigin && y() > theYOrigin) {
+		ret = geol_TopLeft;
+	}
+	else if (x() <= theXOrigin && y() <= theYOrigin) {
+		ret = geol_BottomLeft;
+	}
+	else if (x() > theXOrigin && y() <= theYOrigin) {
+		ret = geol_BottomRight;
+	}
+	
+	return ret;
+}
+
+
 
 
 /*!
@@ -187,7 +258,7 @@ The stream to read from
 - true if the read operation succeed
 - false otherwise
 */
-bool GEOL_Point::LoadBinary(std::ifstream *theStream) {
+bool GEOL_Point::LoadBinary(ifstream *theStream) {
 	if (!theStream)
 		return false;
 		
@@ -218,13 +289,13 @@ The stream to write on
 - true if the write operation succeed
 - false otherwise
 */
-bool GEOL_Point::SaveBinary(std::ofstream *theStream) {
+bool GEOL_Point::SaveBinary(ofstream *theStream) {
 	if (!theStream)
 		return false;
 
 	bool ret = !theStream -> bad();
 	if (ret) {
-		ret = saveBinaryObjectInfo(theStream, geol_Point);
+		ret = saveBinaryObjectInfo(theStream);
 	}
 	if (ret) {
 		double xCoord = x();
@@ -243,7 +314,7 @@ bool GEOL_Point::SaveBinary(std::ofstream *theStream) {
 	return ret;
 }
 
-bool GEOL_Point::LoadISO(std::ifstream *theStream) {
+bool GEOL_Point::LoadISO(ifstream *theStream) {
 	if (!theStream)
 		return false;
 
