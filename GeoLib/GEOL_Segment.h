@@ -49,9 +49,12 @@ public:
 	The length of the segment
 	*/
 	double length() const { return mLength; }
+	double area() const;
 	
 	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 	bool isEndPoint(const GEOL_Entity *theEntity);
+
+	void translate(double theDX, double theDY);
 
 	GEOL_BBox getBBox();
 
@@ -60,9 +63,9 @@ protected:
 	GEOL_Segment(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint);
 	~GEOL_Segment();
 
-	virtual bool LoadBinary(std::ifstream *theStream);
-	virtual bool SaveBinary(std::ofstream *theStream);
-	virtual bool LoadISO(std::ifstream *theStream);
+	virtual bool LoadBinary(ifstream *theStream);
+	virtual bool SaveBinary(ofstream *theStream);
+	virtual bool LoadISO(ifstream *theStream);
 
 private:
 	/*!

@@ -179,6 +179,17 @@ bool GEOL_Segment::isEndPoint(const GEOL_Entity *theEntity) {
 
 
 /*!
+Notification on object destruction, if the object destroied is an end point of the segment, the segment itself has
+to be destroyed
+
+\param theObject
+Object destroyed
+\param theDestroyFlag
+On exit its true if the segment itself has to be destroyed, false otherwise
+
+\return
+- true if the notification succeeds
+- false otherwise
 */
 bool GEOL_Segment::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) {
 	theDestroyFlag = false;
@@ -195,6 +206,25 @@ bool GEOL_Segment::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFla
 
 
 
+/*!
+\return
+The area between the segment and the x axis (integral), is a signed value that is if the segment direction is x- or
+the segment is under the x axis the area will be negative
+*/
+double GEOL_Segment::area() const {
+	GEOL_Point *beginPoint = begin();
+	GEOL_Point *endPoint = end();
+	double ret = ((endPoint -> y() + beginPoint -> y()) * (endPoint -> x() - beginPoint -> x()) ) / 2.0;
+
+	return ret;
+}
+
+
+
+/*!
+\return
+The bounding box of the segment
+*/
 GEOL_BBox GEOL_Segment::getBBox() {
 	if (!mBBox || !mBBox -> isValid()) {
 		GEOL_BBox bbox;
@@ -220,6 +250,21 @@ GEOL_BBox GEOL_Segment::getBBox() {
 	}
 	
 	return *mBBox;
+}
+
+
+
+/*!
+Translate a segment
+
+\param theDX
+x translation
+\param theDY
+y translation
+*/
+void GEOL_Segment::translate(double theDX, double theDY) {
+	((GEOL_Point*)getBeginEntity()) -> translate(theDX, theDY);
+	((GEOL_Point*)getEndEntity()) -> translate(theDX, theDY);
 }
 
 
@@ -272,7 +317,7 @@ bool GEOL_Segment::operator!=(const GEOL_Segment& theSegment) const {
 
 
 
-bool GEOL_Segment::LoadBinary(std::ifstream *theStream) {
+bool GEOL_Segment::LoadBinary(ifstream *theStream) {
 	if (!theStream)
 		return false;
 
@@ -305,13 +350,13 @@ bool GEOL_Segment::LoadBinary(std::ifstream *theStream) {
 	return ret;
 }
 
-bool GEOL_Segment::SaveBinary(std::ofstream *theStream) {
+bool GEOL_Segment::SaveBinary(ofstream *theStream) {
 	if (!theStream)
 		return false;
 
 	bool ret = !theStream -> bad();
 	if (ret) {
-		ret = saveBinaryObjectInfo(theStream, geol_Segment);
+		ret = saveBinaryObjectInfo(theStream);
 		if (ret) {
 			ret = ((GEOL_Entity*)getBeginEntity()) -> SaveBinary(theStream);
 			if (ret) {
@@ -334,7 +379,7 @@ bool GEOL_Segment::SaveBinary(std::ofstream *theStream) {
 	return ret;
 }
 
-bool GEOL_Segment::LoadISO(std::ifstream *theStream) {
+bool GEOL_Segment::LoadISO(ifstream *theStream) {
 	if (!theStream)
 		return false;
 
