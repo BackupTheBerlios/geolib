@@ -1,0 +1,34 @@
+/********************************************************************
+* File: GM_3dBasis.h												*
+*********************************************************************
+* Descrizione:														*
+*********************************************************************
+* History:															*
+* 22.4.2007 Creato da : Cordara Claudio								*
+*********************************************************************
+*               (C) 2007 Claudio Cordara							*
+********************************************************************/
+
+
+
+#pragma once
+
+
+#include "GM_3dVector.h"
+
+
+
+class GM_3dBasis {
+public:
+	GM_3dBasis();
+	GM_3dBasis(const GM_3dBasis& theBasis);
+	GM_3dBasis(GM_3dVector theGen1, GM_3dVector theGen2, GM_3dVector theGen3);
+	~GM_3dBasis();
+
+	bool isValid() const;
+	void invalidate();
+	void normalize();
+	bool isLinearlyInd() const;
+private:
+	GM_3dVector mGen[3];
+};

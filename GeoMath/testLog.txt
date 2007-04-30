@@ -1,0 +1,60 @@
+TESTING  -  class GM_3dPoint ...
+
+	OK - Default constructor creates invalid points
+	OK - Get/Set working
+	OK - Copy constructor working
+	OK - Coordinate constructor working
+	OK - XY angle constructor working
+	OK - Invalidation working
+	OK - Inversion working
+	OK - Origin check working
+	OK - Distance computation working
+	OK - Equality check working
+
+
+----------------------------------------------------------
+
+TESTING  -  class GM_3dVector ...
+
+	OK - Default constructor creates invalid vector
+	OK - Get/Set working
+	OK - Copy constructor working
+	OK - Constructor from point working
+	OK - Constructor from line working
+	OK - XY angle constructor working
+	OK - Module computation working
+	OK - Normalization working
+	OK - xy angle computation working
+	OK - Angle between vectors computation working
+	OK - At left working
+	OK - Dot product working
+	OK - Cross product working
+	OK - Scaling working
+	OK - Sum working
+	OK - Difference working
+
+
+----------------------------------------------------------
+
+TESTING  -  class GM_3dLine ...
+
+	OK - Default constructor creates invalid line
+	OK - Get/Set working
+	OK - Copy constructor working
+	OK - Points constructor working
+	OK - Coordinate constructor working
+	OK - dx, dy or dz working
+	OK - Dot product working
+	OK - Cross product working
+	OK - Center point computation working
+	OK - Inversion working
+	OK - Length computation working
+	OK - Null line check working
+	OK - Vertical line check working
+	OK - Horizontal line check working
+	OK - min/max Z working
+	OK - Point on line at Z working
+	OK - XY normal vector computation working
+	OK - Point from section working
+	OK - Section from point working
+	OK - Point distance working

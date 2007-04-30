@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GeoMath", "GeoMath.vcproj", "{75CAC589-0286-4A26-9B60-37535E3A6262}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GeoMathTest", "GeoMathTest.vcproj", "{36594278-9F69-4B8A-9C01-14AA7A269D99}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7513024C-BC2E-4560-99EB-B0BD7D5A76C9}"
+	ProjectSection(SolutionItems) = preProject
+		Note.txt = Note.txt
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{75CAC589-0286-4A26-9B60-37535E3A6262}.Debug|Win32.ActiveCfg = Debug|Win32
+		{75CAC589-0286-4A26-9B60-37535E3A6262}.Debug|Win32.Build.0 = Debug|Win32
+		{75CAC589-0286-4A26-9B60-37535E3A6262}.Release|Win32.ActiveCfg = Release|Win32
+		{75CAC589-0286-4A26-9B60-37535E3A6262}.Release|Win32.Build.0 = Release|Win32
+		{36594278-9F69-4B8A-9C01-14AA7A269D99}.Debug|Win32.ActiveCfg = DebugTest|Win32
+		{36594278-9F69-4B8A-9C01-14AA7A269D99}.Debug|Win32.Build.0 = DebugTest|Win32
+		{36594278-9F69-4B8A-9C01-14AA7A269D99}.Release|Win32.ActiveCfg = ReleaseTest|Win32
+		{36594278-9F69-4B8A-9C01-14AA7A269D99}.Release|Win32.Build.0 = ReleaseTest|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

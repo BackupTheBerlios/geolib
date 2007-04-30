@@ -1,0 +1,75 @@
+GEOMATH
+=======
+
+Claudio Cordara
+22 Aprile 2007
+
+Libreria per la gestione di oggetti geometrici 3d quali :
+
+- Basi e sistemi di coordinate
+- Punti
+- Rette (linee)
+- Piani
+- Triangoli
+
+Con particolare attenzione a operazioni quali :
+
+- Calcolo delle distanze
+- Calcolo di angoli
+- Prodotti scalari e prodotti vettore
+
+E operazioni di algebra lineare quali :
+
+- Calcolo matriciale
+- Transizione tra sistemi di coordinate
+- Rototraslazioni
+
+
+
+
+Classi - Funzionalità da implementare
+=====================================
+
+GM_3dPoint
+		- Distanza tra due punti
+		- Ribaltamento sul piano xy
+GM_3dVector
+		- Operazioni di somma, sottrasione, prodotto scalare, prodotto vettore, prodotto per uno scalare
+		- Normalizzazione
+		- Calcolo dell' angolo della proiezione su xy rispetto all' asse x
+		- Modulo
+GM_3dLine
+		- Calcolo della lunghezza
+		- Inversione
+		- Massimi e minimi in Z
+		- Punto sulla linea a una Z specificata
+		- Calcolo della normale alla proiezione della linea sul piano xy
+		- Calcolo dell' angolo che la proiezione su xy forma con l' asse x
+		- Distanza 3d rispetto di un punto
+		- Punto data la sezione di sviluppo e viceversa
+GM_3dPlane
+		- Distanza 3d rispetto di un punto
+		- Generazione a partire da un terna di punti
+GM_3dTriangle
+		- Impostazione del verso del perimetro (orario/antiorario) proiettato sul piano xy
+		- Controlli di verticalità, orizzontalità e connessione
+		- Angolo interno tra il piano su cui giace il triangolo e il piano xy
+		- Massimi e minimi in Z
+		- Calcolo del vettore normale al piano su cui giace il triangolo
+		- Calcolo del vettore normale a un lato proiettato sul piano xy diretto verso l' esterno del triangolo
+		- Calcolo di una sezione a una data Z
+		- Distanza 3d rispetto di un punto
+		- Controllo di appartenenza di un punto all' interno del triangolo
+GM_3dBasis
+		- Controllo di indipendenza lineare dei vettori generatori
+GM_3dTrasf
+		- Calcolo della matrice di trasferimento date due basi
+GM_Matrix
+		- Moltiplicazione tra matrici e di una matrice con un vettore
+		- Calcolo della matrice inversa e trasposta
+		- Calcolo del determinante
+GM_Rototraslation
+		- Calcolo di una matrice di rototraslazione dati gli angoli e le traslazioni
+		- Cacolo degli angoli e delle traslazioni data la matrice di rototraslazione
+		- Composizione di rotazioni e traslazioni
+
