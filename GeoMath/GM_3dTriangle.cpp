@@ -1,10 +1,10 @@
 /********************************************************************
 * File: GM_3dTriangle.cpp											*
 *********************************************************************
-* Descrizione:														*
+* Description:														*
 *********************************************************************
 * History:															*
-* 22.4.2007 Creato da : Cordara Claudio								*
+* 22.4.2007 Created by : Claudio Cordara							*
 *********************************************************************
 *               (C) 2007 Claudio Cordara							*
 ********************************************************************/
@@ -22,7 +22,6 @@
 
 
 GM_3dTriangle::GM_3dTriangle(void) {
-	mSurfAngle = DBL_MAX;
 }
 
 
@@ -35,7 +34,6 @@ GM_3dTriangle::GM_3dTriangle(const GM_3dTriangle& theTriangle) {
 	mEdge[0] = theTriangle.mEdge[0];
 	mEdge[1] = theTriangle.mEdge[1];
 	mEdge[2] = theTriangle.mEdge[2];
-	mSurfAngle = theTriangle.mSurfAngle;
 }
 
 
@@ -44,7 +42,6 @@ GM_3dTriangle::GM_3dTriangle(GM_3dPoint theFirstPoint, GM_3dPoint theSecondPoint
 	mEdge[0] = GM_3dLine(theFirstPoint, theSecondPoint);
 	mEdge[1] = GM_3dLine(theSecondPoint, theThirdPoint);
 	mEdge[2] = GM_3dLine(theThirdPoint, theFirstPoint);
-	mSurfAngle = DBL_MAX;
 }
 
 
@@ -53,7 +50,6 @@ GM_3dTriangle::GM_3dTriangle(GM_3dLine theFirstEdge, GM_3dLine theSecondEdge, GM
 	mEdge[0] = theFirstEdge;
 	mEdge[1] = theSecondEdge;
 	mEdge[2] = theThirdEdge;
-	mSurfAngle = DBL_MAX;
 }
 
 
@@ -83,7 +79,6 @@ Riferimento al lato i-esimo del triangolo
 */
 GM_3dLine& GM_3dTriangle::operator[](int theIndex) {
 	assert(theIndex >= 0 && theIndex <= 2);
-	mSurfAngle = DBL_MAX;
 	return mEdge[theIndex];
 }
 
@@ -176,24 +171,9 @@ double GM_3dTriangle::minZ() const {
 \return
 Angolo più piccolo che il piano su cui giace il triangolo forma con il piano xy
 */
-double GM_3dTriangle::angle() const {
-	if (mSurfAngle == DBL_MAX) {
-		const_cast<GM_3dTriangle*>(this) -> computeAngle();
-	}
-	return mSurfAngle;
-}
-
-
-
-/*!
-Calcola l' angolo più piccolo che il piano su cui giace il triangolo forma con il piano xy
-*/
-void GM_3dTriangle::computeAngle() {
-	GM_3dVector normVector = normalVector();
-	GM_3dVector normalVectorOnXY(normVector.x(), normVector.y(), 0.0);
-	double dz = normVector.z();
-	double dxy = normalVectorOnXY.mod();
-	mSurfAngle = (GM_PI / 2.0) - atan2(dz, dxy);
+double GM_3dTriangle::xyAngle() const {
+	GM_3dPlane trPlane(*this);
+	return trPlane.xyAngle();
 }
 
 
@@ -351,25 +331,74 @@ void GM_3dTriangle::invalidate() {
 
 
 /*!
-Determina se un punto appartiene all' interno di un triangolo
+Determina se un punto, o la sua proiezione sul piano su cui giace il triangolo, appartiene all' interno
+di un triangolo
 */
 bool GM_3dTriangle::isInteriorPoint(GM_3dPoint thePoint) const {
-	return false;
+	bool ret = false;
+	if (!isValid() || !thePoint.isValid())
+		return ret;
+
+	GM_3dVector bVect(mEdge[0].begin());
+	GM_3dVector E0Vect(mEdge[0].end());
+	GM_3dVector E1Vect;
+	if (mEdge[1].begin() != mEdge[0].begin() && mEdge[1].begin() != mEdge[0].end()) {
+		E1Vect = (GM_3dVector)(mEdge[1].begin());
+	}
+	else {
+		E1Vect = (GM_3dVector)(mEdge[1].end());
+	}
+	GM_3dVector pointVect = (GM_3dVector)thePoint;
+
+	GM_3dVector dVect = bVect - pointVect;
+	double a = E0Vect * E0Vect;
+	double b = E0Vect * E1Vect;
+	double c = E1Vect * E1Vect;
+	double d = E0Vect * dVect;
+	double e = E1Vect * dVect;
+	double f = dVect * dVect;
+
+	double det = a*c - b*b;
+	double s = b*e - c*d;
+	double t = b*d - a*e;
+
+	if (s + t <= det && s >= 0.0 && t >= 0.0) {
+		ret = true;
+	}
+	else {
+		ret = false;
+	}
+
+	return ret;
 }
 
 
 
 /*!
 Distanza di un punto 3d dal triangolo
-DA FINIRE
 */
 double GM_3dTriangle::pointDistance(GM_3dPoint thePoint) const {
-	// Calcolo la distanza tra il punto e il piano su cui giace il triangolo
-	// Il punto più vicino sul piano appartiene al triangolo
-		// Il punto e la distanza costituiscono il risultato
-	// Il punto più vicino sul piano non appartiene al triangolo
-		// Calcolo la distanza tra il punto e i tre lati del triangolo prendendo
-		// la più piccola
+	double ret = DBL_MAX;
+	if (!isValid() || !thePoint.isValid())
+		return ret;
 
-	return DBL_MAX;
+	if (isInteriorPoint(thePoint)) {
+		// Punto interno al triangolo, la distanza è pari alla distanza tra il punto e il piano su cui
+		// giace il triangolo
+
+		GM_3dPlane triPlane(*this);
+		ret = triPlane.pointDistance(thePoint);
+	}
+	else {
+		// Punto esterno al triangolo, prendo la minore tra le distanze del punto con i tre lati
+
+		for (unsigned int i = 0 ; i < 3  ; i++) {
+			double d = mEdge[i].pointDistance(thePoint);
+			if (d < ret) {
+				ret = d;
+			}
+		}
+	}
+
+	return ret;
 }

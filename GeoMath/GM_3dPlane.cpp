@@ -1,10 +1,10 @@
 /********************************************************************
 * File: GM_3dPlane.cpp												*
 *********************************************************************
-* Descrizione:														*
+* Description:														*
 *********************************************************************
 * History:															*
-* 22.4.2007 Creato da : Cordara Claudio								*
+* 22.4.2007 Created by : Claudio Cordara							*
 *********************************************************************
 *               (C) 2007 Claudio Cordara							*
 ********************************************************************/
@@ -58,7 +58,7 @@ GM_3dPlane::GM_3dPlane(GM_3dPoint thePt1, GM_3dPoint thePt2, GM_3dPoint thePt3) 
 
 
 
-GM_3dPlane::GM_3dPlane(GM_3dPoint theNormal, GM_3dPoint thePoint) {
+GM_3dPlane::GM_3dPlane(GM_3dVector theNormal, GM_3dPoint thePoint) {
 	mCoeff[0] = theNormal.x();
 	mCoeff[1] = theNormal.y();
 	mCoeff[2] = theNormal.z();
@@ -73,6 +73,13 @@ GM_3dPlane::GM_3dPlane(GM_3dTriangle theTriangle) {
 	normalize();
 }
 
+
+
+GM_3dPlane::GM_3dPlane(const GM_3dPlane& thePlane) {
+	for (int i = 0 ; i < 4 ; i++) {
+		mCoeff[i] = thePlane.mCoeff[i];
+	}
+}
 
 
 
@@ -117,8 +124,13 @@ in forma Hessiana
 void GM_3dPlane::normalize() {
 	if (isValid()) {
 		double denom = sqrt(mCoeff[0]*mCoeff[0] + mCoeff[1]*mCoeff[1] + mCoeff[2]*mCoeff[2]);
-		for (unsigned int i = 0 ; i < 4 ; i++) {
-			mCoeff[i] /= denom;
+		if (denom < GM_NULL_TOLERANCE) {
+			invalidate();
+		}
+		else {
+			for (unsigned int i = 0 ; i < 4 ; i++) {
+				mCoeff[i] /= denom;
+			}
 		}
 	}
 }
@@ -139,7 +151,7 @@ bool GM_3dPlane::isValid() const {
 	if (ret) {
 		ret = false;
 		for (unsigned int i = 0 ; !ret && i < 3 ; i++) {
-			if (mCoeff[i] > GM_NULL_TOLERANCE) {
+			if (fabs(mCoeff[i]) > GM_NULL_TOLERANCE) {
 				ret = true;
 			}
 		}
@@ -171,16 +183,24 @@ In uscita contiene il punto sul piano più vicino a thePoint
 \return
 La distanza di thePoint dal piano
 */
-double GM_3dPlane::pointDistance(GM_3dPoint& thePoint, GM_3dPoint& thePointOnPlane) const {
-	if (!thePoint.isValid() || isValid())
+double GM_3dPlane::pointDistance(const GM_3dPoint& thePoint, GM_3dPoint& thePointOnPlane) const {
+	if (!thePoint.isValid() || !isValid())
 		return DBL_MAX;
 
-	double ret = pointDistance(thePoint);
-	thePointOnPlane = (GM_3dVector)thePoint + (GM_3dVector(mCoeff[0], mCoeff[1], mCoeff[2]) * ret);
+	return fabs(pointDistanceSgn(thePoint, thePointOnPlane));
+}
+
+
+
+double GM_3dPlane::pointDistanceSgn(const GM_3dPoint& thePoint, GM_3dPoint& thePointOnPlane) const {
+	if (!thePoint.isValid() || !isValid())
+		return DBL_MAX;
+
+	double ret = pointDistanceSgn(thePoint);
+	thePointOnPlane = (GM_3dVector)thePoint - (GM_3dVector(mCoeff[0], mCoeff[1], mCoeff[2]) * ret);
 
 	return ret;
 }
-
 
 
 /*!
@@ -192,11 +212,62 @@ Punto di cui calcolare la distanza dal piano
 \return
 La distanza di thePoint dal piano
 */
-double GM_3dPlane::pointDistance(GM_3dPoint& thePoint) const {
-	if (!thePoint.isValid() || isValid())
+double GM_3dPlane::pointDistance(const GM_3dPoint& thePoint) const {
+	if (!thePoint.isValid() || !isValid())
 		return DBL_MAX;
 
-	double ret = mCoeff[0] * thePoint.x() + mCoeff[1] * thePoint.y() + mCoeff[2] * thePoint.z() + mCoeff[3];
-	return ret;
+	return fabs(pointDistanceSgn(thePoint));
 }
 
+
+double GM_3dPlane::pointDistanceSgn(const GM_3dPoint& thePoint) const {
+	if (!thePoint.isValid() || !isValid())
+		return DBL_MAX;
+
+	return (mCoeff[0] * thePoint.x() + mCoeff[1] * thePoint.y() + mCoeff[2] * thePoint.z() + mCoeff[3]);
+}
+
+
+
+bool GM_3dPlane::operator == (const GM_3dPlane& thePlane) const {
+	return !((*this) != thePlane);
+}
+
+
+bool GM_3dPlane::operator != (const GM_3dPlane& thePlane) const {
+	if (fabs(mCoeff[0]-thePlane.mCoeff[0]) > GM_NULL_TOLERANCE || fabs(mCoeff[1]-thePlane.mCoeff[1]) > GM_NULL_TOLERANCE || fabs(mCoeff[2]-thePlane.mCoeff[2]) > GM_NULL_TOLERANCE || fabs(mCoeff[3]-thePlane.mCoeff[3]) > GM_NULL_TOLERANCE) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+
+double GM_3dPlane::operator [](unsigned int theIndex) const {
+	if (theIndex < 4) {
+		return mCoeff[theIndex];
+	}
+	else {
+		return DBL_MAX;
+	}
+}
+
+
+GM_3dVector GM_3dPlane::normalVector() const {
+	return GM_3dVector(mCoeff[0], mCoeff[1], mCoeff[2]);
+}
+
+
+double GM_3dPlane::xyAngle() const {
+	double ret = DBL_MAX;
+	if (!isValid())
+		return ret;
+
+	GM_3dVector normVector = normalVector();
+	double dz = fabs(normVector.z());
+	double dxy = sqrt(normVector.x()*normVector.x() + normVector.y()*normVector.y());
+	ret = (GM_PI / 2.0) - atan2(dz, dxy);
+	
+	return ret;
+}

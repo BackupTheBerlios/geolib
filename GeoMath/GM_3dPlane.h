@@ -1,10 +1,10 @@
 /********************************************************************
 * File: GM_3dPlane.h												*
 *********************************************************************
-* Descrizione:														*
+* Description:														*
 *********************************************************************
 * History:															*
-* 22.4.2007 Creato da : Cordara Claudio								*
+* 22.4.2007 Created by : Claudio Cordara							*
 *********************************************************************
 *               (C) 2007 Claudio Cordara							*
 ********************************************************************/
@@ -19,15 +19,24 @@ class GM_3dTriangle;
 class GM_3dPlane {
 public:
 	GM_3dPlane();
-	~GM_3dPlane();
+	virtual ~GM_3dPlane();
+	GM_3dPlane(const GM_3dPlane& thePlane);
 	GM_3dPlane(double theCoeffArray[4]);
 	GM_3dPlane(double a, double b, double c, double d);
 	GM_3dPlane(GM_3dPoint thePt1, GM_3dPoint thePt2, GM_3dPoint thePt3);
-	GM_3dPlane(GM_3dPoint theNormal, GM_3dPoint thePoint);
+	GM_3dPlane(GM_3dVector theNormal, GM_3dPoint thePoint);
 	GM_3dPlane(GM_3dTriangle theTriangle);
 
-	double pointDistance(GM_3dPoint& thePoint, GM_3dPoint& thePointOnPlane) const;
-	double pointDistance(GM_3dPoint& thePoint) const;
+	bool operator == (const GM_3dPlane& thePlane) const;
+	bool operator != (const GM_3dPlane& thePlane) const;
+	double operator [](unsigned int theIndex) const;
+
+	double pointDistance(const GM_3dPoint& thePoint, GM_3dPoint& thePointOnPlane) const;
+	double pointDistanceSgn(const GM_3dPoint& thePoint, GM_3dPoint& thePointOnPlane) const;
+	double pointDistance(const GM_3dPoint& thePoint) const;
+	double pointDistanceSgn(const GM_3dPoint& thePoint) const;
+	GM_3dVector normalVector() const;
+	double xyAngle() const;
 
 	bool isValid() const;
 	void invalidate();

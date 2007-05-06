@@ -3,6 +3,7 @@
 
 #include "stdafxt.h"
 
+#include <float.h>
 #include <math.h>
 
 
@@ -722,10 +723,260 @@ int testLine() {
 int testPlane() {
 	int numErr = 0;
 
+	logMessage(_T("TESTING  -  class GM_3dPlane ...\n\n"));
+
+	// Default constructor, plane must be invalid
+	GM_3dPlane p;
+	if (p.isValid()) {
+		logMessage(_T("\tERROR - Default constructor creates valid plane\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Default constructor creates invalid plane\n"));
+	}
+
+	// Constructor (coeff)
+	GM_3dPlane p1(getRandomDouble(), getRandomDouble(), getRandomDouble(), getRandomDouble());
+	GM_3dPlane pNull(0.0, 0.0, 0.0, getRandomDouble());
+	if (!p1.isValid() || pNull.isValid()) {
+		logMessage(_T("\tERROR - Coeff. constructor not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Coeff. constructor working\n"));
+	}
+
+	// Copy constructor
+	GM_3dPlane copyPlane(p1);
+	if (!copyPlane.isValid() || copyPlane != p1) {
+		logMessage(_T("\tERROR - Copy constructor not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Copy constructor working\n"));
+	}
+
+	// Constructor (coeff vector)
+	double pointsVect[4];
+	for (int i = 0 ; i < 4 ; i++) {
+		pointsVect[i] = getRandomDouble();
+	}
+	GM_3dPlane p2(pointsVect);
+	if (!p2.isValid()) {
+		logMessage(_T("\tERROR - Coeff. vector constructor not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Coeff. vector constructor working\n"));
+	}
+
+	// Constructor (points)
+	GM_3dPoint pt1(getRandomDouble(), getRandomDouble(), getRandomDouble());
+	GM_3dPoint pt2(getRandomDouble(), getRandomDouble(), getRandomDouble());
+	GM_3dPoint pt3(getRandomDouble(), getRandomDouble(), getRandomDouble());
+	GM_3dLine ln(getRandomDouble(), getRandomDouble(), getRandomDouble(),getRandomDouble(), getRandomDouble(), getRandomDouble());
+	GM_3dPoint ptLn1 = ln.begin();
+	GM_3dPoint ptLn2 = ln.center();
+	GM_3dPoint ptLn3 = ln.end();
+	GM_3dPlane p3(pt1, pt2, pt3);
+	GM_3dPlane pLine(ptLn2, ptLn2, ptLn3);
+	double distPt1 = pt1.x()*p3[0] + pt1.y()*p3[1] + pt1.z()*p3[2] + p3[3];
+	double distPt2 = pt2.x()*p3[0] + pt2.y()*p3[1] + pt2.z()*p3[2] + p3[3];
+	double distPt3 = pt3.x()*p3[0] + pt3.y()*p3[1] + pt3.z()*p3[2] + p3[3];
+	if (!p3.isValid() || pLine.isValid() || fabs(distPt1) > GM_NULL_TOLERANCE || fabs(distPt2) > GM_NULL_TOLERANCE || fabs(distPt3) > GM_NULL_TOLERANCE) {
+		logMessage(_T("\tERROR - Points constructor not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Points constructor working\n"));
+	}
+
+	// Point distance
+	GM_3dPlane p4(getRandomDouble(), getRandomDouble(), getRandomDouble(),getRandomDouble());
+	GM_3dPoint checkPoint(getRandomDouble(), getRandomDouble(), getRandomDouble());
+	if (fabs(p4[0]) > GM_NULL_TOLERANCE) {
+		checkPoint.x(-(checkPoint.y()*p4[1] + checkPoint.z()*p4[2] + p4[3]) / p4[0]);
+	}
+	else if (fabs(p4[1]) > GM_NULL_TOLERANCE) {
+		checkPoint.y(-(checkPoint.x()*p4[0] + checkPoint.z()*p4[2] + p4[3]) / p4[1]);
+	}
+	else if (fabs(p4[2]) > GM_NULL_TOLERANCE) {
+		checkPoint.z(-(checkPoint.x()*p4[0] + checkPoint.y()*p4[1] + p4[3]) / p4[2]);
+	}
+	else {
+		p4.invalidate();
+	}
+	double checkSignedDist = getRandomDouble();
+	double checkDist = fabs(checkSignedDist);
+	GM_3dVector p4Norm = p4.normalVector();
+	checkPoint = (GM_3dVector)checkPoint + (p4Norm * checkSignedDist);
+	GM_3dPoint checkPointOnPlane1;
+	GM_3dPoint checkPointOnPlane2;
+	double dist = p4.pointDistance(checkPoint);
+	double signedDist = p4.pointDistanceSgn(checkPoint);
+	double signedDistOnPlane = p4.pointDistanceSgn(checkPoint, checkPointOnPlane1);
+	double distOnPlane = p4.pointDistance(checkPoint, checkPointOnPlane2);
+	
+	distPt1 = checkPointOnPlane1.x()*p4[0] + checkPointOnPlane1.y()*p4[1] + checkPointOnPlane1.z()*p4[2] + p4[3];
+	distPt2 = checkPointOnPlane2.x()*p4[0] + checkPointOnPlane2.y()*p4[1] + checkPointOnPlane2.z()*p4[2] + p4[3];
+	
+	if (!p4.isValid() || !checkPointOnPlane1.isValid() || !checkPointOnPlane2.isValid() ||
+		fabs(distPt1) > GM_NULL_TOLERANCE || fabs(distPt2) > GM_NULL_TOLERANCE ||
+		fabs(distOnPlane - checkDist) > GM_NULL_TOLERANCE || fabs(signedDistOnPlane - checkSignedDist) > GM_NULL_TOLERANCE ||
+		fabs(dist - checkDist) > GM_NULL_TOLERANCE || fabs(signedDist - checkSignedDist) > GM_NULL_TOLERANCE) {
+		logMessage(_T("\tERROR - Point distance computation not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Point distance computation working\n"));
+	}
+
+	// XY Angle
+	double angle = ((((double)rand()) / ((double)RAND_MAX)) * GM_PI) - (GM_PI / 2.0);
+	GM_3dVector normVector(angle + GM_HALFPI);
+	normVector.z(normVector.y());
+	normVector.y(0.0);
+	GM_3dPlane angleP(normVector, GM_3dPoint(getRandomDouble(), getRandomDouble(), getRandomDouble()));
+	double checkAngle = angleP.xyAngle();
+	if (!angleP.isValid() || fabs(angle - checkAngle) > GM_NULL_TOLERANCE) {
+		logMessage(_T("\tERROR - XY angle computation not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - XY angle computation working\n"));
+	}
+
+
 	return numErr;
 }
 int testTriangle() {
 	int numErr = 0;
+
+	logMessage(_T("TESTING  -  class GM_3dTriangle ...\n\n"));
+
+	// Default constructor, triangle must be invalid
+	GM_3dTriangle tr;
+	if (tr.isValid()) {
+		logMessage(_T("\tERROR - Default constructor creates valid triangle\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Default constructor creates invalid triangle\n"));
+	}
+
+	// Get/Set
+	GM_3dPoint v1(getRandomDouble(), getRandomDouble(), getRandomDouble());
+	GM_3dPoint v2(getRandomDouble(), getRandomDouble(), getRandomDouble());
+	GM_3dPoint v3(getRandomDouble(), getRandomDouble(), getRandomDouble());
+	tr[0] = GM_3dLine(v1, v2);
+	tr[1] = GM_3dLine(v2, v3);
+	tr[2] = GM_3dLine(v3, v1);
+	if (!tr.isValid() || tr[0].begin() != v1 || tr[0].end() != v2 || tr[1].begin() != v2 || tr[1].end() != v3
+				|| tr[2].begin() != v3 || tr[2].end() != v1) {
+		logMessage(_T("\tERROR - Get/Set not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Get/Set working\n"));
+	}
+
+	// Copy constructor
+	GM_3dTriangle tr1(tr);
+	if (!tr1.isValid() || tr[0] != tr1[0] || tr[1] != tr1[1] || tr[2] != tr1[2]) {
+		logMessage(_T("\tERROR - Copy constructor not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Copy constructor working\n"));
+	}
+
+	// Constructor (points)
+	GM_3dTriangle tr2(v1, v2, v3);
+	if (!tr1.isValid() || tr[0] != tr2[0] || tr[1] != tr2[1] || tr[2] != tr2[2]) {
+		logMessage(_T("\tERROR - Constructor (points) not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Constructor (points) working\n"));
+	}
+
+	// Constructor (lines)
+	GM_3dTriangle tr3(tr[0], tr[1], tr[2]);
+	if (!tr1.isValid() || tr[0] != tr3[0] || tr[1] != tr3[1] || tr[2] != tr3[2]) {
+		logMessage(_T("\tERROR - Constructor (lines) not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Constructor (lines) working\n"));
+	}
+
+	// Inversion
+	tr1.invert();
+	if (!tr1.isValid() || tr1[0].begin() != tr[0].end() || tr1[0].end() != tr[0].begin() || tr1[1].begin() != tr[1].end() || tr1[1].end() != tr[1].begin() ||
+				tr1[2].begin() != tr[2].end() || tr1[2].end() != tr[2].begin()) {
+		logMessage(_T("\tERROR - Triangle inversion not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Triangle inversion working\n"));
+	}
+
+	// Vertical check
+	GM_3dPoint vPoint = GM_3dLine(v1, v2).center();
+	vPoint.z(vPoint.z() + getRandomDouble());
+	GM_3dTriangle VTr(v1, v2, vPoint);
+	if (!VTr.isValid() || !VTr.isVertical()) {
+		logMessage(_T("\tERROR - Vertical check not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Vertical check working\n"));
+	}
+
+	// Horizontal check
+	GM_3dTriangle HTr(tr);
+	double z = getRandomDouble();
+	for (unsigned int i = 0 ; i < 3 ; i++) {
+		HTr[i].begin().z(z);
+		HTr[i].end().z(z);
+	}
+	if (!HTr.isValid() || !HTr.isHorizontal()) {
+		logMessage(_T("\tERROR - Horizontal check not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Horizontal check working\n"));
+	}
+
+	// Connection check
+	GM_3dTriangle discTr(tr);
+	discTr[0].begin().x(discTr[0].begin().x() + 2.0 * GM_DIFF_TOLERANCE);
+	if (!discTr.isValid() || discTr.isConnected() || !tr.isConnected()) {
+		logMessage(_T("\tERROR - Connection check not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Connection check working\n"));
+	}
+
+	// Max/Min z
+	double maxZ = tr.maxZ();
+	double minZ = tr.minZ();
+	double checkMaxZ = -DBL_MAX;
+	double checkMinZ = DBL_MAX;
+	for (unsigned int i = 0 ; i < 3 ; i++) {
+		if (tr[i].begin().z() > checkMaxZ) checkMaxZ = tr[i].begin().z();
+		if (tr[i].begin().z() < checkMinZ) checkMinZ = tr[i].begin().z();
+		if (tr[i].end().z() > checkMaxZ) checkMaxZ = tr[i].end().z();
+		if (tr[i].end().z() < checkMinZ) checkMinZ = tr[i].end().z();
+	}
+	if (checkMinZ != minZ || checkMaxZ != maxZ) {
+		logMessage(_T("\tERROR - Min/Max z not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Min/Max z working\n"));
+	}
 
 	return numErr;
 }
@@ -768,6 +1019,10 @@ void startTest() {
 	int vectorTestErr = testVector();
 	logHLine();
 	int lineTestErr = testLine();
+	logHLine();
+	int planeTestErr = testPlane();
+	logHLine();
+	int triangleTestErr = testTriangle();
 
 
 	fclose(testLogFile);

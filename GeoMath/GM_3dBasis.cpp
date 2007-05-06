@@ -1,10 +1,10 @@
 /********************************************************************
 * File: GM_3dBasis.cpp												*
 *********************************************************************
-* Descrizione:														*
+* Description:														*
 *********************************************************************
 * History:															*
-* 22.4.2007 Creato da : Cordara Claudio								*
+* 22.4.2007 Created by : Claudio Cordara							*
 *********************************************************************
 *               (C) 2007 Claudio Cordara							*
 ********************************************************************/
@@ -69,4 +69,12 @@ bool GM_3dBasis::isLinearlyInd() const {
 		return true;
 	else
 		return false;
+}
+
+
+GM_3dVector GM_3dBasis::operator[](unsigned short theIndex) const {
+	if (theIndex < 3)
+		return mGen[theIndex];
+	else
+		return GM_3dVector();
 }

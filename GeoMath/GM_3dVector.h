@@ -1,10 +1,10 @@
 /********************************************************************
 * File: GM_3dVector.h												*
 *********************************************************************
-* Descrizione:														*
+* Description:														*
 *********************************************************************
 * History:															*
-* 22.4.2007 Creato da : Cordara Claudio								*
+* 22.4.2007 Created by : Claudio Cordara							*
 *********************************************************************
 *               (C) 2007 Claudio Cordara							*
 ********************************************************************/
@@ -24,7 +24,7 @@ public:
 	GM_3dVector(const GM_3dLine& theLine);
 	GM_3dVector(double theXCoord, double theYCoord, double theZCoord);
 	GM_3dVector(double theXYAngle);
-	~GM_3dVector(void);
+	virtual ~GM_3dVector(void);
 
 	double operator*(const GM_3dVector& theVect) const;	
 	GM_3dVector operator^(const GM_3dVector& theVect) const;	

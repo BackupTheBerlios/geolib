@@ -34,7 +34,7 @@ GM_3dPoint
 		- Distanza tra due punti
 		- Ribaltamento sul piano xy
 GM_3dVector
-		- Operazioni di somma, sottrasione, prodotto scalare, prodotto vettore, prodotto per uno scalare
+		- Operazioni di somma, sottrazione, prodotto scalare, prodotto vettore, prodotto per uno scalare
 		- Normalizzazione
 		- Calcolo dell' angolo della proiezione su xy rispetto all' asse x
 		- Modulo

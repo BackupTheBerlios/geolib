@@ -1,10 +1,10 @@
 /********************************************************************
 * File: GM_3dLine.h													*
 *********************************************************************
-* Descrizione:														*
+* Description:														*
 *********************************************************************
 * History:															*
-* 22.4.2007 Creato da : Cordara Claudio								*
+* 22.4.2007 Created by : Claudio Cordara							*
 *********************************************************************
 *               (C) 2007 Claudio Cordara							*
 ********************************************************************/
@@ -18,7 +18,7 @@ class GM_3dPoint;
 class GM_3dLine {
 public:
 	GM_3dLine();
-	~GM_3dLine();
+	virtual ~GM_3dLine();
 	GM_3dLine(const GM_3dLine& theLine);
 	GM_3dLine(GM_3dPoint theBegin, GM_3dPoint theEnd);
 	GM_3dLine(double theBeginXCoord, double theBeginYCoord, double theBeginZCoord, double theEndXCoord, double theEndYCoord, double theEndZCoord);
@@ -68,6 +68,7 @@ public:
 	void invalidate();
 
 	double pointDistance(GM_3dPoint thePoint, GM_3dPoint& thePointOnLine) const;
+	double pointDistance(GM_3dPoint thePoint) const;
 	GM_3dPoint pointFromSection(double theSection) const;
 	double sectionFromPoint(GM_3dPoint thePoint) const;
 private:

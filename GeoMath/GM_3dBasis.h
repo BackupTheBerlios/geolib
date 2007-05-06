@@ -1,10 +1,10 @@
 /********************************************************************
 * File: GM_3dBasis.h												*
 *********************************************************************
-* Descrizione:														*
+* Description:														*
 *********************************************************************
 * History:															*
-* 22.4.2007 Creato da : Cordara Claudio								*
+* 22.4.2007 Created by : Claudio Cordara								*
 *********************************************************************
 *               (C) 2007 Claudio Cordara							*
 ********************************************************************/
@@ -24,6 +24,8 @@ public:
 	GM_3dBasis(const GM_3dBasis& theBasis);
 	GM_3dBasis(GM_3dVector theGen1, GM_3dVector theGen2, GM_3dVector theGen3);
 	~GM_3dBasis();
+
+	GM_3dVector operator[](unsigned short theIndex) const;
 
 	bool isValid() const;
 	void invalidate();

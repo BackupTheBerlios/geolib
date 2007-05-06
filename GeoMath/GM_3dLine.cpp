@@ -1,10 +1,10 @@
 /********************************************************************
 * File: GM_3dLine.cpp												*
 *********************************************************************
-* Descrizione:														*
+* Description:														*
 *********************************************************************
 * History:															*
-* 22.4.2007 Creato da : Cordara Claudio								*
+* 22.4.2007 Created by : Claudio Cordara							*
 *********************************************************************
 *               (C) 2007 Claudio Cordara							*
 ********************************************************************/
@@ -407,4 +407,10 @@ double GM_3dLine::pointDistance(GM_3dPoint thePoint, GM_3dPoint& thePointOnLine)
 	}
 
 	return ret;
+}
+
+
+double GM_3dLine::pointDistance(GM_3dPoint thePoint) const {
+	GM_3dPoint dummyPoint;
+	return pointDistance(thePoint, dummyPoint);
 }

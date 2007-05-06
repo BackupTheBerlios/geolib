@@ -58,3 +58,32 @@ TESTING  -  class GM_3dLine ...
 	OK - Point from section working
 	OK - Section from point working
 	OK - Point distance working
+
+
+----------------------------------------------------------
+
+TESTING  -  class GM_3dPlane ...
+
+	OK - Default constructor creates invalid plane
+	OK - Coeff. constructor working
+	OK - Copy constructor working
+	OK - Coeff. vector constructor working
+	OK - Points constructor working
+	OK - Point distance computation working
+	OK - XY angle computation working
+
+
+----------------------------------------------------------
+
+TESTING  -  class GM_3dTriangle ...
+
+	OK - Default constructor creates invalid triangle
+	OK - Get/Set working
+	OK - Copy constructor working
+	OK - Constructor (points) working
+	OK - Constructor (lines) working
+	OK - Triangle inversion working
+	OK - Vertical check working
+	OK - Horizontal check working
+	OK - Connection check working
+	OK - Min/Max z working

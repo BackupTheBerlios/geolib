@@ -1,10 +1,10 @@
 /********************************************************************
 * File: GM_Rototraslation.h											*
 *********************************************************************
-* Descrizione:														*
+* Description:														*
 *********************************************************************
 * History:															*
-* 22.4.2007 Creato da : Cordara Claudio								*
+* 22.4.2007 Created by : Claudio Cordara							*
 *********************************************************************
 *               (C) 2007 Claudio Cordara							*
 ********************************************************************/
@@ -20,5 +20,5 @@
 class GM_Rototraslation : public GM_3dTrasf {
 public:
 	GM_Rototraslation(void);
-	~GM_Rototraslation(void);
+	virtual ~GM_Rototraslation(void);
 };
