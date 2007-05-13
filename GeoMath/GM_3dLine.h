@@ -13,8 +13,15 @@
 
 #pragma once
 
+
+
 class GM_3dPoint;
 
+
+
+/*!
+3D straight segment
+*/
 class GM_3dLine {
 public:
 	GM_3dLine();
@@ -28,30 +35,16 @@ public:
 	bool operator == (const GM_3dLine& theLine) const;
 	bool operator != (const GM_3dLine& theLine) const;
 
-
-	/*!
-	\return
-	Lunghezza della proiezione sull' asse x
-	*/
-	double dx() const { return mEnd.x() - mBegin.x(); }
-	/*!
-	\return
-	Lunghezza della proiezione sull' asse y
-	*/
-	double dy() const { return mEnd.y() - mBegin.y(); }
-	/*!
-	\return
-	Lunghezza della proiezione sull' asse z
-	*/
-	double dz() const { return mEnd.z() - mBegin.z(); }
-
-	GM_3dPoint begin() const { return mBegin; }
-	GM_3dPoint end() const { return mEnd; }
-	GM_3dPoint& begin() { return mBegin; }
-	GM_3dPoint& end() { return mEnd; }
+	double dx() const;
+	double dy() const;
+	double dz() const;
+	GM_3dPoint begin() const;
+	GM_3dPoint end() const;
+	GM_3dPoint& begin();
+	GM_3dPoint& end();
+	void begin(const GM_3dPoint& theBegin);
+	void end(const GM_3dPoint& theEnd);
 	GM_3dPoint center() const;
-	void begin(GM_3dPoint& theBegin) { mBegin = theBegin; }
-	void end(GM_3dPoint& theEnd) { mEnd = theEnd; }
 
 	void invert();
 	double length() const;
@@ -72,6 +65,12 @@ public:
 	GM_3dPoint pointFromSection(double theSection) const;
 	double sectionFromPoint(GM_3dPoint thePoint) const;
 private:
+	/*!
+	Begin point of the line
+	*/
 	GM_3dPoint mBegin;
+	/*!
+	End point of the line
+	*/
 	GM_3dPoint mEnd;
 };

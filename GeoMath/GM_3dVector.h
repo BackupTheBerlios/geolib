@@ -13,9 +13,16 @@
 
 #pragma once
 
+
+
 #include "GM_3dPoint.h"
 #include "GM_3dLine.h"
 
+
+
+/*!
+3D Vector is a kind of 3D point
+*/
 class GM_3dVector : public GM_3dPoint {
 public:
 	GM_3dVector(void);

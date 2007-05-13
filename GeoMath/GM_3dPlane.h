@@ -13,9 +13,16 @@
 
 #pragma once
 
+
+
 class GM_3dPoint;
 class GM_3dTriangle;
 
+
+
+/*!
+3D plane
+*/
 class GM_3dPlane {
 public:
 	GM_3dPlane();
@@ -45,12 +52,12 @@ private:
 	void normalize();
 
 	/*!
-	Coefficenti dell' equazione caratteristica a*x + b*y + c*z + d = 0 dove
+	Coefficient of the general equation of a plane a*x + b*y c*z + d = 0 where
 	mCoeff[0] = a
 	mCoeff[1] = b
 	mCoeff[2] = c
 	mCoeff[3] = d
-	In forma Hessiana, ovvero tale che sqrt(a*a + b*b + c*c) = 1
+	In Hessian form that is sqrt(a*a + b*b + c*c) = 1
 	*/
 	double mCoeff[4];
 };

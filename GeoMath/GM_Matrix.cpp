@@ -17,6 +17,9 @@
 
 
 
+/*!
+Default constructor
+*/
 GM_Matrix::GM_Matrix(void) {
 	mNumCol = 0;
 	mNumRow = 0;
@@ -24,6 +27,10 @@ GM_Matrix::GM_Matrix(void) {
 }
 
 
+
+/*!
+Copy constructor
+*/
 GM_Matrix::GM_Matrix(const GM_Matrix& theMatrix) {
 	if (theMatrix.isValid()) {
 		allocate(theMatrix.mNumCol, theMatrix.mNumRow);
@@ -38,16 +45,32 @@ GM_Matrix::GM_Matrix(const GM_Matrix& theMatrix) {
 }
 
 
+
+/*!
+Constructor from row and column numbers
+
+\param theNumCol
+Number of columns
+\param theNumRow
+Number of rows
+*/
 GM_Matrix::GM_Matrix(unsigned short theNumCol, unsigned short theNumRow) {
 	allocate(theNumCol, theNumRow);
 }
 
 
 
+/*!
+Default destructor
+*/
 GM_Matrix::~GM_Matrix(void) {
 }
 
 
+
+/*!
+Invalidate the matrix and free the memory
+*/
 void GM_Matrix::invalidate() {
 	if (pMatrix) {
 		for (unsigned short i = 0 ; i < mNumRow ; i++) {
@@ -61,6 +84,11 @@ void GM_Matrix::invalidate() {
 }
 
 
+
+/*!
+\return
+true if the matrix is valid, false otherwise
+*/
 bool GM_Matrix::isValid() const {
 	if (pMatrix && mNumCol > 0 && mNumRow > 0)
 		return true;
@@ -69,6 +97,13 @@ bool GM_Matrix::isValid() const {
 }
 
 
+
+/*!
+Allocate the matrix with specified rows and columns
+
+\param theNumCol
+\param theNumRow
+*/
 void GM_Matrix::allocate(unsigned short theNumCol, unsigned short theNumRow) {
 	invalidate();
 	if (theNumCol == 0 || theNumRow == 0) {

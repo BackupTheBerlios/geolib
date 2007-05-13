@@ -10,23 +10,34 @@
 ********************************************************************/
 
 
-#include "StdAfx.h"
 
+#include "StdAfx.h"
 
 #include "GM_3dPoint.h"
 #include "GM_3dVector.h"
 
 
+
+/*!
+Default constructor
+*/
 GM_3dPoint::GM_3dPoint(void) {
 	invalidate();
 }
 
 
 
+/*!
+Default destructor
+*/
 GM_3dPoint::~GM_3dPoint(void) {
 }
 
 
+
+/*!
+Copy constructor
+*/
 GM_3dPoint::GM_3dPoint(const GM_3dPoint& thePoint) {
 	mX = thePoint.mX;
 	mY = thePoint.mY;
@@ -35,6 +46,16 @@ GM_3dPoint::GM_3dPoint(const GM_3dPoint& thePoint) {
 
 
 
+/*!
+Constructor from coordinates values
+
+\param theXCoord
+X coord
+\param theYCoord
+Y coord
+\param theZCoord
+Z coord
+*/
 GM_3dPoint::GM_3dPoint(double theXCoord, double theYCoord, double theZCoord) {
 	mX = theXCoord;
 	mY = theYCoord;
@@ -44,8 +65,10 @@ GM_3dPoint::GM_3dPoint(double theXCoord, double theYCoord, double theZCoord) {
 
 
 /*!
-Punto giacente sul piano xy e con angolo pari a theXYAngle rispetto all' asse X
-(positivo = antiorario)
+Construct a point on xy plane with the given angle respect to X axes (positive = counterclockwise)
+
+\param theXYAngle
+Angle respect to X axes
 */
 GM_3dPoint::GM_3dPoint(double theXYAngle) {
 	mX = cos(theXYAngle);
@@ -56,13 +79,17 @@ GM_3dPoint::GM_3dPoint(double theXYAngle) {
 
 
 /*!
+Compute the distance between this and a given point
+
 \param thePoint
-Punto di cui misurare la distanza da this
+Point for distance computation
 
 \return
-Distanza tra due punti
+The distance between this an thePoint, or -DBL_MAX if points are not valid
 */
 double GM_3dPoint::distFrom(const GM_3dPoint& thePoint) const {
+	if (!isValid() || !thePoint.isValid())
+		return -DBL_MAX;
 	double dx = mX - thePoint.x();
 	double dy = mY - thePoint.y();
 	double dz = mZ - thePoint.z();
@@ -71,14 +98,11 @@ double GM_3dPoint::distFrom(const GM_3dPoint& thePoint) const {
 
 
 
-
-
-
-
-
 /*!
+Check if this is the origin of axes
+
 \return
-true se il punto coincide con l' origine false altrimenti
+true if this is the axes origin, false otherwise or if this is not valid
 */
 bool GM_3dPoint::isOrigin() const {
 	if (fabs(mX) < GM_NULL_TOLERANCE && fabs(mY) < GM_NULL_TOLERANCE && fabs(mZ) < GM_NULL_TOLERANCE)
@@ -89,11 +113,8 @@ bool GM_3dPoint::isOrigin() const {
 
 
 
-
-
-
 /*!
-Inverte il segno delle coordinate xy, rotazione di 180 gradi sul piano xy
+Revert the sign of xy coordinates, 180 deg. rotation on xy plane
 */
 void GM_3dPoint::xyInvert() {
 	mX = -mX;
@@ -102,11 +123,9 @@ void GM_3dPoint::xyInvert() {
 
 
 
-
-
 /*!
 \return
-true se le coordinate del punto sono da considerarsi valide, false altrimenti (punto non inizializzato)
+true if the point coordinates are valid, false otherwise (not initialized point)
 */
 bool GM_3dPoint::isValid() const {
 	if (mX != DBL_MAX && mX != -DBL_MAX && mY != DBL_MAX && mY != -DBL_MAX && mZ != DBL_MAX && mZ != -DBL_MAX)
@@ -118,7 +137,7 @@ bool GM_3dPoint::isValid() const {
 
 
 /*!
-Invalida il punto
+Invalidate point coordinates
 */
 void GM_3dPoint::invalidate() {
 	mX = mY = mZ = DBL_MAX;
@@ -126,16 +145,39 @@ void GM_3dPoint::invalidate() {
 
 
 
+/*!
+Casting operator with 3D Vectors
+*/
 GM_3dPoint::operator GM_3dVector() const {
 	return GM_3dVector(*this);
 }
 
 
+
+/*!
+Equality operator
+
+\param thePoint
+Point to compare with this
+
+\return
+true if thePoint is equal to this within tolerance (GM_NULL_TOLERANCE), false otherwise
+*/
 bool GM_3dPoint::operator == (const GM_3dPoint& thePoint) const {
 	return !((*this) != thePoint);
 }
 
 
+
+/*!
+Inequality operator
+
+\param thePoint
+Point to compare with this
+
+\return
+true if thePoint is not equal to this within tolerance (GM_NULL_TOLERANCE), false otherwise
+*/
 bool GM_3dPoint::operator != (const GM_3dPoint& thePoint) const {
 	if (fabs(mX - thePoint.mX) > GM_NULL_TOLERANCE || fabs(mY - thePoint.mY) > GM_NULL_TOLERANCE || fabs(mZ - thePoint.mZ) > GM_NULL_TOLERANCE)
 		return true;

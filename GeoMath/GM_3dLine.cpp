@@ -19,15 +19,26 @@
 
 
 
+/*!
+Default constructor
+*/
 GM_3dLine::GM_3dLine(void) {
 	invalidate();
 }
 
 
+
+/*!
+Default destructor
+*/
 GM_3dLine::~GM_3dLine(void) {
 }
 
 
+
+/*!
+Copy constructor
+*/
 GM_3dLine::GM_3dLine(const GM_3dLine& theLine) {
 	mBegin = theLine.mBegin;
 	mEnd = theLine.mEnd;
@@ -35,6 +46,14 @@ GM_3dLine::GM_3dLine(const GM_3dLine& theLine) {
 
 
 
+/*!
+Constructor from two points
+
+\param theBegin
+Begin point
+\param theEnd
+End point
+*/
 GM_3dLine::GM_3dLine(GM_3dPoint theBegin, GM_3dPoint theEnd) {
 	mBegin = theBegin;
 	mEnd = theEnd;
@@ -42,6 +61,22 @@ GM_3dLine::GM_3dLine(GM_3dPoint theBegin, GM_3dPoint theEnd) {
 
 
 
+/*!
+Constructor from two points coordinates
+
+\param theBeginXCoord
+X coord of begin point
+\param theBeginYCoord
+Y coord of begin point
+\param theBeginZCoord
+Z coord of begin point
+\param theEndXCoord
+X coord of end point
+\param theEndYCoord
+Y coord of end point
+\param theEndZCoord
+Z coord of end point
+*/
 GM_3dLine::GM_3dLine(double theBeginXCoord, double theBeginYCoord, double theBeginZCoord, double theEndXCoord, double theEndYCoord, double theEndZCoord) {
 	mBegin.x(theBeginXCoord);
 	mBegin.y(theBeginYCoord);
@@ -55,48 +90,97 @@ GM_3dLine::GM_3dLine(double theBeginXCoord, double theBeginYCoord, double theBeg
 
 /*!
 \return
-Lunghezza della linea
+Length of the line
 */
 double GM_3dLine::length() const {
-	return mBegin.distFrom(mEnd);
+	if (isValid()) {
+		return mBegin.distFrom(mEnd);
+	}
+	else {
+		return -DBL_MAX;
+	}
 }
 
 
 
 /*!
+Dot product between two lines, the length of the projection of theLine on this times the
+module of this
+The lines are intended with start point in the origin
+
+\param theLine
+Line for dot product computation with this
+
 \return
-Prodotto scalare delle due linee considerate come vettori, ovvero la lunghezza della
-proiezione di theLine su this per la lunghezza di this
-Le due linee si suppongono entrambe con punto iniziale nell' origine
+Dot product between this and theLine, the length of the projection of theLine on this times the
+module of this
+Or an invalid line if this ot theLine are not valid
 */
 double GM_3dLine::operator*(const GM_3dLine& theLine) const {
-	GM_3dVector v1(*this);
-	GM_3dVector v2(theLine);
-	return v1 * v2;
+	if (isValid() && theLine.isValid()) {
+		GM_3dVector v1(*this);
+		GM_3dVector v2(theLine);
+		return v1 * v2;
+	}
+	else {
+		return DBL_MAX;
+	}
 }
 
 
 
 /*!
+Cross product between two lines, the lines are intended with start point in the origin
+
+\param theLine
+Line for cross product computation with this
+
 \return
-Prodotto vettore delle due linee considerate come vettori, ovvero il vettore perpendicolare
-al piano individuato da theLine e this, con modulo pari all' area del parallelogramma definito dai due
-vettori e verso in accordo alla regola della terna destrorsa
-Le due linee si suppongono entrambe con punto iniziale nell' origine
+Cross product of theLine and this, is the line normal to the plane defined by this and theLine, with
+module equal to the area of the parallelogram defined by this and theLine, and versus defined with the
+right hand rule.
+Or an invalid line if this ot theLine are not valid
+The lines are intended with start point in the origin
 */
 GM_3dLine GM_3dLine::operator^(const GM_3dLine& theLine) const {
-	GM_3dVector v1(*this);
-	GM_3dVector v2(theLine);
-	GM_3dVector externalProd = v1 ^ v2;
-	return GM_3dLine(mBegin, (GM_3dVector)mBegin + externalProd);
+	if (isValid() && theLine.isValid()) {
+		GM_3dVector v1(*this);
+		GM_3dVector v2(theLine);
+		GM_3dVector externalProd = v1 ^ v2;
+		return GM_3dLine(mBegin, (GM_3dVector)mBegin + externalProd);
+	}
+	else {
+		return GM_3dLine();		
+	}
 }
 
 
+
+/*!
+Equality operator
+
+\param theLine
+Line to compare with this
+
+\return
+true if theLine is equal to this, false otherwise
+*/
 bool GM_3dLine::operator == (const GM_3dLine& theLine) const {
 	return !((*this) != theLine);
 }
 
 
+
+
+/*!
+Inequality operator
+
+\param theLine
+Line to compare with this
+
+\return
+true if theLine is not equal to this, false otherwise
+*/
 bool GM_3dLine::operator != (const GM_3dLine& theLine) const {
 	if (mBegin != theLine.mBegin || mEnd != theLine.mEnd)
 		return true;
@@ -108,7 +192,7 @@ bool GM_3dLine::operator != (const GM_3dLine& theLine) const {
 
 /*!
 \return
-true se la linea ha tutte e tre le proiezioni sugli assi minori di GM_NULL_TOLERANCE, false altrimenti
+true if the the line has the projection on the axis less than GM_NULL_TOLERANCE, false otherwise
 */
 bool GM_3dLine::isNull() const {
 	if (fabs(mBegin.x() - mEnd.x()) < GM_NULL_TOLERANCE &&
@@ -123,7 +207,7 @@ bool GM_3dLine::isNull() const {
 
 /*!
 \return
-Z minima della linea
+Minimum Z value of the line
 */
 double GM_3dLine::minZ() const {
 	return mBegin.z() < mEnd.z() ? mBegin.z() : mEnd.z();
@@ -133,7 +217,7 @@ double GM_3dLine::minZ() const {
 
 /*!
 \return
-Z massima della linea
+Maximum Z value of the line
 */
 double GM_3dLine::maxZ() const {
 	return mBegin.z() > mEnd.z() ? mBegin.z() : mEnd.z();
@@ -143,8 +227,8 @@ double GM_3dLine::maxZ() const {
 
 /*!
 \return
-true se la linea è verticale, ovvero ha componente z > di GM_NULL_TOLERANCE e componeni in x e in y < di
-GM_NULL_TOLERANCE, false altrimenti
+true if the line is vertical, that is component on Z axes > of GM_NULL_TOLERANCE and the components on X and Y
+axes < of GM_NULL_TOLERANCE, false otherwise
 */
 bool GM_3dLine::isVertical() const {
 	if (fabs(dx()) < GM_NULL_TOLERANCE && fabs(dy()) < GM_NULL_TOLERANCE && fabs(dz()) > GM_NULL_TOLERANCE)
@@ -157,7 +241,7 @@ bool GM_3dLine::isVertical() const {
 
 /*!
 \return
-true se la linea è orizzontale, ovvero ha componente z < di GM_NULL_TOLERANCE, false altrimenti
+true if the line is horizontal, that is component on Z axes < GM_NULL_TOLERANCE, false otherwise
 */
 bool GM_3dLine::isHorizontal() const {
 	if (fabs(dz()) < GM_NULL_TOLERANCE)
@@ -169,17 +253,28 @@ bool GM_3dLine::isHorizontal() const {
 
 
 /*!
+Compute the point of the line with a given Z component
+
+\param theZLevel
+Z component to use in point computation
+
 \return
-Punto sulla lina con coordinata Z pari a theZLevel, se theZLevel è fuori dal range della linea restituisce
-un punto con -DBL_MAX o DBL_MAX in tutte le componenti se theZLevel è rispettivamente sotto la z minima o
-sopra la z massima.
-Se la linea è orizzontale con z pari a theZLevel restituisce mBegin
+Point on the line with Z component equal to theZLevel, if theZLevel is less then minim Z of the line return
+a point with -DBL_MAX in its components, if it is greater then maximum Z return a point with DBL_MAX in its
+components
+If the line is not valid return an invalid point
+If the line is horizontal with Z component equal to theZLevel return the begin point of the line
 */
 GM_3dPoint GM_3dLine::pointAtZ(double theZLevel) const {
-	if (theZLevel < minZ() - GM_DIFF_TOLERANCE)
+	if (!isValid()) {
+		return GM_3dPoint();
+	}
+	if (theZLevel < minZ() - GM_DIFF_TOLERANCE) {
 		return GM_3dPoint(-DBL_MAX, -DBL_MAX, -DBL_MAX);
-	if (theZLevel > maxZ() + GM_DIFF_TOLERANCE)
+	}
+	if (theZLevel > maxZ() + GM_DIFF_TOLERANCE) {
 		return GM_3dPoint(DBL_MAX, DBL_MAX, DBL_MAX);
+	}
 
 	if (dz() < GM_NULL_TOLERANCE && fabs(theZLevel - mBegin.z()) < GM_DIFF_TOLERANCE) {
 		return mBegin;
@@ -193,28 +288,38 @@ GM_3dPoint GM_3dLine::pointAtZ(double theZLevel) const {
 
 
 /*!
-Inverte la direzione della linea scambiano mBegin e mEnd
+Invert the direction of the line swapping its begin and end point, nothing happens if the line
+is invalid
 */
 void GM_3dLine::invert() {
-	GM_3dPoint swap = mBegin;
-	mBegin = mEnd;
-	mEnd = swap;
+	if (isValid()) {
+		GM_3dPoint swap = mBegin;
+		mBegin = mEnd;
+		mEnd = swap;
+	}
 }
 
 
 
 /*!
-Restituisce il vettore normale alla proiezione della linea sul piano xy, con direzione sul lato destro/sinistro
-della linea rispetta alla direzione della linea stessa, in base al valore del parametro
+Compute the vector normal to the projection of the line on xy plane, with direction on the right/left
+side of the line accordingly to the parameter
 
 \param theRightSideFlag
-Se vale true viene restituito il vettore perpendicolare alla linea proiettata sul piano xy a destra rispetto
-alla direzione della linea, se vale false viene restiuito il vettore a sinistra
+If true the normal vector on the right side of the line will be computated, otherwise the vector on the
+left side
 
 \return
-Il vettore perpendicolare alla linea proiettata sul piano xy a sinistra/destra rispetto alla direzione della linea
+The vector normal to the projection of the line on xy plane, with direction on the right/left side of the
+line accordingly the value of theRightSideFlag
+The returned vector is normalized
+If the line is invalid an invalid vector is returned, if the line ha null length the null vector is returned
 */
 GM_3dVector GM_3dLine::normalXYVector(bool theRightSideFlag) const {
+	if (!isValid()) {
+		return GM_3dVector();
+	}
+
 	GM_3dVector ret(mEnd.x() - mBegin.x(), mEnd.y() - mBegin.y(), 0.0); 
 
 	if (theRightSideFlag) {
@@ -246,39 +351,50 @@ GM_3dVector GM_3dLine::normalXYVector(bool theRightSideFlag) const {
 
 
 /*!
-Calcola l' angolo che la proiezione della linea sul piano xy forma con l' asse X
+Compute the angle that the projection of the line on xy plane forms with the X axes
 
 \return
-Angolo che la proiezione della linea sul piano xy, forma con l' asse X, restituisce
-un valore compreo tra 0 e 2*PI
+The angle that the projection of the line on the xy plane forms with X axes in the range [0 , 2*PI]
+If the line is invalid return DBL_MAX
 */
 double GM_3dLine::xyAngle() const {
-	GM_3dVector lineDirOnXY(dx(), dy(), 0.0);
-	return lineDirOnXY.xyAngle();
+	if (isValid()) {
+		GM_3dVector lineDirOnXY(dx(), dy(), 0.0);
+		return lineDirOnXY.xyAngle();
+	}
+	else {
+		return DBL_MAX;
+	}
 }
 
 
 
 /*!
-Calcola l' angolo interno tra due linee (this e la linea passata come parametro) entrambe proiettate sul piano xy
+Compute the interior angle between two lines projecten on xy plane
 
 \param theLine
-Linea di cui calclare l' angolo rispetto a this
+Line used for angle computation
 
 \return
-Angolo interno compreso tra la proiezione delle due linee sul piano xy, restituisce un valore compreo tra 0 e 2*PI
+Interior angle between this and theLine projected on xy plane , return a value in the interval [0 ; 2*PI],
+positive angles is counterclockwise, or DBL_MAX if this or theLine are not valid
 */
 double GM_3dLine::xyAngle(GM_3dLine& theLine) const {
-	GM_3dVector lineDirOnXY(dx(), dy(), 0.0);
-	GM_3dVector theLineDirOnXY(theLine.dx(), theLine.dy(), 0.0);
-	return lineDirOnXY.xyAngle(theLineDirOnXY);
+	if (isValid() && theLine.isValid()) {
+		GM_3dVector lineDirOnXY(dx(), dy(), 0.0);
+		GM_3dVector theLineDirOnXY(theLine.dx(), theLine.dy(), 0.0);
+		return lineDirOnXY.xyAngle(theLineDirOnXY);
+	}
+	else {
+		return DBL_MAX;
+	}
 }
 
 
 
 /*!
 \return
-true se le coordinate della linea sono valide, false altrimenti (linea non inizializzata)
+true if the line coordinates are valid points, false otherwise
 */
 bool GM_3dLine::isValid() const {
 	return mBegin.isValid() && mEnd.isValid();
@@ -287,7 +403,7 @@ bool GM_3dLine::isValid() const {
 
 
 /*!
-Invalida la linea
+Line invalidation
 */
 void GM_3dLine::invalidate() {
 	mBegin.invalidate();
@@ -297,30 +413,39 @@ void GM_3dLine::invalidate() {
 
 
 /*!
-Calcola il centro di una linea
+Compute the center poit of the line
+
+\return
+The center point of the line, or an invalid point if the line is not valid
 */
 GM_3dPoint GM_3dLine::center() const {
-	double x = mBegin.x() + ((mEnd.x() - mBegin.x()) / 2.0);
-	double y = mBegin.y() + ((mEnd.y() - mBegin.y()) / 2.0);
-	double z = mBegin.z() + ((mEnd.z() - mBegin.z()) / 2.0);
-	return GM_3dPoint(x, y, z);
+	if (isValid()) {
+		double x = mBegin.x() + ((mEnd.x() - mBegin.x()) / 2.0);
+		double y = mBegin.y() + ((mEnd.y() - mBegin.y()) / 2.0);
+		double z = mBegin.z() + ((mEnd.z() - mBegin.z()) / 2.0);
+		return GM_3dPoint(x, y, z);
+	}
+	else {
+		return GM_3dPoint();
+	}
 }
 
 
 
 /*!
-Calcola un punto sulla linea dato un parametro tra 0 e 1 dove 0 corrisponde a mBegin e 1 a mEnd
+Compute a point on the line from a parameter in [0,1] interval, where 0 is the begin and 1 is the end
+of the line
 
 \param theSection
-Sezione della linea di cui determinare il punto, 0 = begin 1 = end
+Line section to use for point computation
 
 \return
-Punto sulla linea corrispondente alla sezione specificata, restituisce un punto non valido se theSection
-è fuori range
+Point on the line at the section theSectio, return an invalid point if the line is invalid or theSection is
+out of range
 */
 GM_3dPoint GM_3dLine::pointFromSection(double theSection) const {
 	GM_3dPoint ret;
-	if (theSection < -GM_DIFF_TOLERANCE || theSection > 1.0 + GM_DIFF_TOLERANCE) {
+	if (!isValid() || theSection < -GM_DIFF_TOLERANCE || theSection > 1.0 + GM_DIFF_TOLERANCE) {
 		return ret;
 	}
 	if (theSection < 0.0) {
@@ -342,18 +467,21 @@ GM_3dPoint GM_3dLine::pointFromSection(double theSection) const {
 
 
 /*!
-Dato un punto appartenente alla linea calcola la sua sezione ovvero la posizione sulla linea con un numero tra
-0 e 1 in cui 0 corrisponde a mBegin e 1 a mEnd
+From a point on the line compute the section on the line corrisponding to the specified point, the section
+is in [0,1] interval, where 0 is the begin and 1 is the end of the line.
 
 \param thePoint
-Punto appartenente alla linea di cui calcolare la sezione
+Point on the line to use for section computation
 
 \return
-Sezione della linea individuata da thePoint, 0 = begin 1 = end, restituisce -DBL_MAX se thePoint
-non giace sulla linea
+Section of the line computed from thePoint, 0 = begin 1 = end, return -DBL_MAX if the line or thePoinr are
+not valid or if thePoint is not on the line
 */
 double GM_3dLine::sectionFromPoint(GM_3dPoint thePoint) const {
 	double ret = -DBL_MAX;
+	if (!isValid() || !thePoint.isValid())
+		return ret;
+
 	GM_3dVector lineDir(dx(), dy(), dz());
 	lineDir.normalize();
 	GM_3dVector pointDir(thePoint.x() - mBegin.x(), thePoint.y() - mBegin.y(), thePoint.z() - mBegin.z());
@@ -374,24 +502,29 @@ double GM_3dLine::sectionFromPoint(GM_3dPoint thePoint) const {
 
 
 /*!
-Distanza tra un punto e una linea
+Distance between the line and a specified point
 
 \param thePoint
+Point to use for distance computation
 Punto di cui calcolare la distanza dalla linea
 \param thePointOnLine
-In uscita contiene il punto sulla linea più vicino a thePoint
+On output contains the point on the line nearest to thePoint, is invalid if the line thePoint are also invalid
 
 \return
-La distanza di thePoint dalla linea
+The distance of thePoint from this, or -DBL_MAX if this or thePoint are not valid
 */
 double GM_3dLine::pointDistance(GM_3dPoint thePoint, GM_3dPoint& thePointOnLine) const {
+	double ret = -DBL_MAX;
+	thePointOnLine.invalidate();
+	if (!isValid() || !thePoint.isValid())
+		return ret;
+
 	GM_3dVector v = (GM_3dVector)mEnd - (GM_3dVector)mBegin;
 	GM_3dVector w = (GM_3dVector)thePoint - (GM_3dVector)mBegin;
 
 	double c1 = w * v;
 	double c2 = v * v;
 
-	double ret = -DBL_MAX;
 	if (c1 < GM_NULL_TOLERANCE) {
 		ret = thePoint.distFrom(mBegin);
 		thePointOnLine = mBegin;
@@ -410,7 +543,127 @@ double GM_3dLine::pointDistance(GM_3dPoint thePoint, GM_3dPoint& thePointOnLine)
 }
 
 
+
+/*!
+Distance between the line and a specified point
+
+\param thePoint
+Point to use for distance computation
+Punto di cui calcolare la distanza dalla linea
+
+\return
+The distance of thePoint from this, or -DBL_MAX if this or thePoint are not valid
+*/
 double GM_3dLine::pointDistance(GM_3dPoint thePoint) const {
 	GM_3dPoint dummyPoint;
 	return pointDistance(thePoint, dummyPoint);
+}
+
+
+
+
+/*!
+\return
+Length of the line projection on x axis, or -DBL_MAX if this isn't valid
+*/
+double GM_3dLine::dx() const {
+	if (isValid()) {
+		return mEnd.x() - mBegin.x();
+	}
+	else {
+		return -DBL_MAX;
+	}
+}
+
+
+
+/*!
+\return
+Length of the line projection on y axis, or -DBL_MAX if this isn't valid
+*/
+double GM_3dLine::dy() const {
+	if (isValid()) {
+		return mEnd.y() - mBegin.y();
+	}
+	else {
+		return -DBL_MAX;
+	}
+}
+
+
+
+/*!
+\return
+Length of the line projection on z axis, or -DBL_MAX if this isn't valid
+*/
+double GM_3dLine::dz() const {
+	if (isValid()) {
+		return mEnd.z() - mBegin.z();
+	}
+	else {
+		return -DBL_MAX;
+	}
+}
+
+
+
+/*!
+\return
+The begin point of the line
+*/
+GM_3dPoint GM_3dLine::begin() const {
+	return mBegin;
+}
+
+
+
+/*!
+\return
+The end point of the line
+*/
+GM_3dPoint GM_3dLine::end() const {
+	return mEnd;
+}
+
+
+
+/*!
+\return
+The begin point of the line by reference
+*/
+GM_3dPoint& GM_3dLine::begin() {
+	return mBegin;
+}
+
+
+
+/*!
+\return
+The end point of the line by reference
+*/
+GM_3dPoint& GM_3dLine::end() {
+	return mEnd;
+}
+
+
+/*!
+Set the begin point of the line
+
+\param theBegin
+Point to assign at the begin of the line
+*/
+void GM_3dLine::begin(const GM_3dPoint& theBegin) {
+	mBegin = theBegin;
+}
+
+
+
+/*!
+Set the end point of the line
+
+\param theEnd
+Point to assign at the end of the line
+*/
+void GM_3dLine::end(const GM_3dPoint& theEnd) {
+	mEnd = theEnd;
 }

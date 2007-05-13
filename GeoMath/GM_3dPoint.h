@@ -10,12 +10,18 @@
 ********************************************************************/
 
 
+
 #pragma once
+
 
 
 class GM_3dVector;
 
 
+
+/*!
+3D Point
+*/
 class GM_3dPoint {
 public:
 	GM_3dPoint();
@@ -42,7 +48,16 @@ public:
 	bool operator != (const GM_3dPoint& thePoint) const;
 
 protected:
+	/*!
+	X Coord
+	*/
 	double mX;
+	/*!
+	Y Coord
+	*/
 	double mY;
+	/*!
+	Z Coord
+	*/
 	double mZ;
 };

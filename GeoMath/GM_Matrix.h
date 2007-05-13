@@ -13,7 +13,11 @@
 
 #pragma once
 
-// matrix[row][col]
+
+
+/*!
+Row by column matrix, that is matrix[r][c] is the element of the matrix at row r and column c
+*/
 class GM_Matrix {
 public:
 	GM_Matrix();
@@ -48,7 +52,16 @@ protected:
 	void rowSum(unsigned short theRow, unsigned short theRowToAdd, double theMult);
 	void rowMult(unsigned short theRow, double theMult);
 
+	/*!
+	Number of columns
+	*/
 	unsigned short mNumCol;
+	/*!
+	Number of rows
+	*/
 	unsigned short mNumRow;
+	/*!
+	Pointer to the matrix head, is an array of arrays of double
+	*/
 	double **pMatrix;
 };
