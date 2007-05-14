@@ -356,7 +356,7 @@ bool GM_3dTriangle::isInteriorPoint(GM_3dPoint thePoint) const {
 	double c = E1Vect * E1Vect;
 	double d = E0Vect * dVect;
 	double e = E1Vect * dVect;
-	double f = dVect * dVect;
+	//double f = dVect * dVect;
 
 	double det = a*c - b*b;
 	double s = b*e - c*d;

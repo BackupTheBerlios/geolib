@@ -3,6 +3,8 @@
 // are changed infrequently
 //
 
+#ifdef WIN32
+
 #pragma once
 
 
@@ -20,3 +22,5 @@
 
 
 #include "GM_Prefix.h"
+
+#endif // WIN32
