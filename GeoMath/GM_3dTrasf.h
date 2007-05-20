@@ -13,12 +13,19 @@
 
 #pragma once
 
+
+
 #include "GM_matrix.h"
 
 class GM_3dBasis;
 class GM_3dPoint;
 class GM_3dVector;
 
+
+
+/*!
+3D basis transformation
+*/
 class GM_3dTrasf : public GM_Matrix {
 public:
 	GM_3dTrasf();

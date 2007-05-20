@@ -13,10 +13,19 @@
 
 #pragma once
 
+
+
 #include "GM_3dLine.h"
+
+
 
 class GM_3dPoint;
 
+
+
+/*!
+3D Triangle
+*/
 class GM_3dTriangle {
 public:
 	GM_3dTriangle();
@@ -25,8 +34,8 @@ public:
 	GM_3dTriangle(GM_3dPoint theFirstPoint, GM_3dPoint theSecondPoint, GM_3dPoint theThirdPoint);
 	GM_3dTriangle(GM_3dLine theFirstEdge, GM_3dLine theSecondEdge, GM_3dLine theThirdEdge);
 
-	GM_3dLine& operator[](int theIndex);
-	GM_3dLine operator[](int theIndex) const;
+	GM_3dLine& operator[](unsigned short theIndex);
+	GM_3dLine operator[](unsigned short theIndex) const;
 
 	void invert();
 	void setXYVersus(bool theClockwiseFlag);
@@ -39,7 +48,7 @@ public:
 	double minZ() const;
 	double xyAngle() const;
 	GM_3dPoint normalVector() const;
-	GM_3dPoint normalVectorOnEdge(int theEdgeIndex) const;
+	GM_3dVector normalVectorOnEdge(unsigned short theEdgeIndex) const;
 	GM_3dLine zSection(double theZLevel) const;
 	void invalidate();
 
@@ -48,7 +57,7 @@ public:
 
 private:
 	/*!
-	Tre linee rappresentanti i lati del triangolo
+	Three lines representing the edges of the triangle
 	*/
 	GM_3dLine mEdge[3];
 };

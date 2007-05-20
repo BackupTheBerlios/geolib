@@ -21,15 +21,25 @@
 
 
 
+/*!
+Default constructor
+*/
 GM_3dTriangle::GM_3dTriangle(void) {
 }
 
 
 
+/*!
+Default destructor
+*/
 GM_3dTriangle::~GM_3dTriangle(void) {
 }
 
 
+
+/*!
+Copy constructor
+*/
 GM_3dTriangle::GM_3dTriangle(const GM_3dTriangle& theTriangle) {
 	mEdge[0] = theTriangle.mEdge[0];
 	mEdge[1] = theTriangle.mEdge[1];
@@ -38,6 +48,16 @@ GM_3dTriangle::GM_3dTriangle(const GM_3dTriangle& theTriangle) {
 
 
 
+/*!
+Constructor from three non-colinear vertex
+
+\param theFirstPoint
+First vertex
+\param theSecondPoint
+Second vertex
+\param theThirdPoint
+Third vertex
+*/
 GM_3dTriangle::GM_3dTriangle(GM_3dPoint theFirstPoint, GM_3dPoint theSecondPoint, GM_3dPoint theThirdPoint) {
 	mEdge[0] = GM_3dLine(theFirstPoint, theSecondPoint);
 	mEdge[1] = GM_3dLine(theSecondPoint, theThirdPoint);
@@ -46,6 +66,16 @@ GM_3dTriangle::GM_3dTriangle(GM_3dPoint theFirstPoint, GM_3dPoint theSecondPoint
 
 
 
+/*!
+Constructor from three non-parallel edges
+
+\param theFirstEdge
+First edge
+\param theSecondEdge
+Second edge
+\param theThirdEdge
+Third edge
+*/
 GM_3dTriangle::GM_3dTriangle(GM_3dLine theFirstEdge, GM_3dLine theSecondEdge, GM_3dLine theThirdEdge) {
 	mEdge[0] = theFirstEdge;
 	mEdge[1] = theSecondEdge;
@@ -56,7 +86,7 @@ GM_3dTriangle::GM_3dTriangle(GM_3dLine theFirstEdge, GM_3dLine theSecondEdge, GM
 
 /*!
 \return
-false se esistono due lati colineari, true altrimenti
+false if the edges are not valid, or if there is a pair of parallel edges, true otherwise
 */
 bool GM_3dTriangle::isValid() const {
 	if (!mEdge[0].isValid() || !mEdge[1].isValid() || !mEdge[2].isValid())
@@ -71,35 +101,41 @@ bool GM_3dTriangle::isValid() const {
 
 
 /*!
+Get a reference to an edge from its index
+
 \param theIndex
-Indice del lato di cui restituire il riferimento
+Index of the edge to return by reference
 
 \return
-Riferimento al lato i-esimo del triangolo
+The reference to the edge with index theIndex
 */
-GM_3dLine& GM_3dTriangle::operator[](int theIndex) {
-	assert(theIndex >= 0 && theIndex <= 2);
+GM_3dLine& GM_3dTriangle::operator[](unsigned short theIndex) {
+	assert(isValid() && theIndex <= 2);
 	return mEdge[theIndex];
 }
 
 
 
 /*!
+Get an edge from its index
+
 \param theIndex
-Indice del lato da restituire
+Index of the edge to return
 
 \return
-Lato i-esimo del triangolo
+Th edge with index theIndex, or an invalid edge if theIndex is out of range or the triangle is not valid
 */
-GM_3dLine GM_3dTriangle::operator[](int theIndex) const {
-	assert(theIndex >= 0 && theIndex <= 2);
-	return mEdge[theIndex];
+GM_3dLine GM_3dTriangle::operator[](unsigned short theIndex) const {
+	if (isValid() && theIndex <= 2)
+		return mEdge[theIndex];
+	else
+		return GM_3dLine();
 }
 
 
 
 /*!
-Inverte i tre lati del triangolo
+Invert the edges of the triangle
 */
 void GM_3dTriangle::invert() {
 	for (int i = 0 ; i < 3 ; i++) {
@@ -110,16 +146,16 @@ void GM_3dTriangle::invert() {
 
 
 /*!
-Ordina i lati del triangolo in modo che la loro proiezione sul piano xy sia oraria/antioraria in
-base al valore del parametro.
-Se il triangolo è verticale non viene effettuato alcun ordinamento
+Sort the edges of the triangle in a way that the projection of the triangle on xy plane is a clockwise/
+counterclockwise triangle basing on a parameter.
+If the triangle is invalid or vertical nothing happens
 
 \param theClockwiseFlag
-Se vale true i lati del triangolo vengono ordinati in modo tale che la loro proiezione sul piano xy sia oraria, se
-vale false antioraria
+If true the edges are sorted in a way that the projection of the triangle on xy plane is clockwise,
+counterclockwise if false
 */
 void GM_3dTriangle::setXYVersus(bool theClockwiseFlag) {
-	if (!isVertical()) {
+	if (isValid() && !isVertical()) {
 		GM_3dVector v0(mEdge[0]);
 		GM_3dVector v1(mEdge[1]);
 		bool isClockwise = v0.isAtLeftOnXY(v1);
@@ -133,14 +169,16 @@ void GM_3dTriangle::setXYVersus(bool theClockwiseFlag) {
 
 /*!
 \return
-Z massima del triangolo
+Maximum Z value of the triangle, or -DBL_MAX if the triangle is not valid
 */
 double GM_3dTriangle::maxZ() const {
 	double ret = -DBL_MAX;
-	for (int i = 0 ; i < 3 ; i++) {
-		double edgeMaxZ = mEdge[i].maxZ();
-		if (edgeMaxZ > ret) {
-			ret = edgeMaxZ;
+	if (isValid()) {
+		for (int i = 0 ; i < 3 ; i++) {
+			double edgeMaxZ = mEdge[i].maxZ();
+			if (edgeMaxZ > ret) {
+				ret = edgeMaxZ;
+			}
 		}
 	}
 	
@@ -151,14 +189,16 @@ double GM_3dTriangle::maxZ() const {
 
 /*!
 \return
-Z minima del triangolo
+Minimum Z value of the triangle, or DBL_MAX if the triangle is not valid
 */
 double GM_3dTriangle::minZ() const {
 	double ret = DBL_MAX;
-	for (int i = 0 ; i < 3 ; i++) {
-		double edgeMinZ = mEdge[i].minZ();
-		if (edgeMinZ < ret) {
-			ret = edgeMinZ;
+	if (isValid()) {
+		for (int i = 0 ; i < 3 ; i++) {
+			double edgeMinZ = mEdge[i].minZ();
+			if (edgeMinZ < ret) {
+				ret = edgeMinZ;
+			}
 		}
 	}
 	
@@ -169,7 +209,8 @@ double GM_3dTriangle::minZ() const {
 
 /*!
 \return
-Angolo più piccolo che il piano su cui giace il triangolo forma con il piano xy
+Inner angle formed by the plane that contains the triangle and the xy plane, or DBL_MAX if the triangle
+is not valid
 */
 double GM_3dTriangle::xyAngle() const {
 	GM_3dPlane trPlane(*this);
@@ -180,15 +221,14 @@ double GM_3dTriangle::xyAngle() const {
 
 /*!
 \return
-Vettore normale al piano su cui gace il triangolo
+Vector normal to the plane that contains the triangle, or an invalid vector if the triangle is not valid
 */
 GM_3dPoint GM_3dTriangle::normalVector() const {
-	GM_3dLine vecProd = mEdge[0]^mEdge[1];
-	GM_3dVector ret(vecProd.dx(), vecProd.dy(), vecProd.dz());
-	double module = ret.mod();
-	ret.x(ret.x() / module);
-	ret.y(ret.y() / module);
-	ret.z(ret.z() / module);
+	GM_3dVector ret;
+	if (isValid()) {
+		GM_3dPlane trPlane(*this);
+		ret = trPlane.normalVector();
+	}
 
 	return ret;
 }
@@ -196,13 +236,20 @@ GM_3dPoint GM_3dTriangle::normalVector() const {
 
 
 /*!
+Compute a vector normal to the projection of an edge on xy plane and directed outside the triangle
+
 \param theEdgeIndex
-Indice che identifica il lato del triangolo di cui calcolare la normale
+Index of the edge to use in normal vector computation
 
 \return
-Vettore normale a un lato del triangolo proiettato sul piano xy e diretto dall' interno all' esterno del triangolo
+The vector normal to the projection of the edge with index theEdgeIndex on xy plane and directed outside the
+triangle, or an invalid vector if the triangle is invalid or theEdgeIndex is out of range
 */
-GM_3dPoint GM_3dTriangle::normalVectorOnEdge(int theEdgeIndex) const {
+GM_3dVector GM_3dTriangle::normalVectorOnEdge(unsigned short theEdgeIndex) const {
+	GM_3dVector ret;
+	if (!isValid() || theEdgeIndex > 2)
+		return ret;
+
 	int precEdgeIndex = theEdgeIndex - 1;
 	if (precEdgeIndex == -1)
 		precEdgeIndex = 2;
@@ -210,19 +257,17 @@ GM_3dPoint GM_3dTriangle::normalVectorOnEdge(int theEdgeIndex) const {
 	GM_3dLine precEdge = mEdge[precEdgeIndex];
 	precEdge.invert();
 
-	// Prodotto vettore del lato con il lato precedente
+	// Cross product of the edge with index theEdgeIndex with that with precedent index
 	GM_3dLine v1 = mEdge[theEdgeIndex]^precEdge;
-	// Prodotto vettore del lato col risultato dell' operazione precedente
+	// Cross product of the edge with index theEdgeIndex with that from previous cross product, the
+	// result is a vector norma to the edge theEdgeIndex directed outside the triangle
 	GM_3dLine v2 = mEdge[theEdgeIndex]^v1;
-	
 
-	// Bisogna azzerare la componente in Z (proiezione sul piano xy)
-	GM_3dVector ret(v2.dx(), v2.dy(), 0.0);
 	double module = ret.mod();
 	if (module > GM_NULL_TOLERANCE) {
-		ret.x(ret.x() / module);
-		ret.y(ret.y() / module);
-		ret.z(ret.z() / module);
+		ret.x(v2.dx() / module);
+		ret.y(v2.dy() / module);
+		ret.z(0.0);
 	}
 	else {
 		ret.x(0.0);
@@ -237,40 +282,49 @@ GM_3dPoint GM_3dTriangle::normalVectorOnEdge(int theEdgeIndex) const {
 
 /*!
 \return
-true se il triangolo è orizzontale cioè se la sua normale ha solo la componente z > GM_NULL_TOLERANCE, false
-altrimenti
+true if the triangle is valid and horizontal, its normal vector has only the z-component not null, false
+otherwise
 */
 bool GM_3dTriangle::isHorizontal() const {
-	GM_3dPoint normVect = normalVector();
-	if (fabs(normVect.x()) < GM_NULL_TOLERANCE && fabs(normVect.y()) < GM_NULL_TOLERANCE && fabs(normVect.z()) > GM_NULL_TOLERANCE)
-		return true;
-	else
+	if (isValid()) {
+		GM_3dPoint normVect = normalVector();
+		if (fabs(normVect.x()) < GM_NULL_TOLERANCE && fabs(normVect.y()) < GM_NULL_TOLERANCE && fabs(normVect.z()) > GM_NULL_TOLERANCE)
+			return true;
+		else
+			return false;
+	}
+	else {
 		return false;
+	}
 }
 
 
 
 /*!
 \return
-true se il triangolo è verticale cioè se la sua normale ha la componente z < GM_NULL_TOLERANCE, false
-altrimenti
+true if the triangle is valid and vertical, its normal vector has a null z component, false otherwise
 */
 bool GM_3dTriangle::isVertical() const {
-	GM_3dPoint normVect = normalVector();
-	if ((fabs(normVect.x()) > GM_NULL_TOLERANCE || fabs(normVect.y()) > GM_NULL_TOLERANCE) && fabs(normVect.z()) < GM_NULL_TOLERANCE)
-		return true;
-	else
+	if (isValid()) {
+		GM_3dPoint normVect = normalVector();
+		if ((fabs(normVect.x()) > GM_NULL_TOLERANCE || fabs(normVect.y()) > GM_NULL_TOLERANCE) && fabs(normVect.z()) < GM_NULL_TOLERANCE)
+			return true;
+		else
+			return false;
+	}
+	else {
 		return false;
+	}
 }
 
 
 
 /*!
 \return
-true se i tre lati del triangolo sono consecutivi e connessi, false altrimenti
+true if the edges of the triangle is connected in sequence, false otherwise or if the triangle is not valid
 */
 bool GM_3dTriangle::isConnected() const {
-	if (mEdge[0].end().distFrom(mEdge[1].begin()) < GM_DIFF_TOLERANCE &&
+	if (isValid() && mEdge[0].end().distFrom(mEdge[1].begin()) < GM_DIFF_TOLERANCE &&
 		mEdge[1].end().distFrom(mEdge[2].begin()) < GM_DIFF_TOLERANCE &&
 		mEdge[2].end().distFrom(mEdge[0].begin()) < GM_DIFF_TOLERANCE)
 			return true;
@@ -281,23 +335,23 @@ bool GM_3dTriangle::isConnected() const {
 
 
 /*!
-Calcola una linea sul triangolo alla Z specificata, se la Z è fuori dalla bbox del triangolo restituisce una
-linea non valida
+Compute a line on the triangle at the specified z
 
 \param theZLevel
-Z di cui calcolare la linea sulla superfice del triangolo
+Value of z to use in computation
 
 \return
-Linea sul triangolo alla Z specificata se è compresa nella bbox del triangolo, altrimenti restituisce
-una linea non valida
+The line on the triangle at z equal to theZLevel, return an invalid line if theZLevel is out of range or if
+the triangle is invalid
 */
 GM_3dLine GM_3dTriangle::zSection(double theZLevel) const {
 	GM_3dLine ret;
-	double _minZ = minZ();
-	double _maxZ = maxZ();
-	assert(theZLevel > _minZ + GM_DIFF_TOLERANCE && theZLevel < _maxZ - GM_DIFF_TOLERANCE);
+	if (!isValid())
+		return ret;
 
-	if (theZLevel > _minZ + GM_DIFF_TOLERANCE && theZLevel < _maxZ - GM_DIFF_TOLERANCE) {
+	double minZVal = minZ();
+	double maxZVal = maxZ();
+	if (theZLevel > minZVal + GM_DIFF_TOLERANCE && theZLevel < maxZVal - GM_DIFF_TOLERANCE) {
 		bool startPointFound = false;
 		bool endPointFound = false;
 		for (unsigned int i = 0 ; !endPointFound && i < 3 ; i++) {
@@ -321,7 +375,7 @@ GM_3dLine GM_3dTriangle::zSection(double theZLevel) const {
 
 
 /*!
-Invalida il triangolo
+Invalidate the triangle
 */
 void GM_3dTriangle::invalidate() {
 	for (int i = 0 ; i < 3 ; i++) {
@@ -331,8 +385,15 @@ void GM_3dTriangle::invalidate() {
 
 
 /*!
-Determina se un punto, o la sua proiezione sul piano su cui giace il triangolo, appartiene all' interno
-di un triangolo
+Determine if a point or its projection on the plane that contains the triangle is an interior point
+of the triangle
+
+\param thePoint
+Point to check
+
+\return
+true if thePoint or its projection on the plane that contains the triangle is an interior point
+of the triangle, false otherwise or if the triangle or thePoint are invalid
 */
 bool GM_3dTriangle::isInteriorPoint(GM_3dPoint thePoint) const {
 	bool ret = false;
@@ -356,7 +417,6 @@ bool GM_3dTriangle::isInteriorPoint(GM_3dPoint thePoint) const {
 	double c = E1Vect * E1Vect;
 	double d = E0Vect * dVect;
 	double e = E1Vect * dVect;
-	//double f = dVect * dVect;
 
 	double det = a*c - b*b;
 	double s = b*e - c*d;
@@ -375,7 +435,13 @@ bool GM_3dTriangle::isInteriorPoint(GM_3dPoint thePoint) const {
 
 
 /*!
-Distanza di un punto 3d dal triangolo
+Compute the distance of a point from the triangle
+
+\thePoint
+Point for distance computation
+
+\return
+The distance of a thePoint from the triangle, or DBL_MAX if the triangle or thePoint are invalid
 */
 double GM_3dTriangle::pointDistance(GM_3dPoint thePoint) const {
 	double ret = DBL_MAX;
@@ -383,14 +449,15 @@ double GM_3dTriangle::pointDistance(GM_3dPoint thePoint) const {
 		return ret;
 
 	if (isInteriorPoint(thePoint)) {
-		// Punto interno al triangolo, la distanza è pari alla distanza tra il punto e il piano su cui
-		// giace il triangolo
+		// thePoint or its projection is an interior point of the triangle, the distance is just the distrance
+		// from thePoint to the plane that contains the triangle
 
 		GM_3dPlane triPlane(*this);
 		ret = triPlane.pointDistance(thePoint);
 	}
 	else {
-		// Punto esterno al triangolo, prendo la minore tra le distanze del punto con i tre lati
+		// thePoint is not an interior point of the triangle, the distance is the minimu among the distances
+		// between thePoint and the three edges of the triangle
 
 		for (unsigned int i = 0 ; i < 3  ; i++) {
 			double d = mEdge[i].pointDistance(thePoint);

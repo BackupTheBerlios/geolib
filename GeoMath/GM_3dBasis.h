@@ -18,6 +18,9 @@
 
 
 
+/*!
+3D vector space basis
+*/
 class GM_3dBasis {
 public:
 	GM_3dBasis();
@@ -32,5 +35,8 @@ public:
 	void normalize();
 	bool isLinearlyInd() const;
 private:
+	/*!
+	The three generators of the basis
+	*/
 	GM_3dVector mGen[3];
 };

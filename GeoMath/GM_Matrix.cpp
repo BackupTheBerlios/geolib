@@ -102,7 +102,9 @@ bool GM_Matrix::isValid() const {
 Allocate the matrix with specified rows and columns
 
 \param theNumCol
+Number of columns
 \param theNumRow
+Number of rows
 */
 void GM_Matrix::allocate(unsigned short theNumCol, unsigned short theNumRow) {
 	invalidate();
@@ -128,6 +130,16 @@ void GM_Matrix::allocate(unsigned short theNumCol, unsigned short theNumRow) {
 }
 
 
+
+/*!
+Get a pointer to a specified row of the matrix
+
+\param theRow
+Row to get
+
+\return
+A pointer to the specified row, or NULL if theRow is out of range
+*/
 double* GM_Matrix::operator[](unsigned short theRow) {
 	if (theRow < mNumRow)
 		return pMatrix[theRow];
@@ -136,6 +148,16 @@ double* GM_Matrix::operator[](unsigned short theRow) {
 }
 
 
+
+/*!
+Get a const pointer to a specified row of the matrix
+
+\param theRow
+Row to get
+
+\return
+A const pointer to the specified row, or NULL if theRow is out of range
+*/
 const double* GM_Matrix::operator[](unsigned short theRow) const {
 	if (theRow < mNumRow)
 		return pMatrix[theRow];
@@ -143,7 +165,16 @@ const double* GM_Matrix::operator[](unsigned short theRow) const {
 		return NULL;
 }
 
+/*!
+Assignment operator
 
+\param theMatrix
+Matrix to assign to this
+
+\return
+A refence to this overwritten by theMatrix, if theMatrix is invalid this is invalidated and
+returned
+*/
 GM_Matrix& GM_Matrix::operator=(const GM_Matrix& theMatrix) {
 	if (isValid() && theMatrix.isValid() && mNumCol == theMatrix.mNumCol && mNumRow == theMatrix.mNumRow) {
 		for (unsigned short i = 0 ; i < mNumRow ; i++) {
@@ -160,11 +191,33 @@ GM_Matrix& GM_Matrix::operator=(const GM_Matrix& theMatrix) {
 }
 
 
+
+/*!
+Equality operator
+
+\param theMatrix
+Matrix to compare with this
+
+\return
+true if theMatrix is not equal to this within tolerance GM_NULL_TOLERANCE, true otherwise, return true if
+this or theMatrix are invalid
+*/
 bool GM_Matrix::operator != (const GM_Matrix& theMatrix) const {
 	return !((*this) == theMatrix);
 }
 
 
+
+/*!
+Equality operator
+
+\param theMatrix
+Matrix to compare with this
+
+\return
+true if theMatrix is equal to this within tolerance GM_NULL_TOLERANCE, false otherwise or if this or
+theMatrix are invalid
+*/
 bool GM_Matrix::operator == (const GM_Matrix& theMatrix) const {
 	if (!isValid() || !theMatrix.isValid() || mNumCol != theMatrix.mNumCol || mNumRow != theMatrix.mNumRow)
 		return false;
@@ -182,6 +235,17 @@ bool GM_Matrix::operator == (const GM_Matrix& theMatrix) const {
 }
 
 
+
+/*!
+Row by columns product between two matrix
+
+\param
+Matrix to use with this in row by column product
+
+\return
+The matrix obtained from the row by column product between this and theMatrix, if this or theMatrix are invalid
+or incompatible
+*/
 GM_Matrix GM_Matrix::operator*(const GM_Matrix& theMatrix) const {
 	GM_Matrix ret;
 	if (!isValid() || !theMatrix.isValid() || mNumCol != theMatrix.mNumRow || mNumRow != theMatrix.mNumCol)
@@ -200,17 +264,27 @@ GM_Matrix GM_Matrix::operator*(const GM_Matrix& theMatrix) const {
 
 
 
-
+/*!
+\return
+true if this is a square matrix, false otherwise
+*/
 bool GM_Matrix::isQuad() const {
-	if (mNumCol == mNumRow)
+	if (isValid() && mNumCol == mNumRow)
 		return true;
 	else
 		return false;
 }
 
 
+
+/*!
+Compute the determinant of this using the Gauss-Jordan elimination algorithm
+
+\return
+The determinant of this, or DBL_MAX if this is invalid or is not a square matrix
+*/
 double GM_Matrix::determinant() const {
-	double ret = 0.0;
+	double ret = DBL_MAX;
 	if (!isValid() || !isQuad())
 		return ret;
 
@@ -220,20 +294,30 @@ double GM_Matrix::determinant() const {
 
 
 
+/*!
+Compute the matrix obtained from the application of the Gauss-Jordan elimination algorithm to this and in the
+same time compute the determinant if is possible.
+
+\param theDet
+On output contains the determinat of this, if this is valid and is a square matrix, otherwise contains DBL_MAX
+
+\return
+The matrix obtained from the Gauss-Jordan elimination algorithm on this, return an invalid matrix if this is
+not valid
+*/
 GM_Matrix GM_Matrix::gaussjordanElim(double& theDet) const {
 	GM_Matrix ret;
-	theDet = 0.0;
+	theDet = DBL_MAX;
 
 	if (isValid()) {
 		ret = (*this);
 		double detMult = 1.0;
 
 		for (unsigned short colNdx = 0 ; colNdx < mNumCol ; colNdx++) {
-			// Se esiste nella colonna colNdx un elemento != 0 si posta quello con modulo maggior sulla riga
-			// con lo stesso indice (colNdx) scambiando le righe
+			// If in column colNdx there is at least an element != 0, move the biggest (in module) un the
+			// colNdx-th row
 			
-			// Cerca nella colonna colNdx la riga con l' elemento di modulo maggiore e la memorizza in
-			// rowToSwap (pivoting)
+			// Find in colNdx-th column the biggest (in module) element, the pivot
 			bool rowFound = false;
 			unsigned short rowToSwap = 0;
 			for (unsigned short rowNdx = 0 ; rowNdx < mNumRow ; rowNdx++) {
@@ -251,17 +335,19 @@ GM_Matrix GM_Matrix::gaussjordanElim(double& theDet) const {
 			}
 
 			if (rowFound) {
-				// Scambia la riga col pivot con quella di indice colNdx
+				// Swap the row containing the pivot element with the colNdx-th row
 				ret.rowSwap(rowToSwap, colNdx);
 				if (rowToSwap != colNdx) {
 					detMult *= -1.0;
 				}
 				
-				// Si porta a 1 il pivot con un opportuna moltiplicazione della sua riga
+				// Set the pivot element to 1, multiply its row by 1/pivot, keep trace of the
+				// determinant value
 				ret.rowMult(colNdx, 1.0 / ret[colNdx][colNdx]);
 				detMult *= 1.0 / ret[colNdx][colNdx];
-				
-				// Poi con moltiplicazioni e somme si azzerano tutti gli elementi sopra e sotto
+
+				// Reduce to 0 the elements above and below the pivot with the necessary
+				// multiplication and addition of rows
 				for (unsigned short rowNdx = 0 ; rowNdx < mNumRow ; rowNdx++) {
 					if (rowNdx != colNdx && ret[rowNdx][colNdx] != 0) {
 						ret.rowSum(rowNdx, colNdx, -(1.0 / ret[rowNdx][colNdx]));
@@ -271,6 +357,8 @@ GM_Matrix GM_Matrix::gaussjordanElim(double& theDet) const {
 		}
 	
 		if (isQuad()) {
+			// This is a square matrix, compute the determinant
+
 			for (unsigned short i = 0 ; i < mNumCol ; i++) {
 				detMult *= ret[i][i];
 			}
@@ -288,6 +376,14 @@ GM_Matrix GM_Matrix::gaussjordanElim(double& theDet) const {
 
 
 
+/*!
+Compute the matrix obtained from the application of the Gauss-Jordan elimination algorithm to this without
+determinant computation
+
+\return
+The matrix obtained from the Gauss-Jordan elimination algorithm on this, return an invalid matrix if this is
+not valid
+*/
 GM_Matrix GM_Matrix::gaussjordanElim() const {
 	double dummyDouble = 0.0;
 	return gaussjordanElim(dummyDouble);
@@ -295,7 +391,14 @@ GM_Matrix GM_Matrix::gaussjordanElim() const {
 
 
 
-// Scambio di righe
+/*!
+Swap two rows of the matrix by its index, nothing happens if the index are out of range
+
+\param theRow1
+Index of the first row
+\param theRow2
+Index of the second row
+*/
 void GM_Matrix::rowSwap(unsigned short theRow1, unsigned short theRow2) {
 	if (theRow1 >= mNumRow || theRow2 >= mNumRow || theRow1 == theRow2)
 		return;
@@ -307,7 +410,18 @@ void GM_Matrix::rowSwap(unsigned short theRow1, unsigned short theRow2) {
 	}
 }
 
-// Somma di una righa per un altra moltiplicata per una costante != 0
+
+/*!
+Sum up a row with another row multiplied with a constant != 0, nothing happens if the index are out of range
+or theMult is zero
+
+\param theRow
+Base row
+\param theRowToAdd
+Row to add
+\param theMult
+Multiplication constant of theRowToAdd
+*/
 void GM_Matrix::rowSum(unsigned short theRow, unsigned short theRowToAdd, double theMult) {
 	if (theRow >= mNumRow || theRowToAdd >= mNumRow || theRow == theRowToAdd || fabs(theMult) < GM_NULL_TOLERANCE)
 		return;
@@ -317,7 +431,16 @@ void GM_Matrix::rowSum(unsigned short theRow, unsigned short theRowToAdd, double
 	}
 }
 
-// Moltiplicazione di una riga per una costante != 0
+
+
+/*!
+Muliply a row by a constant != 0, nothing happens if the index are out of range, or theMult is zero
+
+\param theRow
+Row to multiply
+\param theMult
+Multiplier
+*/
 void GM_Matrix::rowMult(unsigned short theRow, double theMult) {
 	if (theRow >= mNumRow || fabs(theMult) < GM_NULL_TOLERANCE)
 		return;
@@ -328,6 +451,13 @@ void GM_Matrix::rowMult(unsigned short theRow, double theMult) {
 }
 
 
+
+/*!
+Compute the inverse of this, if it is possible, using the Gauss-Jordan elimination algorithm
+
+\return
+The inverse of this if this is a valid square matrix with determinand != 0, an invalid matrix otherwise
+*/
 GM_Matrix GM_Matrix::inverse() const {
 	GM_Matrix ret;
 	if (!isValid() || !isQuad() || determinant() == 0.0)
@@ -363,7 +493,12 @@ GM_Matrix GM_Matrix::inverse() const {
 
 
 
-	
+/*!
+Compute the transposed matrix of this
+
+\return
+The transposed matrix of this, or an invalid matrix if this is invalid
+*/
 GM_Matrix GM_Matrix::transpose() const {
 	if (!isValid())
 		return (*this);
@@ -379,6 +514,10 @@ GM_Matrix GM_Matrix::transpose() const {
 }
 
 
+
+/*!
+Set this to the identity matrix
+*/
 void GM_Matrix::setIdentity() {
 	if (!isValid() || !isQuad())
 		return;
