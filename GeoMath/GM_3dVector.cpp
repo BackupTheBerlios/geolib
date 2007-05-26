@@ -245,7 +245,7 @@ angles is counterclockwise, or -DBL_MAX if this isn't valid
 double GM_3dVector::xyAngle() const {
 	double ret = -DBL_MAX;
 	if (isValid()) {
-		double ret = atan2(mY,mX);
+		ret = atan2(mY,mX);
 		if (ret < 0.0) {
 			ret = 2.0 * GM_PI + ret;
 		}

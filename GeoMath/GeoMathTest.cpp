@@ -833,11 +833,14 @@ int testPlane() {
 
 	// XY Angle
 	double angle = ((((double)rand()) / ((double)RAND_MAX)) * GM_PI) - (GM_PI / 2.0);
-	GM_3dVector normVector(angle + GM_HALFPI);
+	GM_3dVector normVector(angle/* + GM_HALFPI*/);
 	normVector.z(normVector.y());
 	normVector.y(0.0);
 	GM_3dPlane angleP(normVector, GM_3dPoint(getRandomDouble(), getRandomDouble(), getRandomDouble()));
 	double checkAngle = angleP.xyAngle();
+	if (checkAngle > GM_PI) {
+		checkAngle -= 2.0 * GM_PI;
+	}
 	if (!angleP.isValid() || fabs(angle - checkAngle) > GM_NULL_TOLERANCE) {
 		logMessage(_T("\tERROR - XY angle computation not working\n"));
 		numErr++;

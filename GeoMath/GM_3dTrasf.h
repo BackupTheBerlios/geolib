@@ -24,11 +24,12 @@ class GM_3dVector;
 
 
 /*!
-3D basis transformation
+3D linear transformation
 */
 class GM_3dTrasf : public GM_Matrix {
 public:
 	GM_3dTrasf();
+	GM_3dTrasf(const GM_3dTrasf& theTrasf);
 	GM_3dTrasf(const GM_3dBasis& startBase, const GM_3dBasis& endBase);
 	virtual ~GM_3dTrasf();
 

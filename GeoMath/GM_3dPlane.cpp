@@ -398,7 +398,8 @@ GM_3dVector GM_3dPlane::normalVector() const {
 Compute the angle that the vector normal to the plane forms with xy plane
 
 \return
-The angle that the vector normal to this forms with the xy plane, or DBL_MAX if this is not valid
+The angle that the vector normal to this forms with the xy plane, return a value in the interval [0 ; 2*PI],
+positive angles is counterclockwise, or DBL_MAX if this is not valid
 */
 double GM_3dPlane::xyAngle() const {
 	double ret = DBL_MAX;
@@ -406,9 +407,15 @@ double GM_3dPlane::xyAngle() const {
 		return ret;
 
 	GM_3dVector normVector = normalVector();
-	double dz = fabs(normVector.z());
+	double dz = normVector.z();
 	double dxy = sqrt(normVector.x()*normVector.x() + normVector.y()*normVector.y());
-	ret = (GM_PI / 2.0) - atan2(dz, dxy);
+	double tanAng = atan2(dz, dxy);
+	if (tanAng < 0.0) {
+		ret = (2.0 * GM_PI) + tanAng;
+	}
+	else {
+		ret = tanAng;
+	}
 	
 	return ret;
 }

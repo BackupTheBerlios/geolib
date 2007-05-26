@@ -110,7 +110,7 @@ Index of the edge to return by reference
 The reference to the edge with index theIndex
 */
 GM_3dLine& GM_3dTriangle::operator[](unsigned short theIndex) {
-	assert(isValid() && theIndex <= 2);
+	assert(theIndex <= 2);
 	return mEdge[theIndex];
 }
 
@@ -126,7 +126,7 @@ Index of the edge to return
 Th edge with index theIndex, or an invalid edge if theIndex is out of range or the triangle is not valid
 */
 GM_3dLine GM_3dTriangle::operator[](unsigned short theIndex) const {
-	if (isValid() && theIndex <= 2)
+	if (theIndex <= 2)
 		return mEdge[theIndex];
 	else
 		return GM_3dLine();
@@ -209,7 +209,8 @@ double GM_3dTriangle::minZ() const {
 
 /*!
 \return
-Inner angle formed by the plane that contains the triangle and the xy plane, or DBL_MAX if the triangle
+Inner angle formed by the plane that contains the triangle and the xy plane, return a value in the
+interval [0 ; 2*PI], positive angles is counterclockwise, or DBL_MAX if the triangle
 is not valid
 */
 double GM_3dTriangle::xyAngle() const {

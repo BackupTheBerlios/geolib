@@ -28,6 +28,14 @@ GM_3dTrasf::GM_3dTrasf() : GM_Matrix(3, 3) {
 
 
 /*!
+Copy constructor
+*/
+GM_3dTrasf::GM_3dTrasf(const GM_3dTrasf& theTrasf) : GM_Matrix(theTrasf) {
+}
+
+
+
+/*!
 Default destructor
 */
 GM_3dTrasf::~GM_3dTrasf() {
