@@ -13,6 +13,7 @@
 
 #include "StdAfx.h"
 
+#include "GM_Matrix.h"
 #include "GM_3dBasis.h"
 
 
@@ -98,13 +99,22 @@ void GM_3dBasis::normalize() {
 
 /*!
 \return
-true if the generators is linearly independent, false otherwise
+true if the generators is linearly independent, false otherwise or if the basis is not valid
 */
 bool GM_3dBasis::isLinearlyInd() const {
-	if ((mGen[0]^mGen[1]).mod() > GM_NULL_TOLERANCE && (mGen[0]^mGen[2]).mod() > GM_NULL_TOLERANCE && (mGen[1]^mGen[2]).mod() > GM_NULL_TOLERANCE)
-		return true;
-	else
-		return false;
+	bool ret = false;
+	if (isValid()) {
+		GM_Matrix basisMat(*this);
+		double basisMatDet = basisMat.determinant();
+		if (fabs(basisMatDet) < GM_NULL_TOLERANCE) {
+			ret = false;
+		}
+		else {
+			ret = true;
+		}
+	}
+
+	return ret;
 }
 
 

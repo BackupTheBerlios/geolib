@@ -303,3 +303,33 @@ bool GM_3dVector::isAtLeftOnXY(const GM_3dVector& theVect) const {
 		return false;
 	}
 }
+
+
+
+/*!
+Determine if this and the vector passed are linearly dependent or not
+
+\param theVect
+Vector to check against this
+
+\return
+true if this and theVect are linearly dependent, false otherwise or if the vectors are not valid
+*/
+bool GM_3dVector::isLinearlyDependent(const GM_3dVector& theVect) const {
+	bool ret = false;
+	if (isValid() || theVect.isValid()) {
+		double dot00 = (*this) * (*this);
+		double dot01 = (*this) * theVect;
+		double dot10 = theVect * (*this);
+		double dot11 = theVect * theVect;
+		double dotDet = (dot00 * dot11) - (dot01 * dot10);
+		if (dotDet < GM_NULL_TOLERANCE) {
+			ret = true;
+		}
+		else {
+			ret = false;
+		}
+	}
+
+	return ret;
+}

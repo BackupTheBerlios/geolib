@@ -16,7 +16,7 @@ void getLogFilename(TCHAR *fileName) {
 	time(&testStartTime);
 	struct tm *localTime = NULL;
 	localTime = localtime(&testStartTime);
-	srand(testStartTime);
+	srand((unsigned int)testStartTime);
 	
 	//_stprintf(fileName, _T("testLog%d%d%d_%d%d.txt"), localTime -> tm_mday, localTime -> tm_mon, localTime -> tm_year, localTime -> tm_hour, localTime -> tm_min, localTime -> tm_sec);
 	_stprintf(fileName, _T("testLog.txt"));
@@ -986,10 +986,240 @@ int testTriangle() {
 int testBasis() {
 	int numErr = 0;
 
+	logMessage(_T("TESTING  -  class GM_3dBasis ...\n\n"));
+
+	// Default constructor, basis must be invalid
+	GM_3dBasis b;
+	if (b.isValid()) {
+		logMessage(_T("\tERROR - Default constructor creates valid basis\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Default constructor creates invalid basis\n"));
+	}
+
+	// Constructor from three vectors
+	GM_3dVector v1(getRandomDouble(), getRandomDouble(), getRandomDouble());
+	GM_3dVector v2(getRandomDouble(), getRandomDouble(), getRandomDouble());
+	GM_3dVector v3(getRandomDouble(), getRandomDouble(), getRandomDouble());
+	GM_3dBasis b1(v1, v2, v3);
+	if (!b1.isValid()) {
+		logMessage(_T("\tERROR - Constructor from three vectors not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Constructor from three vectors working\n"));
+	}
+
+	// Copy constructor
+	GM_3dBasis bCopy(b1);
+	if (!bCopy.isValid() || bCopy[0] != b1[0] || bCopy[1] != b1[1] || bCopy[2] != b1[2]) {
+		logMessage(_T("\tERROR - Copy constructor not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Copy constructor working\n"));
+	}
+
+	// Linear independency check
+	GM_3dBasis bIndep(GM_3dVector(getRandomDouble(), 0.0, 0.0), GM_3dVector(0.0, getRandomDouble(), 0.0), GM_3dVector(0.0, 0.0, getRandomDouble()));
+	GM_3dBasis bDep(v1, v2, v1*getRandomDouble() + v2*getRandomDouble());
+	double det = bIndep[0].x() * bIndep[1].y() * bIndep[2].z();
+	if (!bDep.isValid() || !bIndep.isValid() || bDep.isLinearlyInd() || !bIndep.isLinearlyInd()) {
+		logMessage(_T("\tERROR - Linear independency check not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Linear independency check working\n"));
+	}
+
+	
 	return numErr;
 }
 int testMatrix() {
 	int numErr = 0;
+
+	logMessage(_T("TESTING  -  class GM_Matrix ...\n\n"));
+
+	// Default constructor, matrix must be invalid
+	GM_Matrix m;
+	if (m.isValid()) {
+		logMessage(_T("\tERROR - Default constructor creates valid matrix\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Default constructor creates invalid matrix\n"));
+	}
+
+	// Constructor of a non square matrix
+	GM_Matrix mQuad(3, 5);
+	if (!mQuad.isValid() || mQuad.isQuad() || mQuad.getNumCol() != 3 || mQuad.getNumRow() != 5) {
+		logMessage(_T("\tERROR - Constructor of a non square matrix not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Constructor of a non square matrix working\n"));
+	}
+
+	// Constructor from 3d basis
+	GM_3dVector v1(getRandomDouble(), getRandomDouble(), getRandomDouble());
+	GM_3dVector v2(getRandomDouble(), getRandomDouble(), getRandomDouble());
+	GM_3dVector v3(getRandomDouble(), getRandomDouble(), getRandomDouble());
+	GM_3dBasis b(v1, v2, v3);
+	GM_Matrix mb(b);
+	if (!mb.isValid() || !mb.isQuad() || mb[0][0] != b[0].x() || mb[1][0] != b[0].y() || mb[2][0] != b[0].z() ||
+		mb[0][1] != b[1].x() || mb[1][1] != b[1].y() || mb[2][1] != b[1].z() || mb[0][2] != b[2].x() || mb[1][2] != b[2].y() || mb[2][2] != b[2].z()) {
+		logMessage(_T("\tERROR - Constructor from basis not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Constructor from basis working\n"));
+	}
+
+	// Copy constructor
+	GM_Matrix mbCopy(mb);
+	bool okCopy = true;
+	for (unsigned short i = 0 ; i < 3 && okCopy ; i++) {
+		for (unsigned short j = 0 ; j < 3 && okCopy ; j++) {
+			if (mbCopy[i][j] != mb[i][j])
+				okCopy = false;
+		}
+	}
+	if (!mbCopy.isValid() || !okCopy) {
+		logMessage(_T("\tERROR - Copy constructor not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Copy constructor working\n"));
+	}
+
+	// Get/Set
+	int col = rand() % 3;
+	int row = rand() % 3;
+	double val = getRandomDouble();
+	mb[row][col] = val;
+	if (mb[row][col] != val) {
+		logMessage(_T("\tERROR - Get/Set not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Get/Set working\n"));
+	}
+
+	// Equality Operators
+	GM_Matrix mbCopy1(mbCopy);
+	if (mbCopy != mbCopy1 || mbCopy == mb) {
+		logMessage(_T("\tERROR - Equality operators not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Equality operators working\n"));
+	}
+
+	// Assignment operator
+	GM_Matrix mbCopy2;
+	mbCopy2 = mb;
+	if (!mbCopy2.isValid() || mbCopy2 != mb) {
+		logMessage(_T("\tERROR - Assignment operator not working\n"));
+		numErr++;
+	}
+	else {
+		logMessage(_T("\tOK - Assignment operator working\n"));
+	}
+
+	// Matrix product
+	unsigned short numRow = 3 + rand() % 10;
+	unsigned short numCol = 3 + rand() % 10;	
+	unsigned short numRow1 = numCol;
+	unsigned short numCol1 = 3 + rand() % 10;
+	GM_Matrix m1(numCol, numRow);
+	GM_Matrix m2(numCol1, numRow1);
+	for (unsigned short i = 0 ; i < numRow ; i++) {
+		for (unsigned short j = 0 ; j < numCol ; j++) {
+			m1[i][j] = getRandomDouble();
+		}
+	}
+	for (unsigned short i = 0 ; i < numRow1 ; i++) {
+		for (unsigned short j = 0 ; j < numCol1 ; j++) {
+			m2[i][j] = getRandomDouble();
+		}
+	}
+	GM_Matrix prodM = m1 * m2;
+	if (!prodM.isValid() || prodM.getNumRow() != m1.getNumRow() || prodM.getNumCol() != m2.getNumCol()) {
+		logMessage(_T("\tERROR - Matrix product not working\n"));
+		numErr++;
+	}
+	else {
+		bool okProd = true;
+		for (unsigned short i = 0 ; i < numRow && okProd ; i++) {
+			for (unsigned short j = 0 ; j < numCol1 && okProd ; j++) {
+				double val = 0.0;
+				for (unsigned short j1 = 0 ; j1 < numCol ; j1++) {
+					val += m1[i][j1] * m2[j1][j];
+				}
+				if (val != prodM[i][j]) {
+					okProd = false;
+				}
+			}
+		}
+		if (!okProd) {
+			logMessage(_T("\tERROR - Matrix product not working\n"));
+			numErr++;
+		}
+		else {
+			logMessage(_T("\tOK - Matrix product working\n"));
+		}
+	}
+
+	// Matrix transposition
+	GM_Matrix mT = mb.transpose();
+	if (!mT.isValid() || mT.getNumCol() != mb.getNumRow() || mT.getNumRow() != mb.getNumCol()) {
+		logMessage(_T("\tERROR - Matrix trasposition not working\n"));
+		numErr++;
+	}
+	else {
+		bool okTras = true;
+		for (unsigned short i = 0 ; i < mb.getNumRow() && okTras ; i++) {
+			for (unsigned short j = 0 ; j < mb.getNumCol() && okTras ; j++) {
+				if (mb[i][j] != mT[j][i]) {
+					okTras = false;
+				}
+			}
+		}
+		if (!okTras) {
+			logMessage(_T("\tERROR - Matrix trasposition not working\n"));
+			numErr++;
+		}
+		else {
+			logMessage(_T("\tOK - Matrix trasposition working\n"));
+		}
+	}
+
+	// Matrix inversion
+	unsigned short numRowCol = 3;//3 + rand() % 10;
+	GM_Matrix mToInv(numRowCol, numRowCol);
+	for (unsigned short i = 0 ; i < numRowCol ; i++) {
+		for (unsigned short j = 0 ; j < numRowCol ; j++) {
+			mToInv[i][j] = getRandomDouble();
+		}
+	}
+	double mToInvDet = mToInv.determinant();
+	GM_Matrix mInv = mToInv.inverse();
+	if (!mInv.isValid() && fabs(mToInvDet) > GM_NULL_TOLERANCE) {
+		logMessage(_T("\tERROR - Matrix inversion not working\n"));
+		numErr++;
+	}
+	else {
+		GM_Matrix mCheck = mInv * mToInv;
+		GM_Matrix mCheck1 = mToInv * mInv;
+		if (!mCheck.isValid() || !mCheck.isIdentity() || !mCheck1.isValid() || !mCheck1.isIdentity()) {
+			logMessage(_T("\tERROR - Matrix inversion not working\n"));
+			numErr++;
+		}
+		else {
+			logMessage(_T("\tOK - Matrix inversion working\n"));
+		}
+	}
 
 	return numErr;
 }
@@ -1026,6 +1256,10 @@ void startTest() {
 	int planeTestErr = testPlane();
 	logHLine();
 	int triangleTestErr = testTriangle();
+	logHLine();
+	int basisTestErr = testBasis();
+	logHLine();
+	int matrixTestErr = testMatrix();
 
 
 	fclose(testLogFile);

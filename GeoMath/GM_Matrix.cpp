@@ -32,11 +32,14 @@ GM_Matrix::GM_Matrix(void) {
 Copy constructor
 */
 GM_Matrix::GM_Matrix(const GM_Matrix& theMatrix) {
+	mNumCol = 0;
+	mNumRow = 0;
+	pMatrix = NULL;
 	if (theMatrix.isValid()) {
-		allocate(theMatrix.mNumCol, theMatrix.mNumRow);
+		allocate(theMatrix.mNumRow, theMatrix.mNumCol);
 		if (isValid()) {
 			for (unsigned short i = 0 ; i < mNumRow ; i++) {
-				for (unsigned short j = 0 ; i < mNumCol ; j++) {
+				for (unsigned short j = 0 ; j < mNumCol ; j++) {
 					pMatrix[i][j] = (theMatrix.pMatrix)[i][j];
 				}
 			}
@@ -55,7 +58,32 @@ Number of columns
 Number of rows
 */
 GM_Matrix::GM_Matrix(unsigned short theNumCol, unsigned short theNumRow) {
-	allocate(theNumCol, theNumRow);
+	mNumCol = 0;
+	mNumRow = 0;
+	pMatrix = NULL;
+	allocate(theNumRow, theNumCol);
+}
+
+
+
+/*!
+Constructor from 3d basis, vectors becomes columns of the matrix
+
+\param theBasis
+3d basis
+*/
+GM_Matrix::GM_Matrix(const GM_3dBasis& theBasis) {
+	mNumCol = 0;
+	mNumRow = 0;
+	pMatrix = NULL;
+	if (theBasis.isValid()) {
+		allocate(3, 3);
+		for (unsigned short i = 0 ; i < 3 ; i++) {
+			pMatrix[0][i] = theBasis[i].x();
+			pMatrix[1][i] = theBasis[i].y();
+			pMatrix[2][i] = theBasis[i].z();
+		}
+	}
 }
 
 
@@ -64,6 +92,7 @@ GM_Matrix::GM_Matrix(unsigned short theNumCol, unsigned short theNumRow) {
 Default destructor
 */
 GM_Matrix::~GM_Matrix(void) {
+	invalidate();
 }
 
 
@@ -74,14 +103,15 @@ Invalidate the matrix and free the memory
 void GM_Matrix::invalidate() {
 	if (pMatrix) {
 		for (unsigned short i = 0 ; i < mNumRow ; i++) {
-			free(pMatrix[i]);
+			double *ptr = pMatrix[i];
+			free(ptr);
 		}
 		free(pMatrix);
 	}
 	mNumCol = 0;
 	mNumRow = 0;
 	pMatrix = NULL;
-}
+}	
 
 
 
@@ -97,7 +127,9 @@ bool GM_Matrix::isValid() const {
 }
 
 
-
+#ifdef _DEBUG
+int allocateCounter = 0;
+#endif
 /*!
 Allocate the matrix with specified rows and columns
 
@@ -106,19 +138,22 @@ Number of columns
 \param theNumRow
 Number of rows
 */
-void GM_Matrix::allocate(unsigned short theNumCol, unsigned short theNumRow) {
+void GM_Matrix::allocate(unsigned short theNumRow, unsigned short theNumCol) {
+#ifdef _DEBUG
+allocateCounter++;
+#endif
 	invalidate();
 	if (theNumCol == 0 || theNumRow == 0) {
 		return;
 	}
 
-	pMatrix = (double**) calloc(sizeof(double*), theNumRow);
+	pMatrix = (double**) calloc(theNumRow, sizeof(double*));
 	if (!pMatrix) {
 		invalidate();
 		return;
 	}
-	for (unsigned short i = 0 ; i < mNumRow ; i++) {
-		pMatrix[i] = (double*) calloc(sizeof(double), theNumCol);
+	for (unsigned short i = 0 ; i < theNumRow ; i++) {
+		pMatrix[i] = (double*) calloc(theNumCol, sizeof(double));
 		if (!pMatrix[i]) {
 			invalidate();
 			return;
@@ -141,6 +176,7 @@ Row to get
 A pointer to the specified row, or NULL if theRow is out of range
 */
 double* GM_Matrix::operator[](unsigned short theRow) {
+	assert(theRow < mNumRow);
 	if (theRow < mNumRow)
 		return pMatrix[theRow];
 	else
@@ -159,6 +195,7 @@ Row to get
 A const pointer to the specified row, or NULL if theRow is out of range
 */
 const double* GM_Matrix::operator[](unsigned short theRow) const {
+	assert(theRow < mNumRow);
 	if (theRow < mNumRow)
 		return pMatrix[theRow];
 	else
@@ -176,10 +213,15 @@ A refence to this overwritten by theMatrix, if theMatrix is invalid this is inva
 returned
 */
 GM_Matrix& GM_Matrix::operator=(const GM_Matrix& theMatrix) {
-	if (isValid() && theMatrix.isValid() && mNumCol == theMatrix.mNumCol && mNumRow == theMatrix.mNumRow) {
-		for (unsigned short i = 0 ; i < mNumRow ; i++) {
-			for (unsigned short j = 0 ; j < mNumCol ; j++) {
-				pMatrix[i][j] = theMatrix[i][j];
+	if (theMatrix.isValid()) {
+		if (!isValid()) {
+			allocate(theMatrix.mNumRow, theMatrix.mNumCol);
+		}
+		if (mNumCol == theMatrix.mNumCol && mNumRow == theMatrix.mNumRow) {
+			for (unsigned short i = 0 ; i < mNumRow ; i++) {
+				for (unsigned short j = 0 ; j < mNumCol ; j++) {
+					pMatrix[i][j] = theMatrix[i][j];
+				}
 			}
 		}
 	}
@@ -237,7 +279,7 @@ bool GM_Matrix::operator == (const GM_Matrix& theMatrix) const {
 
 
 /*!
-Row by columns product between two matrix
+Row by column product between two matrix
 
 \param
 Matrix to use with this in row by column product
@@ -248,13 +290,22 @@ or incompatible
 */
 GM_Matrix GM_Matrix::operator*(const GM_Matrix& theMatrix) const {
 	GM_Matrix ret;
-	if (!isValid() || !theMatrix.isValid() || mNumCol != theMatrix.mNumRow || mNumRow != theMatrix.mNumCol)
+	if (!isValid() || !theMatrix.isValid() || mNumCol != theMatrix.mNumRow)
 		return ret;
 
-	for (unsigned short i = 0 ; i < mNumRow ; i++) {
-		for (unsigned short j = 0 ; j < mNumCol ; j++) {
-			for (unsigned short k = 0 ; k < mNumCol ; k++) {
-				ret[i][j] += pMatrix[i][k]*theMatrix[k][j];
+	ret.allocate(mNumRow, theMatrix.mNumCol);
+	if (ret.isValid()) {
+		for (unsigned short i = 0 ; i < mNumRow ; i++) {
+			for (unsigned short j = 0 ; j < theMatrix.getNumCol() ; j++) {
+				for (unsigned short k = 0 ; k < mNumCol ; k++) {
+					assert(i < ret.getNumRow());
+					assert(j < ret.getNumCol());
+					assert(i < mNumRow);
+					assert(k < mNumCol);
+					assert(k < theMatrix.getNumRow());
+					assert(j < theMatrix.getNumCol());
+					ret[i][j] += pMatrix[i][k]*theMatrix[k][j];
+				}
 			}
 		}
 	}
@@ -313,7 +364,8 @@ GM_Matrix GM_Matrix::gaussjordanElim(double& theDet) const {
 		ret = (*this);
 		double detMult = 1.0;
 
-		for (unsigned short colNdx = 0 ; colNdx < mNumCol ; colNdx++) {
+		double minNdx = mNumRow < mNumCol ? mNumRow : mNumCol;
+		for (unsigned short colNdx = 0 ; colNdx < minNdx ; colNdx++) {
 			// If in column colNdx there is at least an element != 0, move the biggest (in module) un the
 			// colNdx-th row
 			
@@ -343,33 +395,46 @@ GM_Matrix GM_Matrix::gaussjordanElim(double& theDet) const {
 				
 				// Set the pivot element to 1, multiply its row by 1/pivot, keep trace of the
 				// determinant value
+				detMult *= ret[colNdx][colNdx];
 				ret.rowMult(colNdx, 1.0 / ret[colNdx][colNdx]);
-				detMult *= 1.0 / ret[colNdx][colNdx];
 
 				// Reduce to 0 the elements above and below the pivot with the necessary
 				// multiplication and addition of rows
 				for (unsigned short rowNdx = 0 ; rowNdx < mNumRow ; rowNdx++) {
 					if (rowNdx != colNdx && ret[rowNdx][colNdx] != 0) {
-						ret.rowSum(rowNdx, colNdx, -(1.0 / ret[rowNdx][colNdx]));
+						ret.rowSum(rowNdx, colNdx, -ret[rowNdx][colNdx]);
 					}
 				}
 			}
+#ifdef _DEBUG
+			//ret.dump(_T("E:\\GeoMath\\Dump\\gjElimPart.txt"));
+#endif
 		}
 	
 		if (isQuad()) {
 			// This is a square matrix, compute the determinant
 
 			for (unsigned short i = 0 ; i < mNumCol ; i++) {
-				detMult *= ret[i][i];
+				if (fabs(ret[i][i]) < GM_NULL_TOLERANCE) {
+					detMult = 0.0;
+					break;
+				}
+				else {
+					detMult *= ret[i][i];
+				}
 			}
 			if (fabs(detMult) > GM_NULL_TOLERANCE) {
-				theDet = 1.0 / detMult;
+				theDet = detMult;
 			}
 			else {
 				theDet = 0.0;
 			}
 		}
 	}
+
+#ifdef _DEBUG
+	//ret.dump(_T("E:\\GeoMath\\Dump\\gjElimFin.txt"));
+#endif
 
 	return ret;
 }
@@ -480,14 +545,22 @@ GM_Matrix GM_Matrix::inverse() const {
 		}
 	}
 
-	GM_Matrix compMatRed = gaussjordanElim();
+#ifdef _DEBUG
+	//dump(_T("E:\\GeoMath\\Dump\\inv.txt"));
+	//compMat.dump(_T("E:\\GeoMath\\Dump\\invCompMat.txt"));
+#endif
+	GM_Matrix compMatRed = compMat.gaussjordanElim();
 
+	ret.allocate(mNumCol, mNumRow);
 	for (unsigned short i = 0 ; i < mNumRow ; i++) {
 		for (unsigned short j = 0 ; j < mNumCol ; j++) {
-			ret[i][j] = compMatRed[i][j];
+			ret[i][j] = compMatRed[i][mNumCol + j];
 		}
 	}
 
+#ifdef _DEBUG
+	//ret.dump(_T("E:\\GeoMath\\Dump\\ret.txt"));
+#endif
 	return ret;
 }
 
@@ -533,3 +606,51 @@ void GM_Matrix::setIdentity() {
 		}
 	}
 }
+
+
+
+/*!
+\return
+true if the matrix is the identity matrix, false otherwise
+*/
+bool GM_Matrix::isIdentity() const {
+	if (!isValid() || !isQuad())
+		return false;
+
+	bool ret = true;
+	for (unsigned short i = 0 ; i < mNumRow && ret ; i++) {
+		for (unsigned short j = 0 ; j < mNumCol && ret ; j++) {
+			if (i == j) {
+				if (fabs(pMatrix[i][j] - 1.0) > GM_NULL_TOLERANCE) {
+					ret = false;
+				}
+			}
+			else {
+				if (fabs(pMatrix[i][j]) > GM_NULL_TOLERANCE) {
+					ret = false;
+				}
+			}
+		}
+	}
+
+	return ret;
+}
+
+
+#ifdef _DEBUG
+void GM_Matrix::dump(TCHAR *fileName) const {
+	if (!fileName || !isValid())
+		return;
+
+	FILE *f = _tfopen(fileName, _T("w"));
+	if (f) {
+		for (unsigned short i = 0 ; i < mNumRow ; i++) {
+			for (unsigned short j = 0 ; j < mNumCol ; j++) {
+				_ftprintf(f, _T("%lf\t\t"), pMatrix[i][j]);
+			}
+			_ftprintf(f, _T("\n"));
+		}
+		fclose(f);
+	}
+}
+#endif

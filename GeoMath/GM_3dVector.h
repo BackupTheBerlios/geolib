@@ -43,4 +43,5 @@ public:
 	double xyAngle() const;
 	double xyAngle(const GM_3dVector& theVect) const;
 	bool isAtLeftOnXY(const GM_3dVector& theVect) const;
+	bool isLinearlyDependent(const GM_3dVector& theVect) const;
 };
