@@ -56,8 +56,10 @@ public:
 	GEOL_Arc* createArc(double theXStart, double theYStart, double theXEnd, double theYEnd, double theRadius, GEOL_ArcVersus theVersus);
 	
 	GEOL_Profile* createProfile();
+	GEOL_Profile* createProfile(const GEOL_Profile& theProfile);
 	
 	GEOL_PoliProfile* createPoliProfile();
+	GEOL_PoliProfile* createPoliProfile(const GEOL_PoliProfile& thePoliProfile);
 
 	//*************
 	//* Destruction
@@ -74,12 +76,15 @@ public:
 	GEOL_Object* getLastObject();
 	GEOL_Object* getNextObject(const GEOL_Object *theObject);
 	GEOL_Object* getPrevObject(const GEOL_Object *theObject);
+	void setObjectIterator(std::list<GEOL_Object*>::const_iterator &theIterator) const;
+	bool isEndOfObjects(std::list<GEOL_Object*>::const_iterator &theIterator) const;
 	
 	//****************
 	//* Interrogations
 	//****************
 	
-	GEOL_Object* getEntityContainer(const GEOL_Object *theObject) const;
+	GEOL_Object* getEntityContainer(const GEOL_Object *theEntity) const;
+	GEOL_Object* getParentContainer(const GEOL_Object *theContainer) const;
 		
 	//*************
 	//* Persistency
@@ -88,12 +93,16 @@ public:
 	bool saveContext(ofstream *theStream);
 	bool loadContext(ifstream *theStream);
 	bool loadBinaryObjectType(ifstream *theStream, GEOL_ObjectType& theObjectType);
+	
+	bool saveContextISO(ofstream *theStream);
+	bool loadContextISO(ifstream *theStream);
 
 	/*!
 	\return
 	Number of objects in the context
 	*/
 	int getSize() { return pObjectList.size(); }
+	
 private:
 	bool addObject(GEOL_Object *theNewObject);
 	bool deletePoint(GEOL_Point *thePoint, bool theNotifyFlag = false);
@@ -107,11 +116,6 @@ private:
 	List of objects, entities or containers, within the context
 	*/
 	list<GEOL_Object*> pObjectList;
-
-	/*!
-	Objects itertor
-	*/
-	list<GEOL_Object*>::iterator objectIt;
 
 	/*!
 	List of the objects remaining to delete during a delete/notify procedure, when an object is deleted

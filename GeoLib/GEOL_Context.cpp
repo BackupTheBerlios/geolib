@@ -350,7 +350,50 @@ GEOL_Profile* GEOL_Context::createProfile() {
 	return newProfile;
 }
 
+
+
+/*!
+Create a copy of the profile provided
+
+\param theProfile
+Profile to copy
+
+\return
+The pointer to the new profile, if the copy succeed, NULL otherwise
+*/	
+GEOL_Profile* GEOL_Context::createProfile(const GEOL_Profile& theProfile) {
+	GEOL_Profile *newProfile = createProfile();
 	
+	bool addEntityFlag = true;
+	list<GEOL_Entity*>::const_iterator entityIt;
+	for (entityIt = (theProfile.pEntityList).begin() ; addEntityFlag && entityIt != theProfile.pEntityList.end() ; entityIt++) {
+		GEOL_Entity *entity = *entityIt;
+		if (entity -> isSegment()) {
+			GEOL_Segment *newSegment = createSegment(*((GEOL_Segment*)entity));
+			addEntityFlag = newProfile -> addEdgeTail(newSegment);
+			if (!addEntityFlag) {
+				deleteSegment(newSegment);
+			}
+		}
+		else if (entity -> isArc()) {
+			GEOL_Arc* newArc = createArc(*((GEOL_Arc*)entity));
+			addEntityFlag = newProfile -> addEdgeTail(newArc);
+			if (!addEntityFlag) {
+				deleteArc(newArc);
+			}
+		}
+	}
+	
+	if (!addEntityFlag) {
+		deleteProfile(newProfile);
+		newProfile = NULL;
+	}
+
+	return newProfile;
+}
+
+
+
 /*!
 Create a new empty poliprofile
 
@@ -362,6 +405,85 @@ GEOL_PoliProfile* GEOL_Context::createPoliProfile() {
 	addObject((GEOL_Object*)newPoliProfile);
 	return newPoliProfile;
 }
+
+
+
+/*!
+Create a copy of the poliprofile provided
+
+\param thePoliProfile
+Poliprofile to copy
+
+\return
+The pointer to the new poliprofile, if the copy succeed, NULL otherwise
+*/
+GEOL_PoliProfile* GEOL_Context::createPoliProfile(const GEOL_PoliProfile& thePoliProfile) {
+	GEOL_PoliProfile *newPoliProfile = createPoliProfile();
+	
+	bool addContainerFlag = true;
+	list<GEOL_Container*>::const_iterator containerIt;
+	for (containerIt = (thePoliProfile.pContainerList).begin() ; addContainerFlag && containerIt != thePoliProfile.pContainerList.end() ; containerIt++) {
+		GEOL_Container *container = *containerIt;
+		if (container -> isProfile()) {
+			GEOL_Profile *newProfile = createProfile(*((GEOL_Profile*)container));
+			if (newProfile) {
+				addContainerFlag = newPoliProfile -> addProfile(newProfile);
+				if (!addContainerFlag) {
+					deleteProfile(newProfile);
+				}
+			}
+			else {
+				addContainerFlag = false;
+			}
+		}
+		else if (container -> isPoliProfile()) {
+			GEOL_PoliProfile *newPoli = createPoliProfile(*((GEOL_PoliProfile*)container));
+			if (newPoli) {
+				addContainerFlag = newPoliProfile -> addContainer(newPoli);
+				if (!addContainerFlag) {
+					deletePoliProfile(newPoli);
+				}
+			}
+			else {
+				addContainerFlag = false;
+			}
+		}
+	}
+	
+	if (addContainerFlag) {
+		bool addEntityFlag = true;
+		list<GEOL_Entity*>::const_iterator entityIt;
+		for (entityIt = (thePoliProfile.pEntityList).begin() ; addEntityFlag && entityIt != thePoliProfile.pEntityList.end() ; entityIt++) {
+			GEOL_Entity *entity = *entityIt;
+			if (entity -> isSegment()) {
+				GEOL_Segment *newSegment = createSegment(*((GEOL_Segment*)entity));
+				addEntityFlag = newPoliProfile -> addEntity((GEOL_Entity*)newSegment);
+				if (!addEntityFlag) {
+					deleteSegment(newSegment);
+				}
+			}
+			else if (entity -> isArc()) {
+				GEOL_Arc* newArc = createArc(*((GEOL_Arc*)entity));
+				addEntityFlag = newPoliProfile -> addEntity((GEOL_Entity*)newArc);
+				if (!addEntityFlag) {
+					deleteArc(newArc);
+				}
+			}
+		}
+		
+		if (!addEntityFlag) {
+			deletePoliProfile(newPoliProfile);
+			newPoliProfile = NULL;
+		}
+	}
+	else {
+		deletePoliProfile(newPoliProfile);
+		newPoliProfile = NULL;
+	}
+	
+	return newPoliProfile;
+}
+
 
 
 /*!
@@ -427,7 +549,7 @@ GEOL_Object* GEOL_Context::getFirstObject() {
 		return NULL;
 	}
 	else {
-		objectIt = pObjectList.begin();
+		//objectIt = pObjectList.begin();
 		return pObjectList.front();
 	}
 }
@@ -442,7 +564,7 @@ GEOL_Object* GEOL_Context::getLastObject() {
 		return NULL;
 	}
 	else {
-		objectIt = pObjectList.end();
+		//objectIt = pObjectList.end();
 		return pObjectList.back();
 	}
 }
@@ -458,7 +580,21 @@ Object from wich get the next
 The next of theObject within the objects list, or NULL if theObject dosent belong to the list or is the last element
 */
 GEOL_Object* GEOL_Context::getNextObject(const GEOL_Object *theObject) {
-	if (*objectIt != theObject) {
+	GEOL_Object *ret = NULL;
+
+	if (theObject) {
+		list<GEOL_Object*>::iterator objectIt;
+		for (objectIt = pObjectList.begin() ; objectIt != pObjectList.end() && *objectIt != theObject ; objectIt++) {}
+		if (objectIt != pObjectList.end()) {
+			objectIt++;
+			if (objectIt != pObjectList.end()) {
+				ret = *objectIt;
+			}
+		}
+	}
+	
+	return ret;
+	/*if (*objectIt != theObject) {
 		for (objectIt = pObjectList.begin() ; objectIt != pObjectList.end() && *objectIt != theObject ; objectIt++) {}
 	}
 
@@ -471,7 +607,7 @@ GEOL_Object* GEOL_Context::getNextObject(const GEOL_Object *theObject) {
 		}
 	}
 
-	return ret;
+	return ret;*/
 }
 
 
@@ -486,7 +622,22 @@ The previous of theObject within the objects list, or NULL if theObject dosent b
 
 */
 GEOL_Object* GEOL_Context::getPrevObject(const GEOL_Object *theObject) {
-	if (*objectIt != theObject) {
+	GEOL_Object *ret = NULL;
+
+	if (theObject) {
+		list<GEOL_Object*>::iterator objectIt;
+		for (objectIt = pObjectList.begin() ; objectIt != pObjectList.end() && *objectIt != theObject ; objectIt++) {}
+		if (objectIt != pObjectList.end()) {
+			if (objectIt != pObjectList.begin()) {
+				objectIt--;
+				ret = *objectIt;
+			}		
+		}
+	}
+	
+	return ret;
+	
+	/*if (*objectIt != theObject) {
 		for (objectIt = pObjectList.begin() ; objectIt != pObjectList.end() && *objectIt != theObject ; objectIt++) {}
 	}
 
@@ -499,7 +650,20 @@ GEOL_Object* GEOL_Context::getPrevObject(const GEOL_Object *theObject) {
 		}		
 	}
 
-	return ret;
+	return ret;*/
+}
+
+
+void GEOL_Context::setObjectIterator(std::list<GEOL_Object*>::const_iterator &theIterator) const {
+	theIterator = pObjectList.begin();
+}
+
+
+bool GEOL_Context::isEndOfObjects(std::list<GEOL_Object*>::const_iterator &theIterator) const {
+	if (theIterator == pObjectList.end())
+		return true;
+	else
+		return false;
 }
 
 
@@ -805,6 +969,38 @@ GEOL_Object* GEOL_Context::getEntityContainer(const GEOL_Object *theEntity) cons
 
 
 
+
+/*!
+Find the container of another container
+
+\param theContainer
+The given container
+
+\return
+The pointer to the container that contains theContainer, or NULL if theContainer is null, or is not a container or has
+no parent container
+*/
+GEOL_Object* GEOL_Context::getParentContainer(const GEOL_Object *theContainer) const {
+	if (!theContainer || !theContainer -> isContainer())
+		return NULL;
+		
+	GEOL_Object *ret = NULL;
+	list<GEOL_Object*>::const_iterator objIt;
+	for (objIt = pObjectList.begin() ; !ret  && objIt != pObjectList.end() ; objIt++) {
+		GEOL_Object *obj = *objIt;
+		if (obj && obj -> isContainer()) {
+			if (((GEOL_Container*)obj) -> isContained((GEOL_Container*)theContainer)) {
+				ret = obj;
+			}
+		}
+	}
+	
+	return ret;
+}
+
+
+
+
 /*!
 Save the context objects on the stream provided in binary format
 
@@ -816,49 +1012,60 @@ bool GEOL_Context::saveContext(ofstream *theStream) {
 		return false;
 	
 	bool ret = true;
-	GEOL_Object *obj = getFirstObject();
-	for ( ; ret && obj ; obj = getNextObject(obj)) {
-		if (obj -> isPoliProfile()) {
-			ret = ((GEOL_PoliProfile*)obj) -> SaveBinary(theStream);
-		}
-	}
-	
-	obj = getFirstObject();
-	for ( ; ret && obj ; obj = getNextObject(obj)) {
-		if (obj -> isProfile()) {
-			GEOL_Attribute *attr = obj -> getAttributeFromID("saved");
-			if (!attr) {
-				ret = ((GEOL_Profile*)obj) -> SaveBinary(theStream);
+	if (!pObjectList.empty()) {
+		std::list<GEOL_Object*>::iterator objIt;
+		GEOL_Object *obj = NULL;
+		
+		objIt = pObjectList.begin();
+		for ( ; ret && objIt != pObjectList.end() ; objIt++) {
+			obj = *objIt;
+			if (obj -> isPoliProfile()) {
+				ret = ((GEOL_PoliProfile*)obj) -> SaveBinary(theStream);
 			}
 		}
-	}	
-
-	obj = getFirstObject();
-	for ( ; ret && obj ; obj = getNextObject(obj)) {
-		if (obj -> isSegment()) {
-			GEOL_Attribute *attr = obj -> getAttributeFromID("saved");
-			if (!attr) {
-				ret = ((GEOL_Segment*)obj) -> SaveBinary(theStream);
+		
+		objIt = pObjectList.begin();
+		for ( ; ret && objIt != pObjectList.end() ; objIt++) {
+			obj = *objIt;
+			if (obj -> isProfile()) {
+				GEOL_Attribute *attr = obj -> getAttributeFromID(GEOL_ID_SAVED);
+				if (!attr) {
+					ret = ((GEOL_Profile*)obj) -> SaveBinary(theStream);
+				}
 			}
-		}
-		if (obj -> isArc()) {
-			GEOL_Attribute *attr = obj -> getAttributeFromID("saved");
-			if (!attr) {
-				ret = ((GEOL_Arc*)obj) -> SaveBinary(theStream);
+		}	
+
+		objIt = pObjectList.begin();
+		for ( ; ret && objIt != pObjectList.end() ; objIt++) {
+			obj = *objIt;
+			if (obj -> isSegment()) {
+				GEOL_Attribute *attr = obj -> getAttributeFromID(GEOL_ID_SAVED);
+				if (!attr) {
+					ret = ((GEOL_Segment*)obj) -> SaveBinary(theStream);
+				}
 			}
-		}
-	}	
+			if (obj -> isArc()) {
+				GEOL_Attribute *attr = obj -> getAttributeFromID(GEOL_ID_SAVED);
+				if (!attr) {
+					ret = ((GEOL_Arc*)obj) -> SaveBinary(theStream);
+				}
+			}
+		}	
 
-	obj = getFirstObject();
-	for ( ; ret && obj ; obj = getNextObject(obj)) {
-		GEOL_Attribute *attr = obj -> getAttributeFromID("saved");
-		if (!attr) {
-			ret = obj -> SaveBinary(theStream);
-		}
-	}	
+		objIt = pObjectList.begin();
+		for ( ; ret && objIt != pObjectList.end() ; objIt++) {
+			obj = *objIt;
+			GEOL_Attribute *attr = obj -> getAttributeFromID(GEOL_ID_SAVED);
+			if (!attr) {
+				ret = obj -> SaveBinary(theStream);
+			}
+		}	
 
-	for (obj = getFirstObject() ; obj ; obj = getNextObject(obj)) {
-		obj -> removeAttribute("saved");
+		objIt = pObjectList.begin();
+		for ( ; ret && objIt != pObjectList.end() ; objIt++) {
+			obj = *objIt;
+			obj -> removeAttribute(GEOL_ID_SAVED);
+		}
 	}
 	
 	return ret;
@@ -975,4 +1182,45 @@ bool GEOL_Context::loadBinaryObjectType(ifstream *theStream, GEOL_ObjectType& th
 	
 	return ret;
 }
+
+
+/*!
+Save the context objects on the stream provided in g-code ISO format, only containers (PoliProfile and Profile)
+will be saved
+
+\param theStream
+Output stream
+*/
+bool GEOL_Context::saveContextISO(ofstream *theStream) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+	if (ret) {
+		std::list<GEOL_Object*>::iterator objIt;
+		for (objIt = pObjectList.begin() ; ret && objIt != pObjectList.end() ; objIt++) {
+			GEOL_Object *obj = *objIt;		
+			if (obj -> isContainer() && !getParentContainer(obj)) {
+				ret = obj -> SaveISO(theStream);
+			}
+		}
+	}
+	
+	return ret;
+}
+
+
+/*!
+Load the context objects from the stream provided in g-code ISO format, result will be a set of profiles
+
+\param theStream
+Input stream
+*/
+bool GEOL_Context::loadContextISO(ifstream *theStream) {
+	if (!theStream)
+		return false;
+
+	return false;
+}
+
 
