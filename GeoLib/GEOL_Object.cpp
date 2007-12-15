@@ -51,7 +51,7 @@ Id of the new attribute
 - true if the new attribute is correctly added to the list
 - false otherwise
 */
-bool GEOL_Object::addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, const char *theAttrID) {
+bool GEOL_Object::addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, int theAttrID) {
 	if (!theAttrID)
 		return false;
 	
@@ -126,7 +126,7 @@ Id of the attribute to remove
 - true if the new attribute is correctly removed from the list
 - false otherwise
 */
-bool GEOL_Object::removeAttribute(char *theAttrID) {
+bool GEOL_Object::removeAttribute(int theAttrID) {
 	if (!theAttrID)
 		return false;
 		
@@ -273,7 +273,7 @@ The id of the attribute to search for
 - The attribute with the passed id if it exists
 - NULL if there isn't any attribute with the passed id
 */
-GEOL_Attribute* GEOL_Object::getAttributeFromID(char *theAttrID) {
+GEOL_Attribute* GEOL_Object::getAttributeFromID(int theAttrID) {
 	if (!theAttrID)
 		return NULL;
 	
@@ -382,6 +382,15 @@ void GEOL_Object::setBBox(GEOL_BBox theBBox) {
 	}
 }
 
+
+/*!
+Invalidate the bounding box if any
+*/
+void GEOL_Object::invalidateBBox() {
+	if (mBBox) {
+		mBBox -> invalidate();
+	}
+}
 
 
 /*!

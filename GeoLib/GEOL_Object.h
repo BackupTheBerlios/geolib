@@ -34,7 +34,7 @@ public:
 	GEOL_Object();
 	virtual ~GEOL_Object();
 	
-	GEOL_Context* getContext();
+	GEOL_Context* getContext() const;
 	void setContext(GEOL_Context *theContext);
 	
 	//************************
@@ -45,9 +45,9 @@ public:
 	//*******************
 	//* Object attributes
 	//*******************
-	bool addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, const char *theAttrID);
+	bool addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, int theAttrID);
 	bool addAttribute(GEOL_Attribute *theAttr);
-	bool removeAttribute(char *theAttrID);
+	bool removeAttribute(int theAttrID);
 	bool removeAttribute(GEOL_Attribute *theAttr);
 	void removeAllAttributes();
 	GEOL_Attribute *getFirstAttribute();
@@ -55,7 +55,7 @@ public:
 	GEOL_Attribute *getNextAttribute(GEOL_Attribute *theAttr);
 	GEOL_Attribute *getPrevAttribute(GEOL_Attribute *theAttr);
 	int getAttributesNum();
-	GEOL_Attribute *getAttributeFromID(char *theAttrID);
+	GEOL_Attribute *getAttributeFromID(int theAttrID);
 	virtual GEOL_BBox getBBox() = 0;
 	void setBBox(GEOL_BBox theBBox);
 	
@@ -77,6 +77,11 @@ public:
 	bool isPoliProfile() const;
 	bool isEntity() const;
 	bool isContainer() const;
+
+	//****************************
+	//* Bounding Box
+	//****************************
+	void invalidateBBox();
 
 protected:
 	bool saveBinaryObjectInfo(ofstream *theStream);
@@ -119,7 +124,7 @@ private:
 \return
 The pointer to the context
 */
-inline GEOL_Context* GEOL_Object::getContext() {
+inline GEOL_Context* GEOL_Object::getContext() const {
 	return mContext;
 }
 
