@@ -27,11 +27,10 @@ public:
 	GEOL_Persistency() {}
 	virtual ~GEOL_Persistency() = 0;
 	
-	//virtual bool Load() = 0;
-	//virtual bool Save() = 0;
 	virtual bool LoadBinary(ifstream *theStream) = 0;
 	virtual bool SaveBinary(ofstream *theStream) = 0;
 	virtual bool LoadISO(ifstream *theStream) = 0;
+	virtual bool SaveISO(ofstream *theStream) = 0;
 private:
 };
 
