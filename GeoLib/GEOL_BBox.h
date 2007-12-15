@@ -33,6 +33,7 @@ public:
 	~GEOL_BBox();
 	
 	bool isValid() const;
+	void invalidate();
 	
 	double getMinX() const;
 	double getMaxX() const;

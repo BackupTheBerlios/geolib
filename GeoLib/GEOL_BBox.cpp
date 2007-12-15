@@ -137,6 +137,15 @@ void GEOL_BBox::checkValidity() {
 }
 
 
+/*!
+Invalidate the bounding box
+*/
+void GEOL_BBox::invalidate() {
+	mValid = false;
+	mMinX = mMinY = DBL_MAX;
+	mMaxX = mMaxY = -DBL_MAX;
+}
+
 
 /*!
 \return
