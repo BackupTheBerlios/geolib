@@ -18,6 +18,7 @@
 #ifndef GEOL_PROFILE_H
 #define GEOL_PROFILE_H
 
+#include <CoreFoundation/CoreFoundation.h>
 
 #include "GEOL_Container.h"
 
@@ -38,10 +39,13 @@ public:
 	bool isClosed() const;
 	double length() const;
 	double area() const;
-
+	GEOL_ProfVersus versus() const;
+	
 	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 
 	GEOL_BBox getBBox();
+	
+	bool SaveISO(CFStringRef theFileName);
 
 protected:
 	GEOL_Profile();
@@ -52,6 +56,11 @@ protected:
 	virtual bool LoadBinary(ifstream *theStream);
 	virtual bool SaveBinary(ofstream *theStream);
 	virtual bool LoadISO(ifstream *theStream);
+	virtual bool SaveISO(ofstream *theStream);
+
+private:
+	bool getXLeftmost(double& theXLeftmost, GEOL_Entity* &theLeftmostEntity) const;
+	//bool getXLeftmost(GEOL_Point* theLeftmostPoint, GEOL_Entity* &theLeftmostSegment);
 };
 
 

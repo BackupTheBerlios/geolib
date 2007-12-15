@@ -99,6 +99,7 @@ bool GEOL_Profile::addEdgeTail(GEOL_Entity *theNewEntity) {
 			}
 		}
 	}
+	invalidateBBox();
 	
 	return ret;
 }
@@ -140,6 +141,7 @@ bool GEOL_Profile::addEdgeFront(GEOL_Entity *theNewEntity) {
 			}
 		}
 	}
+	invalidateBBox();
 	
 	return ret;
 }
@@ -175,6 +177,7 @@ Remove all the edges from profile, destroy them if its reference counter is 0
 */
 void GEOL_Profile::removeAllEdges() {
 	return removeAllEntities();
+	invalidateBBox();
 }
 
 
@@ -234,12 +237,13 @@ bool GEOL_Profile::releaseEdgeAndReshape(GEOL_Entity *theEntity, bool theReshape
 		prevEntity = getLastEntity();
 	}
 	bool foundFlag = false;
-	for (mEntityIt = pEntityList.begin() ; !foundFlag && mEntityIt != pEntityList.end() ; mEntityIt++) {
-		if (*mEntityIt == theEntity) {
+	list<GEOL_Entity*>::iterator entityIt;	
+	for (entityIt = pEntityList.begin() ; !foundFlag && entityIt != pEntityList.end() ; entityIt++) {
+		if (*entityIt == theEntity) {
 			foundFlag = true;
 		}
 		else {
-			prevEntity = *mEntityIt;
+			prevEntity = *entityIt;
 		}
 	}
 	
@@ -251,9 +255,9 @@ bool GEOL_Profile::releaseEdgeAndReshape(GEOL_Entity *theEntity, bool theReshape
 	bool ret = false;
 	if (theReshapeFlag) {
 		GEOL_Entity *nextEntity = NULL;
-		mEntityIt++;
-		if (mEntityIt != pEntityList.end()) {
-			nextEntity = *mEntityIt;
+		entityIt++;
+		if (entityIt != pEntityList.end()) {
+			nextEntity = *entityIt;
 		}
 		else {
 			if (closedFlag) {
@@ -290,6 +294,7 @@ bool GEOL_Profile::releaseEdgeAndReshape(GEOL_Entity *theEntity, bool theReshape
 			}
 		}
 	}
+	invalidateBBox();
 	
 	return ret;
 }
@@ -367,6 +372,190 @@ double GEOL_Profile::area() const {
 			ret += (*entityIt) -> area();
 		}
 		ret = fabs(ret);
+	}
+	
+	return ret;
+}
+
+
+
+/*!
+Se il profilo è chiuso.
+Cerca il punto e il segmento più a sinistra nel profilo (leftPt e leftSeg)
+Si avranno le seguenti possibilità :
+	- leftPt è uguale a una delle estremità leftSeg
+		- Considera il segmento precedente a leftSeg se leftPt è sull' estremità sinistra e
+		  il segmento seguente se è sull' estremità destra, chiama i due segmenti segPrev e segNext
+				- Le direzioni dei due segmenti sono opposte
+						Situazione indecidibile, occorre fare la somma delle differenze angolari di tutti i segmenti
+						del profilo
+				- Le direzioni dei due segmenti sono uguali
+						Se la direzione di segPrev (in y) è > 0 (il segmento sale) la direzione del profilo è oraria
+						Se la direzione di segPrev (in y) è < 0 (il segmento scende) la direzione del profilo è antioraria						
+				- Le direzioni dei due segmenti sono diverse ma non opposte
+						Se la direzione di segPrev è a sinistra rispetto a quella di segNext segPrev sta sotto
+						segNext quindi il profilo è orario
+						Se la direzione di segPrev è a destra rispetto a quella di segNext segPrev sta sopra segNext
+						quindi il profilo è antiorario
+	- leftPt non è uguale a nessuna delle estremità di leftSeg
+		Il segmento è certamente un arco, il verso del  profilo è uguale a quello dell' arco
+*/
+GEOL_ProfVersus GEOL_Profile::versus() const {
+	GEOL_ProfVersus ret = geol_ProfInvalid;
+	
+	if (!isClosed()) {
+		return ret;
+	}
+	
+	double xLeftmost = DBL_MAX;
+	GEOL_Entity *xLeftmostEntity = NULL;
+	if (getXLeftmost(xLeftmost, xLeftmostEntity) && xLeftmostEntity) {
+		if (fabs(((GEOL_Point*)(xLeftmostEntity -> getBeginEntity())) -> x() - xLeftmost) < GEOL_EQUAL_POINT ||
+			fabs(((GEOL_Point*)(xLeftmostEntity -> getEndEntity())) -> x() - xLeftmost) < GEOL_EQUAL_POINT) {
+			// Il punto più a sx del profilo è un' estremità del segmento più a sx
+		
+			// Segmenti precedente e seguente il punto più a sx del profilo	
+			GEOL_Entity *segNext = NULL;
+			GEOL_Entity *segPrev = NULL;
+			if (fabs(((GEOL_Point*)(xLeftmostEntity -> getBeginEntity())) -> x() - xLeftmost) < GEOL_EQUAL_POINT) {
+				// Punto più a sx sull' estremità iniziale del segmento
+				segNext = xLeftmostEntity;
+				segPrev = getPrevEntity(xLeftmostEntity);
+				if (!segPrev) {
+					segPrev = getLastEntity();
+				}
+			}
+			else {
+				// Punto più a sx sull' estremità finale del segmento
+				segPrev = xLeftmostEntity;
+				segNext = getNextEntity(xLeftmostEntity);
+				if (!segNext) {
+					segNext = getFirstEntity();
+				}
+			}
+			
+			GEOL_Point *segPrevDir = getContext() -> createPoint();
+			segPrev -> direction(segPrevDir, (GEOL_Point*)(segPrev -> getEndEntity()));
+			GEOL_Point *segNextDir = getContext() -> createPoint();
+			segNext -> direction(segNextDir, (GEOL_Point*)(segNext -> getBeginEntity()));
+			
+			if (segPrevDir -> isOpposite(*segNextDir)) {
+				// I due segmenti opposta
+				
+				// Calcolare le differenze angolari
+				// Si sommano le differenze angolari di tutte le coppie consecutive di segmenti del profilo
+				// se la somma è 2*PI il profile è antiorario, se è -2*PI il profilo è orario
+				double angDiffSum = 0.0;
+				for (GEOL_Entity *entity = getFirstEntity() ; entity ; entity = getNextEntity(entity)) {
+					GEOL_Entity *nextEntity = getNextEntity(entity);
+					if (!nextEntity) {
+						nextEntity = getFirstEntity();
+					}
+					angDiffSum += entity -> angleWith(nextEntity);
+				}
+				if (fabs(angDiffSum - (2,0 * GEOL_PI)) < GEOL_EQUAL_DIST) {
+					ret = geol_ProfCounterClockwise;
+				}
+				else if (fabs(angDiffSum + (2,0 * GEOL_PI)) < GEOL_EQUAL_DIST) {
+					ret = geol_ProfClockwise;					
+				}
+				else {
+					ret = geol_ProfInvalid;
+				}
+			}
+			else if (segPrevDir -> isParallel(*segNextDir)) {
+				// I due segmenti sono paralleli
+				
+				if (segPrevDir -> y() > 0.0) {
+					ret = geol_ProfClockwise;
+				}
+				else {
+					ret = geol_ProfCounterClockwise;
+				}
+			}
+			else {
+				// I due segmenti non sono ne paralleli ne opposti
+				
+				if (segPrevDir -> isAtLeft(*segNextDir)) {
+					ret = geol_ProfClockwise;
+				}
+				else {
+					ret = geol_ProfCounterClockwise;
+				}
+			}
+
+			if (segPrevDir) {
+				getContext() -> deleteObject(segPrevDir);
+			}
+			if (segNextDir) {
+				getContext() -> deleteObject(segNextDir);
+			}
+		}
+		else {
+			// Il punto più a sx del profilo NON è un' estremità del segmento più a sx, xLeftmostEntity deve essere un arco
+			// e il verso del profilo è uguale a quello dell' arco
+			
+			if (xLeftmostEntity -> isArc()) {
+				if (((GEOL_Arc*)xLeftmostEntity) -> versus() == geol_ArcClockwise) {
+					ret = geol_ProfClockwise;
+				}
+				else {
+					ret = geol_ProfCounterClockwise;
+				}
+			}
+			else {
+				ret = geol_ProfInvalid;
+			}
+		}
+	}
+	
+	return ret;
+}
+
+
+
+/*!
+Get the leftmost x coord and the leftmost entity (segment or arc) in the profile
+
+\param theXLeftmost
+On output contains the leftmost x coord
+\param theLeftmostEntity
+On output contains the pointer to the leftmost entity
+
+\return
+- true if the leftmost point/entity has been founded successfully
+- false otherwise
+*/
+bool GEOL_Profile::getXLeftmost(double& theXLeftmost, GEOL_Entity* &theLeftmostEntity) const {
+	theLeftmostEntity = NULL;
+	theXLeftmost = DBL_MAX;
+	bool ret = true;
+	std::list<GEOL_Entity*>::const_iterator entityIt;	
+	for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() && ret ; entityIt++) {
+		GEOL_Entity *entity = *entityIt;
+		if (entity -> isSegment()) {
+			GEOL_Segment *seg = (GEOL_Segment*)entity;
+			if (seg -> begin() -> x() < theXLeftmost) {
+				theXLeftmost = seg -> begin() -> x();
+				theLeftmostEntity = entity;
+			}
+			else if (seg -> end() -> x() < theXLeftmost) {
+				theXLeftmost = seg -> end() -> x();
+				theLeftmostEntity = entity;
+			}
+
+		}
+		else if (entity -> isArc()) {
+			GEOL_Arc *arc = (GEOL_Arc*)entity;
+			if ((arc -> getBBox()).getMinX() < theXLeftmost) {
+				theXLeftmost = (arc -> getBBox()).getMinX();
+				theLeftmostEntity = entity;
+			}
+		}
+		else {
+			theLeftmostEntity = NULL;
+			ret = false;
+		}
 	}
 	
 	return ret;
@@ -463,7 +652,10 @@ bool GEOL_Profile::SaveBinary(ofstream *theStream) {
 	if (ret) {
 		int entitiesNum = getNumOfEntities();
 		theStream -> write((char*)(&entitiesNum), sizeof(int));
-		for (GEOL_Entity *entity = getFirstEntity() ; entity && ret ; entity = getNextEntity(entity)) {
+
+		list<GEOL_Entity*>::iterator entityIt;
+		for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() && ret ; entityIt++) {
+			GEOL_Entity *entity = *entityIt;
 			ret = entity -> SaveBinary(theStream);
 		}
 		ret = saveBinaryObjectAttributes(theStream);
@@ -474,7 +666,7 @@ bool GEOL_Profile::SaveBinary(ofstream *theStream) {
 	
 	GEOL_AttributeValue attrVal;
 	attrVal.GEOL_AttrVoidValue = NULL;
-	addAttribute(attrVal, GEOL_AttrVoid, "saved");
+	addAttribute(attrVal, GEOL_AttrVoid, GEOL_ID_SAVED);
 
 	return ret;
 }
@@ -484,4 +676,24 @@ bool GEOL_Profile::LoadISO(ifstream *theStream) {
 		return false;
 
 	return false;
+}
+
+bool GEOL_Profile::SaveISO(ofstream *theStream) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+	if (ret && getNumOfEntities() > 0) {
+		list<GEOL_Entity*>::iterator entityIt;
+		entityIt = pEntityList.begin();
+		GEOL_Entity *entity = *entityIt;
+		GEOL_Point *beginPoint = (GEOL_Point*)(entity -> getBeginEntity());
+		(*theStream) << "G0 X" << beginPoint -> x() << " Y" << beginPoint -> y() << endl;
+		for ( ; entityIt != pEntityList.end() && ret ; entityIt++) {
+			entity = *entityIt;
+			ret = entity -> SaveISO(theStream);		
+		}
+	}
+	
+	return ret;
 }
