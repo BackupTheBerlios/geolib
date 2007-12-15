@@ -23,6 +23,10 @@
 class GEOL_Entity;
 class GEOL_Container;
 
+#define				GEOL_ID_UNSET	-1
+#define				GEOL_ID_SAVED	1
+#define				GEOL_ID_USED	2
+
 /*!
 Types of an attribute
 */
@@ -45,7 +49,7 @@ class GEOL_Attribute : public GEOL_Persistency {
 public:
 
 	GEOL_Attribute();
-	GEOL_Attribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, const char *theAttrID);
+	GEOL_Attribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, int theAttrID);
 	~GEOL_Attribute();
 
 	GEOL_AttributeValue getValue();
@@ -54,15 +58,16 @@ public:
 	GEOL_AttributeType getType();
 	void setType(GEOL_AttributeType theType);
 
-	void getID(char *theID) const;
-	void setID(char *theID);
+	int getID() const;
+	void setID(int theID);
 	
-	bool isEqualID(const GEOL_Attribute *theAttribute);
-	bool isEqualID(const char *theAttributeId);
+	bool isEqualID(const GEOL_Attribute *theAttribute) const;
+	bool isEqualID(int theAttributeId) const;
 	
 	virtual bool LoadBinary(ifstream *theStream);
 	virtual bool SaveBinary(ofstream *theStream);
 	virtual bool LoadISO(ifstream *theStream);
+	virtual bool SaveISO(ofstream *theStream);
 
 private:
 
@@ -80,7 +85,7 @@ private:
 	/*!
 	Id of the attribute, used to distinguish between many attributes of the same type, must be unique
 	*/
-	char mAttrID[5];
+	int mAttrID;
 
 };
 

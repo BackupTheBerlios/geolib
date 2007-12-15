@@ -27,30 +27,16 @@ Default constructor
 GEOL_Attribute::GEOL_Attribute() {
 	mValue.GEOL_AttrVoidValue = NULL;
 	mType = GEOL_AttrVoid;
-	mAttrID[0] = 0;
-	mAttrID[1] = 0;
-	mAttrID[2] = 0;
-	mAttrID[3] = 0;
+	mAttrID = GEOL_ID_UNSET;
 }
 
 /*!
 Constructor with all members passed
 */
-GEOL_Attribute::GEOL_Attribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, const char *theAttrID) {
+GEOL_Attribute::GEOL_Attribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, int theAttrID) {
 	mValue = theAttrValue;
-	mType = theAttrType;	
-	if (theAttrID) {
-		mAttrID[0] = theAttrID[0];	
-		mAttrID[1] = theAttrID[1];	
-		mAttrID[2] = theAttrID[2];	
-		mAttrID[3] = theAttrID[3];
-	}
-	else {
-		mAttrID[0] = 0;	
-		mAttrID[1] = 0;	
-		mAttrID[2] = 0;	
-		mAttrID[3] = 0;
-	}
+	mType = theAttrType;
+	mAttrID = theAttrID;	
 }
 
 /*!
@@ -59,7 +45,7 @@ Default destructor
 GEOL_Attribute::~GEOL_Attribute() {
 	mValue.GEOL_AttrVoidValue = NULL;
 	mType = GEOL_AttrVoid;
-	mAttrID[0] = 0;
+	mAttrID = GEOL_ID_UNSET;
 }
 
 
@@ -69,13 +55,8 @@ Return the attribute id
 \param theAttributeID
 On output contains the attribute id
 */
-void GEOL_Attribute::getID(char *theID) const {
-	if (theID) {
-		theID[0] = mAttrID[0];
-		theID[1] = mAttrID[1];
-		theID[2] = mAttrID[2];
-		theID[3] = mAttrID[3];
-	}
+int GEOL_Attribute::getID() const {
+	return mAttrID;
 }
 
 
@@ -85,13 +66,8 @@ Set the attribute id
 \param theAttributeID
 New attribute id
 */
-void GEOL_Attribute::setID(char *theID) {
-	if (theID) {
-		mAttrID[0] = theID[0];
-		mAttrID[1] = theID[1];
-		mAttrID[2] = theID[2];
-		mAttrID[3] = theID[3];
-	}
+void GEOL_Attribute::setID(int theID) {
+	mAttrID = theID;
 }
 
 
@@ -105,17 +81,11 @@ Attribute to check with
 - true if theAttribute and this have the same id
 - false otherwise 
 */
-bool GEOL_Attribute::isEqualID(const GEOL_Attribute *theAttribute) {
+bool GEOL_Attribute::isEqualID(const GEOL_Attribute *theAttribute) const {
 	if (!theAttribute)
 		return false;
 		
-	char attrId[4];
-	theAttribute -> getID(attrId);
-	if (attrId[0] == mAttrID[0] &&
-		attrId[1] == mAttrID[1] &&
-		attrId[2] == mAttrID[2] &&
-		attrId[3] == mAttrID[3]) {
-		
+	if (mAttrID == theAttribute -> getID()) {
 		return true;
 	}
 	else {
@@ -134,15 +104,11 @@ id to check with
 - true if theAttributeId is equal to the id of this
 - false otherwise 
 */
-bool GEOL_Attribute::isEqualID(const char *theAttributeId) {
+bool GEOL_Attribute::isEqualID(int theAttributeId) const {
 	if (!theAttributeId)
 		return false;
 
-	if (theAttributeId[0] == mAttrID[0] &&
-		theAttributeId[1] == mAttrID[1] &&
-		theAttributeId[2] == mAttrID[2] &&
-		theAttributeId[3] == mAttrID[3]) {
-		
+	if (theAttributeId == mAttrID) {
 		return true;
 	}
 	else {
@@ -169,7 +135,7 @@ bool GEOL_Attribute::LoadBinary(ifstream *theStream) {
 		
 	bool ret = !theStream -> bad();
 	if (ret) {
-		theStream -> read(mAttrID, 4 * sizeof(char));
+		theStream -> read((char*)(&mAttrID), sizeof(int));
 		theStream -> read((char*)(&mType), sizeof(GEOL_AttributeType));
 		
 		ret = !theStream -> bad();
@@ -251,7 +217,7 @@ bool GEOL_Attribute::SaveBinary(ofstream *theStream) {
 	bool ret = !theStream -> bad();
 
 	if (ret) {
-		theStream -> write(mAttrID, 4 * sizeof(char));
+		theStream -> write((char*)(&mAttrID), sizeof(int));
 		theStream -> write((char*)(&mType), sizeof(GEOL_AttributeType));
 		
 		ret = !theStream -> bad();
@@ -303,5 +269,11 @@ bool GEOL_Attribute::LoadISO(ifstream *theStream) {
 	return false;
 }
 
+bool GEOL_Attribute::SaveISO(ofstream *theStream) {
+	if (!theStream)
+		return false;
+
+	return false;
+}
 
 
