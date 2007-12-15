@@ -18,6 +18,7 @@
 
 #include "GEOL_Prefix.h"
 
+#include "GEOL_Context.h"
 #include "GEOL_Point.h"
 #include "GEOL_Segment.h"
 #include "GEOL_Arc.h"
@@ -160,4 +161,35 @@ void GEOL_Entity::setEndEntity(GEOL_Entity *theEnd) {
 	}
 }
 
+
+
+/*!
+\return
+The angle between two entities, or DBL_MAX if oun of the entities is not a segmento/arc
+
+\param theEntity
+The other entity 
+
+\return
+The angle between this and theEntity (supposed to be adjacent segments/arcs), or DBL_MAX if theEntiy
+is NULL, or entities are not segments/arcs
+*/
+double GEOL_Entity::angleWith(const GEOL_Entity* theEntity) const {
+	double ret = DBL_MAX;
+
+	if (theEntity && (isSegment() || isArc()) && (theEntity -> isSegment() || theEntity -> isArc())) {
+		GEOL_Point *segPrevDir = getContext() -> createPoint();
+		direction(segPrevDir, (GEOL_Point*)getEndEntity());
+		GEOL_Point *segNextDir = getContext() -> createPoint();
+		theEntity -> direction(segNextDir, (GEOL_Point*)(theEntity -> getBeginEntity()));
+		
+		ret = atan2(segPrevDir -> y(), segPrevDir -> x()) - atan2(segNextDir -> y(), segNextDir -> x());
+		if (ret < -GEOL_PI)
+			ret += 2,0 * GEOL_PI;
+		else if (ret > GEOL_PI)
+			ret -= 2,0 * GEOL_PI;
+	}
+	
+	return ret;
+}
 

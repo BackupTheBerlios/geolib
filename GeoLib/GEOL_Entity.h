@@ -20,6 +20,10 @@
 
 #include "GEOL_Object.h"
 
+
+class GEOL_Point;
+
+
 /*!
 This abstract class represents the primitive geometrical objects such as points, segments and arcs, contains two pointers
 to other objects of this class, used to store the x,y coordinates for points
@@ -37,11 +41,13 @@ public:
 
 	void setBeginEntity(GEOL_Entity *theBegin);
 	void setEndEntity(GEOL_Entity *theEnd);
+	double angleWith(const GEOL_Entity* theEntity) const;
 	
 	virtual bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) = 0;
 	virtual bool isEndPoint(const GEOL_Entity *theEntity) = 0;
 	virtual double length() const = 0;
 	virtual double area() const = 0;
+	virtual void direction(GEOL_Point* theDir, const GEOL_Point* thePoint) const = 0;
 	
 	virtual void translate(double theDX, double theDY) = 0;
 
