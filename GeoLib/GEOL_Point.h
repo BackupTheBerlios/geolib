@@ -42,15 +42,21 @@ public:
 	double originDistance() const;
 	double angle() const;
 	double angle(double theXOrigin, double theYOrigin) const;
-	double angle(GEOL_Point theOrigin) const;
+	double angle(const GEOL_Point* theOrigin) const;
 	GEOL_Quadrant quadrant() const;
 	GEOL_Quadrant quadrant(double theXOrigin, double theYOrigin) const;
+	
+	bool isParallel(const GEOL_Point& thePoint) const;
+	bool isOpposite(const GEOL_Point& thePoint) const;
+	bool isNormal(const GEOL_Point& thePoint) const;
+	bool isAtLeft(const GEOL_Point& thePoint) const;
 
 	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 	bool isEndPoint(const GEOL_Entity *theEntity) { return false; }
 	
 	double length() const { return 0.0; }
 	double area() const { return 0.0; }
+	void direction(GEOL_Point* theDir, const GEOL_Point* thePoint) const { theDir -> x(0.0); theDir -> y(0.0); }
 
 	void translate(double theDX, double theDY);
 
@@ -65,6 +71,7 @@ protected:
 	virtual bool LoadBinary(ifstream *theStream);
 	virtual bool SaveBinary(ofstream *theStream);
 	virtual bool LoadISO(ifstream *theStream);
+	virtual bool SaveISO(ofstream *theStream);
 };
 
 

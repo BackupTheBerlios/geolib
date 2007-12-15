@@ -117,9 +117,9 @@ double GEOL_Point::angle() const {
 \return
 The angle between x axis and the segment from origin passed as parameter to the point
 */
-double GEOL_Point::angle(GEOL_Point theOrigin) const {
-	double xPoint = mBegin - theOrigin.x();
-	double yPoint = mEnd - theOrigin.y();
+double GEOL_Point::angle(const GEOL_Point* theOrigin) const {
+	double xPoint = mBegin - theOrigin -> x();
+	double yPoint = mEnd - theOrigin -> y();
 	return atan2(yPoint, xPoint);
 }
 
@@ -135,6 +135,86 @@ double GEOL_Point::angle(double theXOrigin, double theYOrigin) const {
 	return atan2(yPoint, xPoint);
 }
 
+
+
+/*!
+\return
+- true if the segment from origin to this is parallel to the segment from origin to thePoint
+- false otherwise
+*/
+bool GEOL_Point::isParallel(const GEOL_Point& thePoint) const {
+	double originDist = originDistance();
+	double xNorm = x() / originDist;
+	double yNorm = y() / originDist;
+	double originDist1 = thePoint.originDistance();
+	double xNorm1 = thePoint.x() / originDist1;
+	double yNorm1 = thePoint.y() / originDist1;
+	
+	bool ret = false;
+	if (fabs(xNorm - xNorm1) < GEOL_EQUAL_DIST && fabs(yNorm - yNorm1) < GEOL_EQUAL_DIST) {
+		ret = true;
+	}
+	
+	return ret;
+}
+
+
+
+/*!
+\return
+- true if the segment from origin to this is opposite to the segment from origin to thePoint
+- false otherwise
+*/
+bool GEOL_Point::isOpposite(const GEOL_Point& thePoint) const {
+	double originDist = originDistance();
+	double xNorm = x() / originDist;
+	double yNorm = y() / originDist;
+	double originDist1 = thePoint.originDistance();
+	double xNorm1 = thePoint.x() / originDist1;
+	double yNorm1 = thePoint.y() / originDist1;
+	
+	bool ret = false;
+	if (fabs(xNorm + xNorm1) < GEOL_EQUAL_DIST && fabs(yNorm + yNorm1) < GEOL_EQUAL_DIST) {
+		ret = true;
+	}
+	
+	return ret;
+}
+
+
+
+/*!
+\return
+- true if the segment from origin to this is normal to the segment from origin to thePoint
+- false otherwise
+*/
+bool GEOL_Point::isNormal(const GEOL_Point& thePoint) const {
+	double originDist = originDistance();
+	double xNorm = x() / originDist;
+	double yNorm = y() / originDist;
+	double originDist1 = thePoint.originDistance();
+	double xNorm1 = thePoint.x() / originDist1;
+	double yNorm1 = thePoint.y() / originDist1;
+	
+	bool ret = false;
+	if ((fabs(xNorm) - fabs(yNorm1) < GEOL_EQUAL_DIST && fabs(yNorm) - fabs(xNorm1) < GEOL_EQUAL_DIST) ||
+		(fabs(yNorm) - fabs(xNorm1) < GEOL_EQUAL_DIST && fabs(xNorm) - fabs(yNorm1) < GEOL_EQUAL_DIST)) {
+		ret = true;
+	}
+	
+	return ret;
+}
+
+
+
+/*!
+\return
+- ture if the segment from origin to this is at lef of the segment from origin to thePoint
+- false otherwise
+*/
+bool GEOL_Point::isAtLeft(const GEOL_Point& thePoint) const {
+	return thePoint.x()*y()-x()*thePoint.y() > 0;
+}
 
 
 
@@ -308,7 +388,7 @@ bool GEOL_Point::SaveBinary(ofstream *theStream) {
 	if (ret) {
 		GEOL_AttributeValue attrVal;
 		attrVal.GEOL_AttrVoidValue = NULL;
-		addAttribute(attrVal, GEOL_AttrVoid, "saved");
+		addAttribute(attrVal, GEOL_AttrVoid, GEOL_ID_SAVED);
 	}
 
 	return ret;
@@ -321,3 +401,9 @@ bool GEOL_Point::LoadISO(ifstream *theStream) {
 	return false;
 }
 
+bool GEOL_Point::SaveISO(ofstream *theStream) {
+	if (!theStream)
+		return false;
+
+	return false;
+}
