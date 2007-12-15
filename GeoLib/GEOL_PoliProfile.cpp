@@ -93,6 +93,7 @@ bool GEOL_PoliProfile::addProfile(GEOL_Profile *theNewProfile) {
 	if (!theNewProfile)
 		return false;
 		
+	invalidateBBox();
 	return addContainer(theNewProfile);
 }
 
@@ -112,6 +113,7 @@ bool GEOL_PoliProfile::removeProfile(GEOL_Profile *theProfile) {
 	if (!theProfile)
 		return false;
 
+	invalidateBBox();
 	return removeContainer(theProfile);
 }
 
@@ -131,6 +133,7 @@ bool GEOL_PoliProfile::detachProfile(GEOL_Profile *theProfile) {
 	if (!theProfile)
 		return false;
 
+	invalidateBBox();
 	return detachContainer(theProfile);
 }
 
@@ -267,14 +270,17 @@ bool GEOL_PoliProfile::SaveBinary(ofstream *theStream) {
 	if (ret) {
 		int containersNum = getNumOfContainers();
 		theStream -> write((char*)(&containersNum), sizeof(int));
-		for (GEOL_Container *container = getFirstContainer() ; container && ret ; container = getNextContainer(container)) {
-			ret = container -> SaveBinary(theStream);
+		
+		std::list<GEOL_Container*>::const_iterator containerIt;
+		for (containerIt = pContainerList.begin() ; containerIt != pContainerList.end() && ret ; containerIt++) {
+			ret = (*containerIt) -> SaveBinary(theStream);
 		}
 		
 		int entitiesNum = getNumOfEntities();
 		theStream -> write((char*)(&entitiesNum), sizeof(int));
-		for (GEOL_Entity *entity = getFirstEntity() ; entity && ret ; entity = getNextEntity(entity)) {
-			ret = entity -> SaveBinary(theStream);
+		std::list<GEOL_Entity*>::const_iterator entityIt;
+		for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() && ret ; entityIt++) {
+			ret = (*entityIt) -> SaveBinary(theStream);
 		}
 		ret = saveBinaryObjectAttributes(theStream);
 	}
@@ -284,7 +290,7 @@ bool GEOL_PoliProfile::SaveBinary(ofstream *theStream) {
 	
 	GEOL_AttributeValue attrVal;
 	attrVal.GEOL_AttrVoidValue = NULL;
-	addAttribute(attrVal, GEOL_AttrVoid, "saved");
+	addAttribute(attrVal, GEOL_AttrVoid, GEOL_ID_SAVED);
 
 	return ret;
 }
@@ -296,3 +302,17 @@ bool GEOL_PoliProfile::LoadISO(ifstream *theStream) {
 	return false;
 }
 
+bool GEOL_PoliProfile::SaveISO(ofstream *theStream) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+	if (ret && getNumOfContainers() > 0) {
+		std::list<GEOL_Container*>::const_iterator containerIt;
+		for (containerIt = pContainerList.begin() ; containerIt != pContainerList.end() && ret ; containerIt++) {
+			(*containerIt) -> SaveISO(theStream);
+		}
+	}
+
+	return ret;
+}

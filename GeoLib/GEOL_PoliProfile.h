@@ -42,6 +42,7 @@ protected:
 	virtual bool LoadBinary(ifstream *theStream);
 	virtual bool SaveBinary(ofstream *theStream);
 	virtual bool LoadISO(ifstream *theStream);
+	virtual bool SaveISO(ofstream *theStream);
 
 };
 
