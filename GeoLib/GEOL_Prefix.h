@@ -60,6 +60,10 @@ typedef enum { geol_ArcClockwise, geol_ArcCounterClockwise } GEOL_ArcVersus;
 Quadrand of a point
 */
 typedef enum { geol_TopRight, geol_TopLeft, geol_BottomLeft, geol_BottomRight } GEOL_Quadrant;
+/*!
+Versus of a profile
+*/
+typedef enum { geol_ProfClockwise, geol_ProfCounterClockwise, geol_ProfInvalid } GEOL_ProfVersus;
 
 
 /******************/
@@ -80,6 +84,5 @@ typedef enum { geol_TopRight, geol_TopLeft, geol_BottomLeft, geol_BottomRight } 
 /*********/
 GEOL_Quadrant getNextQuadrant(GEOL_Quadrant theQuadrant);
 GEOL_Quadrant getPrevQuadrant(GEOL_Quadrant theQuadrant);
-
 
 #endif
