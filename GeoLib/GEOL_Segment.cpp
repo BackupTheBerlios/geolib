@@ -82,6 +82,7 @@ void GEOL_Segment::begin(const GEOL_Point& theBeginPoint) {
 	GEOL_Point *pointPtr = (GEOL_Point*)getBeginEntity();
 	*(pointPtr) = theBeginPoint;
 	mLength = ((GEOL_Point*)getBeginEntity()) -> pointDistance((GEOL_Point*)getEndEntity());
+	invalidateBBox();
 }
 
 
@@ -95,6 +96,7 @@ void GEOL_Segment::end(const GEOL_Point& theEndPoint) {
 	GEOL_Point *pointPtr = (GEOL_Point*)getEndEntity();
 	*(pointPtr) = theEndPoint;
 	mLength = ((GEOL_Point*)getBeginEntity()) -> pointDistance((GEOL_Point*)getEndEntity());
+	invalidateBBox();
 }
 
 
@@ -110,6 +112,7 @@ void GEOL_Segment::begin(double theXCoord, double theYCoord) {
 	((GEOL_Point*)getBeginEntity()) -> x(theXCoord);
 	((GEOL_Point*)getBeginEntity()) -> y(theYCoord);
 	mLength = ((GEOL_Point*)getBeginEntity()) -> pointDistance((GEOL_Point*)getEndEntity());
+	invalidateBBox();
 }
 
 
@@ -125,6 +128,7 @@ void GEOL_Segment::end(double theXCoord, double theYCoord) {
 	((GEOL_Point*)getEndEntity()) -> x(theXCoord);
 	((GEOL_Point*)getEndEntity()) -> y(theYCoord);
 	mLength = ((GEOL_Point*)getBeginEntity()) -> pointDistance((GEOL_Point*)getEndEntity());
+	invalidateBBox();
 }
 
 
@@ -138,24 +142,6 @@ double GEOL_Segment::angle() const {
 	return atan2(dx, dy);
 }
 
-
-/*!
-\return
-The angle between this segment and the segment passed
-*/
-double GEOL_Segment::angleWith(const GEOL_Segment& theSegment) const {
-	double thisAngle = angle();
-	double segmentAngle = theSegment.angle();
-	double angleDiff = thisAngle - segmentAngle;
-	if (angleDiff < - GEOL_PI) {
-		angleDiff += 2.0 * GEOL_PI;
-	}
-	else if (angleDiff > GEOL_PI) {
-		angleDiff -= 2.0 * GEOL_PI;
-	}
-	
-	return angleDiff;
-}
 
 
 /*!
@@ -217,6 +203,23 @@ double GEOL_Segment::area() const {
 	double ret = ((endPoint -> y() + beginPoint -> y()) * (endPoint -> x() - beginPoint -> x()) ) / 2.0;
 
 	return ret;
+}
+
+
+
+/*!
+Get the direction of the segment tangent to the point on segment specified
+
+\param theDir
+On output contains the tangent direction
+\param thePoint
+Tangential point on the segment
+*/
+void GEOL_Segment::direction(GEOL_Point* theDir, const GEOL_Point* thePoint) const {
+	if (theDir) {
+		theDir -> x(end() -> x() - begin() -> x());
+		theDir -> y(end() -> y() - begin() -> y());
+	}
 }
 
 
@@ -374,7 +377,7 @@ bool GEOL_Segment::SaveBinary(ofstream *theStream) {
 	
 	GEOL_AttributeValue attrVal;
 	attrVal.GEOL_AttrVoidValue = NULL;
-	addAttribute(attrVal, GEOL_AttrVoid, "saved");
+	addAttribute(attrVal, GEOL_AttrVoid, GEOL_ID_SAVED);
 
 	return ret;
 }
@@ -384,5 +387,17 @@ bool GEOL_Segment::LoadISO(ifstream *theStream) {
 		return false;
 
 	return false;
+}
+
+bool GEOL_Segment::SaveISO(ofstream *theStream) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+	if (ret) {
+		(*theStream) << "G1 X" << end() -> x() << " Y" << end() -> y() << endl;
+	}
+	
+	return ret;
 }
 

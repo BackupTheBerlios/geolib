@@ -42,7 +42,6 @@ public:
 	void end(double theXCoord, double theYCoord);
 	
 	double angle() const;
-	double angleWith(const GEOL_Segment& theSegment) const;
 	
 	/*!
 	\return
@@ -50,6 +49,7 @@ public:
 	*/
 	double length() const { return mLength; }
 	double area() const;
+	void direction(GEOL_Point* theDir, const GEOL_Point* thePoint) const;
 	
 	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 	bool isEndPoint(const GEOL_Entity *theEntity);
@@ -66,6 +66,7 @@ protected:
 	virtual bool LoadBinary(ifstream *theStream);
 	virtual bool SaveBinary(ofstream *theStream);
 	virtual bool LoadISO(ifstream *theStream);
+	virtual bool SaveISO(ofstream *theStream);
 
 private:
 	/*!
