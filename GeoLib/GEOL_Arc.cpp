@@ -24,7 +24,6 @@
 
 
 
-
 /*!
 Default constructor
 */
@@ -107,6 +106,7 @@ void GEOL_Arc::begin(const GEOL_Point& theBeginPoint) {
 		mRadius = linearLength / 2.0;
 		mLength = linearLength;
 	}
+	invalidateBBox();
 }
 
 
@@ -127,6 +127,7 @@ void GEOL_Arc::end(const GEOL_Point& theEndPoint) {
 		mRadius = linearLength / 2.0;
 		mLength = linearLength;
 	}
+	invalidateBBox();
 }
 
 
@@ -150,6 +151,7 @@ void GEOL_Arc::begin(double theXCoord, double theYCoord) {
 		mRadius = linearLength / 2.0;
 		mLength = linearLength;
 	}
+	invalidateBBox();
 }
 
 
@@ -173,6 +175,7 @@ void GEOL_Arc::end(double theXCoord, double theYCoord) {
 		mRadius = linearLength / 2.0;
 		mLength = linearLength;
 	}
+	invalidateBBox();
 }
 
 
@@ -189,6 +192,7 @@ void GEOL_Arc::radius(double theRadius) {
 	else {
 		mRadius = theRadius;
 	}
+	invalidateBBox();
 }
 
 
@@ -206,6 +210,7 @@ void GEOL_Arc::versus(GEOL_ArcVersus theVersus) {
 	else {
 		mRadius = -fabs(mRadius);
 	}
+	invalidateBBox();
 }
 
 
@@ -489,6 +494,39 @@ double GEOL_Arc::area() const {
 
 
 /*!
+Compute the direction of the tangent to the arc at a given point, just computig the perpendicular
+to the direction from the center of the arc to the given point
+
+\param thePoint
+Tangent point on the arc
+\param theDir
+On output the direction of the tangent to the arc at point thePoint
+*/
+void GEOL_Arc::direction(GEOL_Point* theDir, const GEOL_Point* thePoint) const {
+	if (theDir && thePoint) {
+		double xCenter = 0.0;
+		double yCenter = 0.0;
+		center(xCenter, yCenter);
+		theDir -> x(thePoint -> x() - xCenter);
+		theDir -> y(thePoint -> y() - yCenter);
+		
+		double tmp = theDir -> x();
+		theDir -> x(theDir -> y());
+		theDir -> y(-tmp);
+		
+		if(versus() == geol_ArcClockwise) {
+		}
+		else {
+			double tmp = theDir -> x();
+			theDir -> x(-theDir -> y());
+			theDir -> y(-tmp);
+		}
+	}
+}
+
+
+
+/*!
 Return the quadrant of the begin point of the arc
 
 \param theXCenter
@@ -730,7 +768,7 @@ bool GEOL_Arc::SaveBinary(ofstream *theStream) {
 	
 	GEOL_AttributeValue attrVal;
 	attrVal.GEOL_AttrVoidValue = NULL;
-	addAttribute(attrVal, GEOL_AttrVoid, "saved");
+	addAttribute(attrVal, GEOL_AttrVoid, GEOL_ID_SAVED);
 
 	return ret;
 }
@@ -740,4 +778,26 @@ bool GEOL_Arc::LoadISO(ifstream *theStream) {
 		return false;
 
 	return false;
+}
+
+bool GEOL_Arc::SaveISO(ofstream *theStream) {
+	if (!theStream)
+		return false;
+
+	bool ret = !theStream -> bad();
+	if (ret) {
+		double xCenter = 0.0;
+		double yCenter = 0.0;
+		center(xCenter, yCenter);
+		
+		if (versus() == geol_ArcClockwise) {
+			(*theStream) << "G2";
+		}
+		else {
+			(*theStream) << "G3";
+		}
+		(*theStream) << " X" << end() -> x() << " Y" << end() -> y() << " I" << xCenter << " J" << yCenter << endl;
+	}
+	
+	return ret;
 }
