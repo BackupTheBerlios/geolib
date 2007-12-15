@@ -23,8 +23,8 @@
 
 
 GEOL_Container::GEOL_Container() {
-	mEntityIt = pEntityList.begin();
-	mContainerIt = pContainerList.begin();
+	//mEntityIt = pEntityList.begin();
+	//mContainerIt = pContainerList.begin();
 }
 
 
@@ -71,6 +71,26 @@ Entity to remove
 - false if theEntity is NULL or is not in the list
 */
 bool GEOL_Container::removeEntity(GEOL_Entity *theEntity) {
+	bool ret = false;
+	
+	if (theEntity) {
+		list<GEOL_Entity*>::iterator entityIt;
+		for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() && *entityIt != theEntity ; entityIt++) {}
+		if (entityIt == pEntityList.end()) {
+			ret = false;
+		}
+		else {
+			GEOL_Entity *toDel = *entityIt;
+			pEntityList.remove(toDel);
+			if (!((GEOL_Object*)toDel) -> decRefCount()) {
+				ret = getContext() -> deleteObject((GEOL_Object*)toDel, true);
+			}
+		}
+	}
+
+	return ret;
+
+/*
 	if (!theEntity)
 		return false;
 
@@ -90,8 +110,7 @@ bool GEOL_Container::removeEntity(GEOL_Entity *theEntity) {
 			}
 		}
 	}
-	
-	return true;
+	return true;*/
 }
 
 
@@ -106,9 +125,28 @@ Entity to detach
 - false if theEntity is NULL or is not in the list
 */
 bool GEOL_Container::detachEntity(GEOL_Entity *theEntity) {
+	bool ret = false;
+	
+	if (theEntity) {	
+		list<GEOL_Entity*>::iterator entityIt;
+		for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() && *entityIt != theEntity ; entityIt++) {}
+		if (entityIt == pEntityList.end()) {
+			ret = false;
+		}
+		else {
+			GEOL_Entity *toDel = *entityIt;
+			((GEOL_Object*)toDel) -> decRefCount();
+			pEntityList.remove(toDel);
+			ret = true;
+		}
+	}
+	
+	return ret;
+
+/*
 	if (!theEntity)
 		return false;
-	
+
 	if (*mEntityIt != theEntity) {
 		for (mEntityIt = pEntityList.begin() ; mEntityIt != pEntityList.end() && *mEntityIt != theEntity ; mEntityIt++) {}
 	}
@@ -121,8 +159,7 @@ bool GEOL_Container::detachEntity(GEOL_Entity *theEntity) {
 		((GEOL_Object*)toDel) -> decRefCount();
 		pEntityList.remove(toDel);
 	}
-	
-	return true;
+	return true; */
 }
 
 
@@ -158,20 +195,20 @@ Entity from wich get the next
 The next entity of theEntity in the list, or NULL if theEntity is NULL, is the last entity in the list, or it is not
 in the list
 */
-GEOL_Entity* GEOL_Container::getNextEntity(const GEOL_Entity *theEntity) {
-	if (*mEntityIt != theEntity) {
-		for (mEntityIt = pEntityList.begin() ; mEntityIt != pEntityList.end() && *mEntityIt != theEntity ; mEntityIt++) {}
-	}
-
+GEOL_Entity* GEOL_Container::getNextEntity(const GEOL_Entity *theEntity) const {
 	GEOL_Entity *ret = NULL;
 
-	if (mEntityIt != pEntityList.end()) {
-		mEntityIt++;
-		if (mEntityIt != pEntityList.end()) {
-			ret = *mEntityIt;
+	if (theEntity) {
+		list<GEOL_Entity*>::const_iterator entityIt;
+		for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() && *entityIt != theEntity ; entityIt++) {}
+		if (entityIt != pEntityList.end()) {
+			entityIt++;
+			if (entityIt != pEntityList.end()) {
+				ret = *entityIt;
+			}
 		}
 	}
-
+	
 	return ret;
 }
 
@@ -187,20 +224,20 @@ Entity from wich get the previous
 The previous entity of theEntity in the list, or NULL if theEntity is NULL, is the first entity in the list, or it is not
 in the list
 */
-GEOL_Entity* GEOL_Container::getPrevEntity(const GEOL_Entity *theEntity) {
-	if (*mEntityIt != theEntity) {
-		for (mEntityIt = pEntityList.begin() ; mEntityIt != pEntityList.end() && *mEntityIt != theEntity ; mEntityIt++) {}
-	}
-
+GEOL_Entity* GEOL_Container::getPrevEntity(const GEOL_Entity *theEntity) const {
 	GEOL_Entity *ret = NULL;
 
-	if (mEntityIt != pEntityList.end()) {
-		if (mEntityIt != pEntityList.begin()) {
-			mEntityIt--;
-			ret = *mEntityIt;
-		}		
+	if (theEntity) {
+		list<GEOL_Entity*>::const_iterator entityIt;
+		for (entityIt = pEntityList.begin() ; entityIt != pEntityList.end() && *entityIt != theEntity ; entityIt++) {}
+		if (entityIt != pEntityList.end()) {
+			if (entityIt != pEntityList.begin()) {
+				entityIt--;
+				ret = *entityIt;
+			}		
+		}
 	}
-
+	
 	return ret;
 }
 
@@ -250,7 +287,25 @@ Container to remove
 - false if theContainer is NULL or is not in the list
 */
 bool GEOL_Container::removeContainer(GEOL_Container *theContainer) {
-	if (!theContainer)
+	bool ret = false;
+
+	if (theContainer) {
+		list<GEOL_Container*>::iterator containerIt;
+		for (containerIt = pContainerList.begin() ; containerIt != pContainerList.end() && *containerIt != theContainer ; containerIt++) {}
+		if (containerIt == pContainerList.end()) {
+			ret = false;
+		}
+		else {
+			GEOL_Container *toDel = *containerIt;
+			pContainerList.remove(toDel);
+			if (!((GEOL_Object*)toDel) -> decRefCount()) {
+				ret = getContext() -> deleteObject((GEOL_Object*)toDel, true);
+			}
+		}
+	}
+	
+	return ret;
+/*	if (!theContainer)
 		return false;
 
 	if (*mContainerIt != theContainer) {
@@ -270,7 +325,7 @@ bool GEOL_Container::removeContainer(GEOL_Container *theContainer) {
 		}
 	}
 	
-	return true;
+	return true;*/
 }
 
 
@@ -286,7 +341,25 @@ Container to detach
 - false if theContainer is NULL or is not in the list
 */
 bool GEOL_Container::detachContainer(GEOL_Container *theContainer) {
-	if (!theContainer)
+	bool ret = false;
+	
+	if (theContainer) {
+		list<GEOL_Container*>::iterator containerIt;
+		for (containerIt = pContainerList.begin() ; containerIt != pContainerList.end() && *containerIt != theContainer ; containerIt++) {}
+
+		if (containerIt == pContainerList.end()) {
+			ret = false;
+		}
+		else {
+			GEOL_Container *toDel = *containerIt;
+			((GEOL_Object*)toDel) -> decRefCount();
+			pContainerList.remove(toDel);
+			ret = true;
+		}
+	}
+	
+	return ret;
+/*	if (!theContainer)
 		return false;
 	
 	if (*mContainerIt != theContainer) {
@@ -302,7 +375,7 @@ bool GEOL_Container::detachContainer(GEOL_Container *theContainer) {
 		pContainerList.remove(toDel);
 	}
 	
-	return true;
+	return true;*/
 }
 
 
@@ -336,20 +409,20 @@ Container from wich get the next
 The next container of theContainer in the list, or NULL if theContainer is NULL, is the last container in the list, or it is not
 in the list
 */
-GEOL_Container* GEOL_Container::getNextContainer(const GEOL_Container *theContainer) {
-	if (*mContainerIt != theContainer) {
-		for (mContainerIt = pContainerList.begin() ; mContainerIt != pContainerList.end() && *mContainerIt != theContainer ; mContainerIt++) {}
-	}
-
+GEOL_Container* GEOL_Container::getNextContainer(const GEOL_Container *theContainer) const {
 	GEOL_Container *ret = NULL;
-
-	if (mContainerIt != pContainerList.end()) {
-		mContainerIt++;
-		if (mContainerIt != pContainerList.end()) {
-			ret = *mContainerIt;
+	
+	if (theContainer) {
+		list<GEOL_Container*>::const_iterator containerIt;
+		for (containerIt = pContainerList.begin() ; containerIt != pContainerList.end() && *containerIt != theContainer ; containerIt++) {}
+		if (containerIt != pContainerList.end()) {
+			containerIt++;
+			if (containerIt != pContainerList.end()) {
+				ret = *containerIt;
+			}
 		}
 	}
-
+	
 	return ret;
 }
 
@@ -365,20 +438,20 @@ Container from wich get the previous
 The previous container of theContainer in the list, or NULL if theContainer is NULL, is the first container in the list, or it is not
 in the list
 */
-GEOL_Container* GEOL_Container::getPrevContainer(const GEOL_Container *theContainer) {
-	if (*mContainerIt != theContainer) {
-		for (mContainerIt = pContainerList.begin() ; mContainerIt != pContainerList.end() && *mContainerIt != theContainer ; mContainerIt++) {}
-	}
-
+GEOL_Container* GEOL_Container::getPrevContainer(const GEOL_Container *theContainer) const {
 	GEOL_Container *ret = NULL;
 
-	if (mContainerIt != pContainerList.end()) {
-		if (mContainerIt != pContainerList.begin()) {
-			mContainerIt--;
-			ret = *mContainerIt;
-		}		
+	if (theContainer) {
+		list<GEOL_Container*>::const_iterator containerIt;
+		for (containerIt = pContainerList.begin() ; containerIt != pContainerList.end() && *containerIt != theContainer ; containerIt++) {}
+		if (containerIt != pContainerList.end()) {
+			if (containerIt != pContainerList.begin()) {
+				containerIt--;
+				ret = *containerIt;
+			}		
+		}
 	}
-
+	
 	return ret;
 }
 
@@ -446,9 +519,11 @@ bool GEOL_Container::checkForContainmentCycles() {
 	for (it = markedContainers.begin() ; it != markedContainers.end() && !cycleFounded ; it++) {
 		GEOL_Container *markedCont = *it;
 		
-		GEOL_Container *container = markedCont -> getFirstContainer();
-		for ( ; container && !cycleFounded ; ) {
-			
+		std::list<GEOL_Container*>::const_iterator containerIt;
+		markedCont -> setContainerIterator(containerIt);
+		for ( ; !markedCont -> isEndOfContainers(containerIt) && !cycleFounded ; containerIt++) {
+			GEOL_Container *container = *containerIt;
+					
 			list<GEOL_Container*>::const_iterator markedIt;
 			for (it = markedContainers.begin() ; it != markedContainers.end() && !cycleFounded ; it++) {
 				if (*it == container) {
@@ -495,5 +570,31 @@ The total number of objects in the container
 */
 int GEOL_Container::getNumOfObjects() const {
 	return pEntityList.size() + pContainerList.size();
+}
+
+
+void GEOL_Container::setEntityIterator(std::list<GEOL_Entity*>::const_iterator &theIterator) const {
+	theIterator = pEntityList.begin();
+}
+
+
+bool GEOL_Container::isEndOfEntities(std::list<GEOL_Entity*>::const_iterator &theIterator) const {
+	if (theIterator == pEntityList.end())
+		return true;
+	else
+		return false;
+}
+
+
+void GEOL_Container::setContainerIterator(std::list<GEOL_Container*>::const_iterator &theIterator) const {
+	theIterator = pContainerList.begin();
+}
+
+
+bool GEOL_Container::isEndOfContainers(std::list<GEOL_Container*>::const_iterator &theIterator) const {
+	if (theIterator == pContainerList.end())
+		return true;
+	else
+		return false;
 }
 
