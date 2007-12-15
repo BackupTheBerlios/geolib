@@ -37,22 +37,26 @@ public:
 	int getNumOfContainers() const;
 	int getNumOfObjects() const;
 	
-	GEOL_Entity* getFirstEntity();
-	GEOL_Entity* getNextEntity(const GEOL_Entity *theEntity);
-	GEOL_Entity* getPrevEntity(const GEOL_Entity *theEntity);
-	GEOL_Entity* getLastEntity();
+	GEOL_Entity* getFirstEntity() const;
+	GEOL_Entity* getNextEntity(const GEOL_Entity *theEntity) const;
+	GEOL_Entity* getPrevEntity(const GEOL_Entity *theEntity) const;
+	GEOL_Entity* getLastEntity() const;
 	
 	
-	GEOL_Container* getFirstContainer();
-	GEOL_Container* getNextContainer(const GEOL_Container *theContainer);
-	GEOL_Container* getPrevContainer(const GEOL_Container *theContainer);
-	GEOL_Container* getLastContainer();
+	GEOL_Container* getFirstContainer() const;
+	GEOL_Container* getNextContainer(const GEOL_Container *theContainer) const;
+	GEOL_Container* getPrevContainer(const GEOL_Container *theContainer) const;
+	GEOL_Container* getLastContainer() const;
 	
 	bool isContained(const GEOL_Entity *theEntity) const;
 	bool isContained(const GEOL_Container *theContainer) const;
 	
 	virtual bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) = 0;
 
+	void setEntityIterator(std::list<GEOL_Entity*>::const_iterator &theIterator) const;
+	bool isEndOfEntities(std::list<GEOL_Entity*>::const_iterator &theIterator) const;
+	void setContainerIterator(std::list<GEOL_Container*>::const_iterator &theIterator) const;
+	bool isEndOfContainers(std::list<GEOL_Container*>::const_iterator &theIterator) const;
 protected:
 	bool addEntity(GEOL_Entity *theNewEntity);
 	bool removeEntity(GEOL_Entity *theEntity);
@@ -72,19 +76,9 @@ protected:
 	list<GEOL_Entity*> pEntityList;
 	
 	/*!
-	Lis of containers contained
+	List of containers contained
 	*/
 	list<GEOL_Container*> pContainerList;
-	
-	/*!
-	Entities iterator
-	*/
-	list<GEOL_Entity*>::iterator mEntityIt;
-	
-	/*!
-	Containers itertor
-	*/
-	list<GEOL_Container*>::iterator mContainerIt;
 };
 
 
@@ -92,12 +86,12 @@ protected:
 \return
 The first entity contained
 */
-inline GEOL_Entity* GEOL_Container::getFirstEntity() {
+inline GEOL_Entity* GEOL_Container::getFirstEntity() const {
 	if (pEntityList.size() == 0) {
 		return NULL;
 	}
 	else {
-		mEntityIt = pEntityList.begin();
+		//mEntityIt = pEntityList.begin();
 		return pEntityList.front();
 	}
 }
@@ -107,12 +101,12 @@ inline GEOL_Entity* GEOL_Container::getFirstEntity() {
 \return
 The last entity contained
 */
-inline GEOL_Entity* GEOL_Container::getLastEntity() {
+inline GEOL_Entity* GEOL_Container::getLastEntity() const {
 	if (pEntityList.size() == 0) {
 		return NULL;
 	}
 	else {
-		mEntityIt = pEntityList.end();
+		//mEntityIt = pEntityList.end();
 		return pEntityList.back();
 	}
 }
@@ -122,12 +116,12 @@ inline GEOL_Entity* GEOL_Container::getLastEntity() {
 \return
 The first container contained
 */
-inline GEOL_Container* GEOL_Container::getFirstContainer() {
+inline GEOL_Container* GEOL_Container::getFirstContainer() const {
 	if (pContainerList.size() == 0) {
 		return NULL;
 	}
 	else {
-		mContainerIt = pContainerList.begin();
+		//mContainerIt = pContainerList.begin();
 		return pContainerList.front();
 	}
 }
@@ -137,12 +131,12 @@ inline GEOL_Container* GEOL_Container::getFirstContainer() {
 \return
 The last container contained
 */
-inline GEOL_Container* GEOL_Container::getLastContainer() {
+inline GEOL_Container* GEOL_Container::getLastContainer() const {
 	if (pContainerList.size() == 0) {
 		return NULL;
 	}
 	else {
-		mContainerIt = pContainerList.end();
+		//mContainerIt = pContainerList.end();
 		return pContainerList.back();
 	}
 }
