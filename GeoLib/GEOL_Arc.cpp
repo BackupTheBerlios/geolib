@@ -23,18 +23,14 @@
 #include "GEOL_Arc.h"
 
 
-
 /*!
 Default constructor
 */
-GEOL_Arc::GEOL_Arc() : GEOL_Entity(){
+GEOL_Arc::GEOL_Arc() : GEOL_Entity() {
 	mRadius = 0.0;
 	mLength = 0.0;
 	mObjType = geol_Arc;
 }
-
-
-
 
 
 /*!
@@ -46,6 +42,8 @@ Begin point
 End point
 \param theRadius
 Radius
+\param theVersus
+Versus of the arc
 */
 GEOL_Arc::GEOL_Arc(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint, double theRadius, GEOL_ArcVersus theVersus) : GEOL_Entity() {
 	setBeginEntity((GEOL_Entity*)theBeginPoint);
@@ -63,7 +61,7 @@ GEOL_Arc::GEOL_Arc(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint, double th
 		mLength = computeLength();
 	}
 	else {
-		mRadius = linearLength / 2.0;
+		mRadius = versus() == geol_ArcClockwise ? linearLength / 2.0 : -linearLength / 2.0;
 		mLength = GEOL_PI * mRadius;
 	}
 	mObjType = geol_Arc;
@@ -71,16 +69,21 @@ GEOL_Arc::GEOL_Arc(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint, double th
 
 
 /*!
-Default destructor
+Default destructor, delete extremity points if its reference counter vanishes
 */
 GEOL_Arc::~GEOL_Arc() {
 	GEOL_Point *beginPoint = (GEOL_Point*)(getBeginEntity());
 	GEOL_Point *endPoint = (GEOL_Point*)(getEndEntity());
+	
 	if (beginPoint) {
-		getContext() -> deleteObject(beginPoint);
+		if (!beginPoint -> decRefCount()) {
+			getContext() -> deleteObject(beginPoint, true);
+		}
 	}
 	if (endPoint) {
-		getContext() -> deleteObject(endPoint);
+		if (!endPoint -> decRefCount()) {
+			getContext() -> deleteObject(endPoint, true);
+		}
 	}
 	mBegin = 0.0;
 	mEnd = 0.0;
@@ -88,9 +91,8 @@ GEOL_Arc::~GEOL_Arc() {
 }
 
 
-
 /*!
-Set the begin point of the arc
+Set the begin point of the arc, update the arc length and invalidate the bbox
 
 \param theBeginPoint
 New begin point of the arc
@@ -103,7 +105,7 @@ void GEOL_Arc::begin(const GEOL_Point& theBeginPoint) {
 		mLength = computeLength();
 	}
 	else {
-		mRadius = linearLength / 2.0;
+		mRadius = versus() == geol_ArcClockwise ? linearLength / 2.0 : -linearLength / 2.0;
 		mLength = linearLength;
 	}
 	invalidateBBox();
@@ -111,7 +113,7 @@ void GEOL_Arc::begin(const GEOL_Point& theBeginPoint) {
 
 
 /*!
-Set the end point of the arc
+Set the end point of the arc, update the arc length and invalidate the bbox
 
 \param theEndPoint
 New end point of the arc
@@ -124,7 +126,7 @@ void GEOL_Arc::end(const GEOL_Point& theEndPoint) {
 		mLength = computeLength();
 	}
 	else {
-		mRadius = linearLength / 2.0;
+		mRadius = versus() == geol_ArcClockwise ? linearLength / 2.0 : -linearLength / 2.0;
 		mLength = linearLength;
 	}
 	invalidateBBox();
@@ -132,7 +134,7 @@ void GEOL_Arc::end(const GEOL_Point& theEndPoint) {
 
 
 /*!
-Set the begin point of the arc
+Set the begin point of the arc, update the arc length and invalidate the bbox
 
 \param theXCoord
 X coordinate of new begin point of the arc
@@ -148,7 +150,7 @@ void GEOL_Arc::begin(double theXCoord, double theYCoord) {
 		mLength = computeLength();
 	}
 	else {
-		mRadius = linearLength / 2.0;
+		mRadius = versus() == geol_ArcClockwise ? linearLength / 2.0 : -linearLength / 2.0;
 		mLength = linearLength;
 	}
 	invalidateBBox();
@@ -156,7 +158,7 @@ void GEOL_Arc::begin(double theXCoord, double theYCoord) {
 
 
 /*!
-Set the end point of the arc
+Set the end point of the arc, update the arc length and invalidate the bbox
 
 \param theXCoord
 X coordinate of new end point of the arc
@@ -172,7 +174,7 @@ void GEOL_Arc::end(double theXCoord, double theYCoord) {
 		mLength = computeLength();
 	}
 	else {
-		mRadius = linearLength / 2.0;
+		mRadius = versus() == geol_ArcClockwise ? linearLength / 2.0 : -linearLength / 2.0;
 		mLength = linearLength;
 	}
 	invalidateBBox();
@@ -180,9 +182,10 @@ void GEOL_Arc::end(double theXCoord, double theYCoord) {
 
 
 /*
-Set the radius of the arc without modify its sign
+Set the radius of the arc without modify its sign, invalidate the bbox
 
 \param theRadius
+The radius
 */
 void GEOL_Arc::radius(double theRadius) {
 	theRadius = fabs(theRadius);
@@ -198,7 +201,7 @@ void GEOL_Arc::radius(double theRadius) {
 
 /*!
 Set the versus of the arc modifing its radius sign, clockwise versus has positive radius counterclockwise versus
-has negative radius
+has negative radius, invalidate the bbox
 
 \param theVersus
 Versus of the arc
@@ -219,7 +222,7 @@ void GEOL_Arc::versus(GEOL_ArcVersus theVersus) {
 The versus of the arc based on the sing of its radius, clockwise versus has positive radius counterclockwise
 versus has negative radius
 */
-GEOL_ArcVersus GEOL_Arc::versus() const {
+GEOL_Arc::GEOL_ArcVersus GEOL_Arc::versus() const {
 	GEOL_ArcVersus ret = geol_ArcClockwise;
 	
 	if (mRadius >= 0.0) {
@@ -249,7 +252,7 @@ double GEOL_Arc::angle() const {
 
 
 /*!
-Return the center coordinates of the arc in the point passed
+Return the center coordinates of the arc in the parameter
 
 \param theCenter
 On exit contains the coordinates of the center
@@ -264,7 +267,7 @@ void GEOL_Arc::center(GEOL_Point &theCenter) const {
 
 
 /*!
-Return the center coordinates of the arc in the two passed variables, center calculation is carried out
+Return the center coordinates of the arc in the two parameters, center calculation is carried out
 measuring the distance between the center of the arc and the mid point of the begin-end segment using only
 the radius and the arc angle.
 With this distance and the direction of the normal to the begin-end segment is easy to compute the center
@@ -323,15 +326,14 @@ double GEOL_Arc::computeLength() const {
 }
 
 
-
 /*!
-Check if the entity passed is one of the end points of the segment
+Check if an entity is one of the end points of the arc
 
 \param theEntity
 Entity to check
 
 \return
-- true if the entity passed is an end point of the segment
+- true if the entity is an end point of the segment
 - false otherwise
 */
 bool GEOL_Arc::isEndPoint(const GEOL_Entity *theEntity) {
@@ -492,7 +494,6 @@ double GEOL_Arc::area() const {
 }
 
 
-
 /*!
 Compute the direction of the tangent to the arc at a given point, just computig the perpendicular
 to the direction from the center of the arc to the given point
@@ -504,11 +505,30 @@ On output the direction of the tangent to the arc at point thePoint
 */
 void GEOL_Arc::direction(GEOL_Point* theDir, const GEOL_Point* thePoint) const {
 	if (theDir && thePoint) {
+		direction(theDir, thePoint -> x(), thePoint -> y());
+	}
+}
+
+
+
+/*!
+Compute the direction of the tangent to the arc at a given point, just computig the perpendicular
+to the direction from the center of the arc to the given point
+
+\param theDir
+On output the direction of the tangent to the arc at point thePoint
+\param theXCoord
+X coordinate of the tangent point on the arc
+\param theYCoord
+Y coordinate of the tangent point on the arc
+*/
+void GEOL_Arc::direction(GEOL_Point* theDir, double theXCoord, double theYCoord) const {
+	if (theDir) {
 		double xCenter = 0.0;
 		double yCenter = 0.0;
 		center(xCenter, yCenter);
-		theDir -> x(thePoint -> x() - xCenter);
-		theDir -> y(thePoint -> y() - yCenter);
+		theDir -> x(theXCoord - xCenter);
+		theDir -> y(theYCoord - yCenter);
 		
 		double tmp = theDir -> x();
 		theDir -> x(theDir -> y());
@@ -523,7 +543,6 @@ void GEOL_Arc::direction(GEOL_Point* theDir, const GEOL_Point* thePoint) const {
 		}
 	}
 }
-
 
 
 /*!
@@ -544,7 +563,6 @@ geol_BottomRight = x-y+ (3)
 GEOL_Quadrant GEOL_Arc::getBeginQuad(double theXCenter, double theYCenter) const {
 	return begin() -> quadrant(theXCenter, theYCenter);
 }
-
 
 
 /*!
@@ -643,8 +661,6 @@ GEOL_BBox GEOL_Arc::getBBox() {
 }
 
 
-
-
 /*!
 Translate an arc
 
@@ -657,7 +673,6 @@ void GEOL_Arc::translate(double theDX, double theDY) {
 	((GEOL_Point*)getBeginEntity()) -> translate(theDX, theDY);
 	((GEOL_Point*)getEndEntity()) -> translate(theDX, theDY);
 }
-
 
 
 /*!
@@ -709,6 +724,16 @@ bool GEOL_Arc::operator!=(const GEOL_Arc& theArc) const {
 }
 
 
+/*!
+Load the arc from a binary file
+
+\param theStream
+Binary file
+
+\return
+- true if the load operation succeed
+- false otherwise
+*/
 bool GEOL_Arc::LoadBinary(ifstream *theStream) {
 	if (!theStream)
 		return false;
@@ -743,6 +768,17 @@ bool GEOL_Arc::LoadBinary(ifstream *theStream) {
 	return ret;
 }
 
+
+/*!
+Save the arc in a binary file
+
+\param theStream
+Binary file
+
+\return
+- true if the save operation succeed
+- false otherwise
+*/
 bool GEOL_Arc::SaveBinary(ofstream *theStream) {
 	if (!theStream)
 		return false;
@@ -768,18 +804,33 @@ bool GEOL_Arc::SaveBinary(ofstream *theStream) {
 	
 	GEOL_AttributeValue attrVal;
 	attrVal.GEOL_AttrVoidValue = NULL;
-	addAttribute(attrVal, GEOL_AttrVoid, GEOL_ID_SAVED);
+	addAttribute(attrVal, GEOL_Attribute::GEOL_AttrVoid, GEOL_ID_SAVED);
 
 	return ret;
 }
 
-bool GEOL_Arc::LoadISO(ifstream *theStream) {
-	if (!theStream)
-		return false;
 
-	return false;
+/*!
+Load in ISO format is entilrely performed at GEOL_Profile level
+
+\return
+Always true
+*/
+bool GEOL_Arc::LoadISO(ifstream *theStream) {
+	return true;
 }
 
+
+/*!
+Save the arc in ISO format on a file
+
+\param theStream
+ISO file
+
+\return
+- true if the save operation succeed
+- false otherwise
+*/
 bool GEOL_Arc::SaveISO(ofstream *theStream) {
 	if (!theStream)
 		return false;
