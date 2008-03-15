@@ -51,7 +51,6 @@ GEOL_Quadrant getNextQuadrant(GEOL_Quadrant theQuadrant) {
 }
 
 
-
 /*!
 Get the prev of a given quadrant in counterclockwise versus
 
@@ -84,7 +83,18 @@ GEOL_Quadrant getPrevQuadrant(GEOL_Quadrant theQuadrant) {
 }
 
 
+/*!
+Read a text line from an ISO file
 
+\param theStream
+ISO file
+\param theLine
+On output contains the line readed
+
+\return
+- true if success
+- false on error
+*/
 bool readLineFromISOFile(ifstream *theStream, std::string& theLine) {
 	if (!theStream)
 		return false;
@@ -115,7 +125,27 @@ bool readLineFromISOFile(ifstream *theStream, std::string& theLine) {
 }
 
 
-bool getCoordFromISOFileLine(std::string& theLine, double& theXCoord, double& theYCoord, double& theZCoord, double& theICoord, double& theJCoord) {
+/*!
+Extract the coordinate values from a iso text line
+
+\param theLine
+Line to parse
+\param theXCoord
+On output contains the x coordinate if present, DBL_MAX otherwise
+\param theYCoord
+On output contains the y coordinate if present, DBL_MAX otherwise
+\param theZCoord
+On output contains the z coordinate if present, DBL_MAX otherwise
+\param theICoord
+On output contains the x coordinate of the arc center if present, DBL_MAX otherwise
+\param theJCoord
+On output contains the y coordinate of the arc center if present, DBL_MAX otherwise
+
+\return
+- true if success
+- false on error
+*/
+bool getCoordFromISOFileLine(const std::string& theLine, double& theXCoord, double& theYCoord, double& theZCoord, double& theICoord, double& theJCoord) {
 	theXCoord = DBL_MAX;
 	theYCoord = DBL_MAX;
 	theZCoord = DBL_MAX;
