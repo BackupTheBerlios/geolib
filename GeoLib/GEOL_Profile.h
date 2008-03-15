@@ -15,12 +15,15 @@
  *                                                                         *
  ***************************************************************************/
 
+
 #ifndef GEOL_PROFILE_H
 #define GEOL_PROFILE_H
+
 
 #include <CoreFoundation/CoreFoundation.h>
 
 #include "GEOL_Container.h"
+
 
 /*!
 A simple container constituted only with primitive objects, in a profile arcs and segments is placed side by side to form an
@@ -29,6 +32,16 @@ open strip or a closed shape.
 class GEOL_Profile : public GEOL_Container {
 friend class GEOL_Context;
 public:
+
+	/*!
+	Versus of a profile
+	*/
+	typedef enum {
+					geol_ProfClockwise,				/// Clocse clockwise profile
+					geol_ProfCounterClockwise,		/// Close counterclockwise profile
+					geol_ProfInvalid				/// Open or autointersected profile
+				 } GEOL_ProfVersus;
+
 	bool addEdgeTail(GEOL_Entity *theNewEntity);
 	bool addEdgeFront(GEOL_Entity *theNewEntity);
 	
@@ -41,8 +54,6 @@ public:
 	double area() const;
 	GEOL_ProfVersus versus() const;
 	
-	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
-
 	GEOL_BBox getBBox();
 	
 	bool SaveISO(CFStringRef theFileName);
@@ -60,7 +71,6 @@ protected:
 
 private:
 	bool getXLeftmost(double& theXLeftmost, GEOL_Entity* &theLeftmostEntity) const;
-	//bool getXLeftmost(GEOL_Point* theLeftmostPoint, GEOL_Entity* &theLeftmostSegment);
 };
 
 

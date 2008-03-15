@@ -15,10 +15,10 @@
  *                                                                         *
  ***************************************************************************/
 
+
 #include "GEOL_Prefix.h"
 
 #include "GEOL_Attribute.h"
-
 
 
 /*!
@@ -30,14 +30,16 @@ GEOL_Attribute::GEOL_Attribute() {
 	mAttrID = GEOL_ID_UNSET;
 }
 
+
 /*!
-Constructor with all members passed
+Constructor with all members
 */
 GEOL_Attribute::GEOL_Attribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, int theAttrID) {
 	mValue = theAttrValue;
 	mType = theAttrType;
 	mAttrID = theAttrID;	
 }
+
 
 /*!
 Default destructor
@@ -50,10 +52,8 @@ GEOL_Attribute::~GEOL_Attribute() {
 
 
 /*!
-Return the attribute id
-
-\param theAttributeID
-On output contains the attribute id
+\return
+The attribute id
 */
 int GEOL_Attribute::getID() const {
 	return mAttrID;
@@ -63,7 +63,7 @@ int GEOL_Attribute::getID() const {
 /*!
 Set the attribute id
 
-\param theAttributeID
+\param theID
 New attribute id
 */
 void GEOL_Attribute::setID(int theID) {
@@ -115,8 +115,6 @@ bool GEOL_Attribute::isEqualID(int theAttributeId) const {
 		return false;
 	}
 }
-
-
 
 
 /*!
@@ -261,19 +259,3 @@ bool GEOL_Attribute::SaveBinary(ofstream *theStream) {
 
 	return ret;
 }
-
-bool GEOL_Attribute::LoadISO(ifstream *theStream) {
-	if (!theStream)
-		return false;
-
-	return false;
-}
-
-bool GEOL_Attribute::SaveISO(ofstream *theStream) {
-	if (!theStream)
-		return false;
-
-	return false;
-}
-
-

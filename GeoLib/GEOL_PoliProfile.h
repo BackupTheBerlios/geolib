@@ -15,14 +15,16 @@
  *                                                                         *
  ***************************************************************************/
 
+
 #ifndef GEOL_POLIPROFILE_H
 #define GEOL_POLIPROFILE_H
 
 
 #include "GEOL_Container.h"
 
+
 /*!
-A complex container that can be constituted with primitive objects and with other containers (profiles or poliprofiles as well).
+A complex container that can be constructed with primitive objects and with other containers (profiles or poliprofiles as well).
 */
 class GEOL_PoliProfile : public GEOL_Container {
 friend class GEOL_Context;
@@ -30,8 +32,6 @@ public:
 	bool addProfile(GEOL_Profile *theNewProfile);
 	bool removeProfile(GEOL_Profile *theProfile);
 	bool detachProfile(GEOL_Profile *theProfile);
-
-	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 
 	GEOL_BBox getBBox();
 
@@ -43,9 +43,7 @@ protected:
 	virtual bool SaveBinary(ofstream *theStream);
 	virtual bool LoadISO(ifstream *theStream);
 	virtual bool SaveISO(ofstream *theStream);
-
 };
-
 
 
 #endif

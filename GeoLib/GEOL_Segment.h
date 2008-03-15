@@ -15,14 +15,16 @@
  *                                                                         *
  ***************************************************************************/
 
+
 #ifndef GEOL_SEGMENT_H
 #define GEOL_SEGMENT_H
 
 
 #include "GEOL_Entity.h"
 
+
 /*!
-Straight 2dimensional segment, it points to its begin and end extremities through the pointers contained in its
+Straight 2-dimensional segment, it points to its begin and end extremities through the pointers contained in its
 superclass (GEOL_Entity), the length of the segment is manteined in a class attribute (mLength).
 */
 class GEOL_Segment : public GEOL_Entity {
@@ -43,13 +45,10 @@ public:
 	
 	double angle() const;
 	
-	/*!
-	\return
-	The length of the segment
-	*/
-	double length() const { return mLength; }
+	double length() const;
 	double area() const;
 	void direction(GEOL_Point* theDir, const GEOL_Point* thePoint) const;
+	void direction(GEOL_Point* theDir, double theXCoord, double theYCoord) const;
 	
 	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 	bool isEndPoint(const GEOL_Entity *theEntity);
@@ -96,4 +95,14 @@ inline GEOL_Point* GEOL_Segment::end() const {
 }
 
 
+/*!
+\return
+The length of the segment
+*/
+inline double GEOL_Segment::length() const {
+	return mLength;
+}
+
+
 #endif
+

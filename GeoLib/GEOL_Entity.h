@@ -15,10 +15,13 @@
  *                                                                         *
  ***************************************************************************/
 
+
 #ifndef GEOL_ENTITY_H
 #define GEOL_ENTITY_H
 
+
 #include "GEOL_Object.h"
+#include "GEOL_Intersections.h"
 
 
 class GEOL_Point;
@@ -30,6 +33,16 @@ to other objects of this class, used to store the x,y coordinates for points
 */
 class GEOL_Entity : public GEOL_Object {
 public:
+
+	/*!
+	Side of a segment respect to another segment, from a given point of intersection
+	*/
+	typedef enum {
+					geol_Undef,		/// Undefined situation
+					geol_Left,		/// The first segment of the pair is at left of the second
+					geol_Right		/// The first segment of the pair is at right of the second
+				 } GEOL_Side;
+
 	GEOL_Entity();
 	virtual ~GEOL_Entity();
 	
@@ -42,12 +55,17 @@ public:
 	void setBeginEntity(GEOL_Entity *theBegin);
 	void setEndEntity(GEOL_Entity *theEnd);
 	double angleWith(const GEOL_Entity* theEntity) const;
+
+	GEOL_Intersections intersect(GEOL_Entity* theEntity);
+	GEOL_Side isAtLeft(GEOL_Entity *theEntity, double theXCoord, double theYCoord);
+	GEOL_Side isAtLeft(GEOL_Entity *theEntity, GEOL_Point *thePoint);
 	
 	virtual bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) = 0;
 	virtual bool isEndPoint(const GEOL_Entity *theEntity) = 0;
 	virtual double length() const = 0;
 	virtual double area() const = 0;
 	virtual void direction(GEOL_Point* theDir, const GEOL_Point* thePoint) const = 0;
+	virtual void direction(GEOL_Point* theDir, double theXCoord, double theYCoord) const = 0;
 	
 	virtual void translate(double theDX, double theDY) = 0;
 
@@ -61,13 +79,7 @@ protected:
 	Pointers to the second entity component (y coordinate for GEOL_Point)
 	*/
 	double mEnd;
-	
-private:
 };
-
-
-
-
 
 
 #endif

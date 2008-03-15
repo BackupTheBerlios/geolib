@@ -23,8 +23,6 @@
 
 
 GEOL_Container::GEOL_Container() {
-	//mEntityIt = pEntityList.begin();
-	//mContainerIt = pContainerList.begin();
 }
 
 
@@ -57,8 +55,6 @@ bool GEOL_Container::addEntity(GEOL_Entity *theNewEntity) {
 }
 
 
-
-
 /*!
 Remove an entity from the entities list, the entity is removed from the list, its reference counter is
 decremented, and if the counter is zero the entity will be deleted
@@ -89,28 +85,6 @@ bool GEOL_Container::removeEntity(GEOL_Entity *theEntity) {
 	}
 
 	return ret;
-
-/*
-	if (!theEntity)
-		return false;
-
-	if (*mEntityIt != theEntity) {
-		for (mEntityIt = pEntityList.begin() ; mEntityIt != pEntityList.end() && *mEntityIt != theEntity ; mEntityIt++) {}
-	}
-
-	if (mEntityIt == pEntityList.end()) {
-		return false;
-	}
-	else {
-		GEOL_Entity *toDel = *mEntityIt;
-		pEntityList.remove(toDel);
-		if (!((GEOL_Object*)toDel) -> decRefCount()) {
-			if (!getContext() -> deleteObject((GEOL_Object*)toDel, true)) {
-				return false;
-			}
-		}
-	}
-	return true;*/
 }
 
 
@@ -142,24 +116,6 @@ bool GEOL_Container::detachEntity(GEOL_Entity *theEntity) {
 	}
 	
 	return ret;
-
-/*
-	if (!theEntity)
-		return false;
-
-	if (*mEntityIt != theEntity) {
-		for (mEntityIt = pEntityList.begin() ; mEntityIt != pEntityList.end() && *mEntityIt != theEntity ; mEntityIt++) {}
-	}
-
-	if (mEntityIt == pEntityList.end()) {
-		return false;
-	}
-	else {
-		GEOL_Entity *toDel = *mEntityIt;
-		((GEOL_Object*)toDel) -> decRefCount();
-		pEntityList.remove(toDel);
-	}
-	return true; */
 }
 
 
@@ -184,12 +140,11 @@ void GEOL_Container::removeAllEntities() {
 }
 
 
-
 /*!
 Get the next of a given entitiy in the list
 
 \param theEntity
-Entity from wich get the next
+Entity from which get the next
 
 \return
 The next entity of theEntity in the list, or NULL if theEntity is NULL, is the last entity in the list, or it is not
@@ -213,12 +168,11 @@ GEOL_Entity* GEOL_Container::getNextEntity(const GEOL_Entity *theEntity) const {
 }
 
 
-
 /*!
 Get the previous of a given entitiy in the list
 
 \param theEntity
-Entity from wich get the previous
+Entity from which get the previous
 
 \return
 The previous entity of theEntity in the list, or NULL if theEntity is NULL, is the first entity in the list, or it is not
@@ -242,11 +196,9 @@ GEOL_Entity* GEOL_Container::getPrevEntity(const GEOL_Entity *theEntity) const {
 }
 
 
-
-
 /*!
 Add a new container to the containers list, and increment the reference counter of the container added.
-If the container ir already contained or originates a cycle don't add and return false
+If the container is already contained or originates a cycle don't add and return false
 
 \param theNewContainer
 Container to add
@@ -272,7 +224,6 @@ bool GEOL_Container::addContainer(GEOL_Container *theNewContainer) {
 	
 	return true;
 }
-
 
 
 /*!
@@ -305,29 +256,7 @@ bool GEOL_Container::removeContainer(GEOL_Container *theContainer) {
 	}
 	
 	return ret;
-/*	if (!theContainer)
-		return false;
-
-	if (*mContainerIt != theContainer) {
-		for (mContainerIt = pContainerList.begin() ; mContainerIt != pContainerList.end() && *mContainerIt != theContainer ; mContainerIt++) {}
-	}
-
-	if (mContainerIt == pContainerList.end()) {
-		return false;
-	}
-	else {
-		GEOL_Container *toDel = *mContainerIt;
-		pContainerList.remove(toDel);
-		if (!((GEOL_Object*)toDel) -> decRefCount()) {
-			if (!getContext() -> deleteObject((GEOL_Object*)toDel, true)) {
-				return false;
-			}
-		}
-	}
-	
-	return true;*/
 }
-
 
 
 /*!
@@ -359,23 +288,6 @@ bool GEOL_Container::detachContainer(GEOL_Container *theContainer) {
 	}
 	
 	return ret;
-/*	if (!theContainer)
-		return false;
-	
-	if (*mContainerIt != theContainer) {
-		for (mContainerIt = pContainerList.begin() ; mContainerIt != pContainerList.end() && *mContainerIt != theContainer ; mContainerIt++) {}
-	}
-
-	if (mContainerIt == pContainerList.end()) {
-		return false;
-	}
-	else {
-		GEOL_Container *toDel = *mContainerIt;
-		((GEOL_Object*)toDel) -> decRefCount();
-		pContainerList.remove(toDel);
-	}
-	
-	return true;*/
 }
 
 
@@ -403,7 +315,7 @@ void GEOL_Container::removeAllContainers() {
 Get the next of a given container in the list
 
 \param theContainer
-Container from wich get the next
+Container from which get the next
 
 \return
 The next container of theContainer in the list, or NULL if theContainer is NULL, is the last container in the list, or it is not
@@ -427,12 +339,11 @@ GEOL_Container* GEOL_Container::getNextContainer(const GEOL_Container *theContai
 }
 
 
-
 /*!
 Get the previous of a given container in the list
 
 \param theContainer
-Container from wich get the previous
+Container from which get the previous
 
 \return
 The previous container of theContainer in the list, or NULL if theContainer is NULL, is the first container in the list, or it is not
@@ -457,6 +368,8 @@ GEOL_Container* GEOL_Container::getPrevContainer(const GEOL_Container *theContai
 
 
 /*!
+Check if an entity is contained in this
+
 \param theEntity
 The entity to search for into the entities list
 
@@ -544,8 +457,6 @@ bool GEOL_Container::checkForContainmentCycles() {
 }
 
 
-
-
 /*!
 \return
 The number of entities in the container
@@ -573,11 +484,24 @@ int GEOL_Container::getNumOfObjects() const {
 }
 
 
+/*!
+Set up a entities iterator
+
+\param theIterator
+On output contains the iterator at the beginning of entities list
+*/
 void GEOL_Container::setEntityIterator(std::list<GEOL_Entity*>::const_iterator &theIterator) const {
 	theIterator = pEntityList.begin();
 }
 
 
+/*!
+Check if the iterator has reached the end of entities list
+
+\return
+- true if theIterator has reached the end of entities list
+- false otherwise
+*/
 bool GEOL_Container::isEndOfEntities(std::list<GEOL_Entity*>::const_iterator &theIterator) const {
 	if (theIterator == pEntityList.end())
 		return true;
@@ -586,15 +510,69 @@ bool GEOL_Container::isEndOfEntities(std::list<GEOL_Entity*>::const_iterator &th
 }
 
 
+/*!
+Set up a container iterator
+
+\param theIterator
+On output contains the iterator at the beginning of containers list
+*/
 void GEOL_Container::setContainerIterator(std::list<GEOL_Container*>::const_iterator &theIterator) const {
 	theIterator = pContainerList.begin();
 }
 
 
+/*!
+Check if the iterator has reached the end of containers list
+
+\return
+- true if theIterator has reached the end of containers list
+- false otherwise
+*/
 bool GEOL_Container::isEndOfContainers(std::list<GEOL_Container*>::const_iterator &theIterator) const {
 	if (theIterator == pContainerList.end())
 		return true;
 	else
 		return false;
+}
+
+
+/*!
+Remove an object from the list of objects contained
+
+\param theObject
+Object that will be destroyed
+\param theDestroyFlag
+On output is true if the object notified has to be destroyed by the context, false otherwise
+
+\return
+- true if the notification is correctly carried out
+- false otherwise, or it theObject is NULL
+*/
+bool GEOL_Container::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) {
+	theDestroyFlag = false;
+	if (!theObject)
+		return false;
+	
+	bool ret = true;
+
+	list<GEOL_Container*>::const_iterator contIt;
+	for (contIt = pContainerList.begin() ; ret && contIt != pContainerList.end() ; ) {
+		GEOL_Container *cont = *contIt;
+		contIt++;
+		if ((GEOL_Object*)cont == theObject) {
+			ret = detachContainer(cont);
+		}
+	}
+	
+	list<GEOL_Entity*>::const_iterator entIt;
+	for (entIt = pEntityList.begin() ; ret && entIt != pEntityList.end() ; ) {
+		GEOL_Entity *ent = *entIt;
+		entIt++;
+		if ((GEOL_Object*)ent == theObject) {
+			ret = detachEntity(ent);
+		}
+	}
+
+	return ret;
 }
 

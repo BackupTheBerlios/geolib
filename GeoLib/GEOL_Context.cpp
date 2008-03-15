@@ -15,9 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "GEOL_Prefix.h"
 
-#include "GEOL_Object.h"
+#include "GEOL_Prefix.h"
 
 #include "GEOL_Point.h"
 #include "GEOL_Segment.h"
@@ -49,6 +48,15 @@ The destructor remove and destroy all the objects of the context
 */
 GEOL_Context::~GEOL_Context() {
 	removeAllObjects();
+}
+
+
+/*!
+\return
+Number of objects in the context
+*/
+int GEOL_Context::getSize() {
+	return pObjectList.size();
 }
 
 
@@ -86,7 +94,7 @@ GEOL_Point* GEOL_Context::createPoint(double theXCoord, double theYCoord) {
 
 
 /*!
-Create a copy of the point passed
+Create a copy of a point
 
 \param thePoint
 Point to copy
@@ -125,7 +133,7 @@ Begin point of the segment
 End point of the segment
 
 \return
-The pointer to the new segment
+The pointer to the new segment, or NULL if begin and end points are equal
 */
 GEOL_Segment* GEOL_Context::createSegment(const GEOL_Point& theBeginPoint, const GEOL_Point& theEndPoint) {
 	if (theBeginPoint == theEndPoint) {
@@ -144,7 +152,6 @@ GEOL_Segment* GEOL_Context::createSegment(const GEOL_Point& theBeginPoint, const
 }
 
 
-
 /*!
 Create a new segment with the extreme points provided
 
@@ -154,7 +161,7 @@ Begin point of the segment
 End point of the segment
 
 \return
-The pointer to the new segment
+The pointer to the new segment, or NULL if begin and end points are equal or points hat too high reference count
 */
 GEOL_Segment* GEOL_Context::createSegment(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint) {
 	if ((*theBeginPoint) == (*theEndPoint)) {
@@ -207,6 +214,9 @@ Vertical coordinate of the segment start point
 Horizontal coordinate of the segment end point
 \param theYEnd
 Vertical coordinate of the segment end point
+
+\return
+The pointer to the new segment, or NULL if begin and end points are equal
 */
 GEOL_Segment* GEOL_Context::createSegment(double theXStart, double theYStart, double theXEnd, double theYEnd) {
 	GEOL_Point *beginPoint = new GEOL_Point(theXStart, theYStart);
@@ -255,9 +265,9 @@ Radius of the arc
 Versus of the new arc (colckwise or counterclockwise)
 
 \return
-The pointer to the new arc
+The pointer to the new arc, or NULL if begin and end points are equal or rafis is too short
 */
-GEOL_Arc* GEOL_Context::createArc(const GEOL_Point& theBeginPoint, const GEOL_Point& theEndPoint, double theRadius, GEOL_ArcVersus theVersus) {
+GEOL_Arc* GEOL_Context::createArc(const GEOL_Point& theBeginPoint, const GEOL_Point& theEndPoint, double theRadius, GEOL_Arc::GEOL_ArcVersus theVersus) {
 	double halfPointDist = theBeginPoint.pointDistance(theEndPoint) / 2.0;
 	if (theBeginPoint == theEndPoint || (theRadius < halfPointDist && fabs(theRadius - halfPointDist) > GEOL_EQUAL_DIST)) {
 		return NULL;
@@ -297,7 +307,6 @@ GEOL_Arc* GEOL_Context::createArc(const GEOL_Arc& theArc) {
 }
 
 
-
 /*!
 Create a new arc with the specified coordinates, radius and versus
 
@@ -315,9 +324,9 @@ Radius of the arc
 Versus of the new arc (colckwise or counterclockwise)
 
 \return
-The pointer to the new arc
+The pointer to the new arc, or NULL if begin and end points are equal or rafis is too short
 */
-GEOL_Arc* GEOL_Context::createArc(double theXStart, double theYStart, double theXEnd, double theYEnd, double theRadius, GEOL_ArcVersus theVersus) {
+GEOL_Arc* GEOL_Context::createArc(double theXStart, double theYStart, double theXEnd, double theYEnd, double theRadius, GEOL_Arc::GEOL_ArcVersus theVersus) {
 	GEOL_Point *beginPoint = new GEOL_Point(theXStart, theYStart);
 	GEOL_Point *endPoint = new GEOL_Point(theXEnd, theYEnd);
 
@@ -347,9 +356,9 @@ The pointer to the new profile
 GEOL_Profile* GEOL_Context::createProfile() {
 	GEOL_Profile *newProfile = new GEOL_Profile();
 	addObject((GEOL_Object*)newProfile);
+	
 	return newProfile;
 }
-
 
 
 /*!
@@ -359,7 +368,7 @@ Create a copy of the profile provided
 Profile to copy
 
 \return
-The pointer to the new profile, if the copy succeed, NULL otherwise
+The pointer to the new profile if the copy succeed, NULL otherwise
 */	
 GEOL_Profile* GEOL_Context::createProfile(const GEOL_Profile& theProfile) {
 	GEOL_Profile *newProfile = createProfile();
@@ -393,7 +402,6 @@ GEOL_Profile* GEOL_Context::createProfile(const GEOL_Profile& theProfile) {
 }
 
 
-
 /*!
 Create a new empty poliprofile
 
@@ -403,9 +411,9 @@ The pointer to the new poliprofile
 GEOL_PoliProfile* GEOL_Context::createPoliProfile() {
 	GEOL_PoliProfile *newPoliProfile = new GEOL_PoliProfile();
 	addObject((GEOL_Object*)newPoliProfile);
+	
 	return newPoliProfile;
 }
-
 
 
 /*!
@@ -415,7 +423,7 @@ Create a copy of the poliprofile provided
 Poliprofile to copy
 
 \return
-The pointer to the new poliprofile, if the copy succeed, NULL otherwise
+The pointer to the new poliprofile if the copy succeed, NULL otherwise
 */
 GEOL_PoliProfile* GEOL_Context::createPoliProfile(const GEOL_PoliProfile& thePoliProfile) {
 	GEOL_PoliProfile *newPoliProfile = createPoliProfile();
@@ -437,7 +445,7 @@ GEOL_PoliProfile* GEOL_Context::createPoliProfile(const GEOL_PoliProfile& thePol
 			}
 		}
 		else if (container -> isPoliProfile()) {
-			GEOL_PoliProfile *newPoli = createPoliProfile(*((GEOL_PoliProfile*)container));
+			GEOL_PoliProfile *newPoli = createPoliProfile(*((GEOL_PoliProfile*)container)); // WARNING recursive call
 			if (newPoli) {
 				addContainerFlag = newPoliProfile -> addContainer(newPoli);
 				if (!addContainerFlag) {
@@ -483,7 +491,6 @@ GEOL_PoliProfile* GEOL_Context::createPoliProfile(const GEOL_PoliProfile& thePol
 	
 	return newPoliProfile;
 }
-
 
 
 /*!
@@ -549,7 +556,6 @@ GEOL_Object* GEOL_Context::getFirstObject() {
 		return NULL;
 	}
 	else {
-		//objectIt = pObjectList.begin();
 		return pObjectList.front();
 	}
 }
@@ -564,7 +570,6 @@ GEOL_Object* GEOL_Context::getLastObject() {
 		return NULL;
 	}
 	else {
-		//objectIt = pObjectList.end();
 		return pObjectList.back();
 	}
 }
@@ -574,10 +579,10 @@ GEOL_Object* GEOL_Context::getLastObject() {
 Get the next of the specified object in the objects list
 
 \theObject
-Object from wich get the next
+Object from which get the next
 
 \return
-The next of theObject within the objects list, or NULL if theObject dosent belong to the list or is the last element
+The next of theObject within the objects list, or NULL if theObject doesn't belong to the list or is the last element
 */
 GEOL_Object* GEOL_Context::getNextObject(const GEOL_Object *theObject) {
 	GEOL_Object *ret = NULL;
@@ -594,20 +599,6 @@ GEOL_Object* GEOL_Context::getNextObject(const GEOL_Object *theObject) {
 	}
 	
 	return ret;
-	/*if (*objectIt != theObject) {
-		for (objectIt = pObjectList.begin() ; objectIt != pObjectList.end() && *objectIt != theObject ; objectIt++) {}
-	}
-
-	GEOL_Object *ret = NULL;
-
-	if (objectIt != pObjectList.end()) {
-		objectIt++;
-		if (objectIt != pObjectList.end()) {
-			ret = *objectIt;
-		}
-	}
-
-	return ret;*/
 }
 
 
@@ -615,11 +606,10 @@ GEOL_Object* GEOL_Context::getNextObject(const GEOL_Object *theObject) {
 Get the previous of the specified object in the objects list
 
 \theObject
-Object from wich get the previous
+Object from which get the previous
 
 \return
 The previous of theObject within the objects list, or NULL if theObject dosent belong to the list or is the first element
-
 */
 GEOL_Object* GEOL_Context::getPrevObject(const GEOL_Object *theObject) {
 	GEOL_Object *ret = NULL;
@@ -635,30 +625,28 @@ GEOL_Object* GEOL_Context::getPrevObject(const GEOL_Object *theObject) {
 		}
 	}
 	
-	return ret;
-	
-	/*if (*objectIt != theObject) {
-		for (objectIt = pObjectList.begin() ; objectIt != pObjectList.end() && *objectIt != theObject ; objectIt++) {}
-	}
-
-	GEOL_Object *ret = NULL;
-
-	if (objectIt != pObjectList.end()) {
-		if (objectIt != pObjectList.begin()) {
-			objectIt--;
-			ret = *objectIt;
-		}		
-	}
-
-	return ret;*/
+	return ret;	
 }
 
 
+/*!
+Set up a objects iterator
+
+\param theIterator
+On output contains the iterator at the beginning of objects list
+*/
 void GEOL_Context::setObjectIterator(std::list<GEOL_Object*>::const_iterator &theIterator) const {
 	theIterator = pObjectList.begin();
 }
 
 
+/*!
+Check if the iterator has reached the end of objects list
+
+\return
+- true if theIterator has reached the end of objects list
+- false otherwise
+*/
 bool GEOL_Context::isEndOfObjects(std::list<GEOL_Object*>::const_iterator &theIterator) const {
 	if (theIterator == pObjectList.end())
 		return true;
@@ -938,7 +926,6 @@ bool GEOL_Context::deletePoliProfile(GEOL_PoliProfile *thePoliProfile, bool theN
 }
 
 
-
 /*!
 Find the container of a given entity
 
@@ -968,8 +955,6 @@ GEOL_Object* GEOL_Context::getEntityContainer(const GEOL_Object *theEntity) cons
 }
 
 
-
-
 /*!
 Find the container of another container
 
@@ -997,8 +982,6 @@ GEOL_Object* GEOL_Context::getParentContainer(const GEOL_Object *theContainer) c
 	
 	return ret;
 }
-
-
 
 
 /*!
@@ -1085,11 +1068,11 @@ bool GEOL_Context::loadContext(ifstream *theStream) {
 	bool ret = !theStream -> bad();
 	if (ret) {
 		while (ret && !theStream -> eof()) {
-			GEOL_ObjectType objType = geol_Point;
+			GEOL_Object::GEOL_ObjectType objType = GEOL_Object::geol_Point;
 			ret = loadBinaryObjectType(theStream, objType);
 			if (ret && !theStream -> eof()) {
 				switch (objType) {
-					case geol_Point:
+					case GEOL_Object::geol_Point:
 						{
 							GEOL_Point *newPoint = createPoint(0.0, 0.0);
 							if (newPoint) {
@@ -1100,7 +1083,7 @@ bool GEOL_Context::loadContext(ifstream *theStream) {
 							}
 						}
 						break;
-					case geol_Segment:
+					case GEOL_Object::geol_Segment:
 						{
 							GEOL_Segment *newSegment = createSegment();
 							if (newSegment) {
@@ -1111,7 +1094,7 @@ bool GEOL_Context::loadContext(ifstream *theStream) {
 							}
 						}
 						break;
-					case geol_Arc:
+					case GEOL_Object::geol_Arc:
 						{
 							GEOL_Arc *newArc = createArc();
 							if (newArc) {
@@ -1122,7 +1105,7 @@ bool GEOL_Context::loadContext(ifstream *theStream) {
 							}
 						}
 						break;
-					case geol_Profile:
+					case GEOL_Object::geol_Profile:
 						{
 							GEOL_Profile *newProfile = createProfile();
 							if (newProfile) {
@@ -1133,7 +1116,7 @@ bool GEOL_Context::loadContext(ifstream *theStream) {
 							}
 						}
 						break;
-					case geol_PoliProfile:
+					case GEOL_Object::geol_PoliProfile:
 						{
 							GEOL_PoliProfile *newPoliProfile = createPoliProfile();
 							if (newPoliProfile) {
@@ -1158,7 +1141,7 @@ bool GEOL_Context::loadContext(ifstream *theStream) {
 /*!
 Read the type of the next object to read from the input stream
 
-\param theStram
+\param theStream
 Input stream
 \param theObjectType
 On output contains the type of the next object to read
@@ -1167,7 +1150,7 @@ On output contains the type of the next object to read
 - true if the object type is readed successfully
 - false otherwise (streame becomes bad)
 */
-bool GEOL_Context::loadBinaryObjectType(ifstream *theStream, GEOL_ObjectType& theObjectType) {
+bool GEOL_Context::loadBinaryObjectType(ifstream *theStream, GEOL_Object::GEOL_ObjectType& theObjectType) {
 	if (!theStream)
 		return false;
 
@@ -1175,7 +1158,7 @@ bool GEOL_Context::loadBinaryObjectType(ifstream *theStream, GEOL_ObjectType& th
 	if (ret) {
 		int objType = 0;
 		theStream -> read((char*)(&objType), sizeof(int));
-		theObjectType = (GEOL_ObjectType)objType;
+		theObjectType = (GEOL_Object::GEOL_ObjectType)objType;
 	
 		ret = !theStream -> bad();
 	}
@@ -1220,7 +1203,18 @@ bool GEOL_Context::loadContextISO(ifstream *theStream) {
 	if (!theStream)
 		return false;
 
-	return false;
+	bool ret = true;
+
+	removeAllObjects();
+	GEOL_PoliProfile *poliProfile = createPoliProfile();
+	if (poliProfile) {
+		ret = poliProfile -> LoadISO(theStream);
+		if (!ret) {
+			removeAllObjects();
+		}
+	}
+	
+	return ret;
 }
 
 

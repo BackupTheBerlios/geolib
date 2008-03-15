@@ -66,7 +66,7 @@ GEOL_Point::GEOL_Point(const GEOL_Point& thePoint) : GEOL_Entity() {
 
 
 /*!
-Compute the distance between this point and the point passed as parameter
+Compute the distance between this point and the point specified as a parameter
 
 \param thePoint
 The point to compute the distance with
@@ -75,10 +75,7 @@ The point to compute the distance with
 The distance between this point and thePoint
 */
 double GEOL_Point::pointDistance(const GEOL_Point& thePoint) const {
-	double deltaX = fabs(mBegin - thePoint.x());
-	double deltaY = fabs(mEnd - thePoint.y());
-	
-	return sqrt(deltaX*deltaX + deltaY*deltaY);
+	return pointDistance(thePoint.x(), thePoint.y());
 }
 
 
@@ -88,6 +85,16 @@ double GEOL_Point::pointDistance(const GEOL_Point& thePoint) const {
 */
 double GEOL_Point::pointDistance(const GEOL_Point* thePoint) const {
 	return pointDistance(*thePoint);
+}
+
+
+/*!
+*/
+double GEOL_Point::pointDistance(double theXCoord, double theYCoord) const {
+	double deltaX = fabs(mBegin - theXCoord);
+	double deltaY = fabs(mEnd - theYCoord);
+	
+	return sqrt(deltaX*deltaX + deltaY*deltaY);
 }
 
 
@@ -115,7 +122,7 @@ double GEOL_Point::angle() const {
 
 /*!
 \return
-The angle between x axis and the segment from origin passed as parameter to the point
+The angle between x axis and the segment from origin specified as a parameter to the point
 */
 double GEOL_Point::angle(const GEOL_Point* theOrigin) const {
 	double xPoint = mBegin - theOrigin -> x();
@@ -127,7 +134,7 @@ double GEOL_Point::angle(const GEOL_Point* theOrigin) const {
 
 /*!
 \return
-The angle between x axis and the segment from origin passed as parameter to the point
+The angle between x axis and the segment from origin specified as a parameter to the point
 */
 double GEOL_Point::angle(double theXOrigin, double theYOrigin) const {
 	double xPoint = mBegin - theXOrigin;
@@ -209,7 +216,7 @@ bool GEOL_Point::isNormal(const GEOL_Point& thePoint) const {
 
 /*!
 \return
-- ture if the segment from origin to this is at lef of the segment from origin to thePoint
+- ture if the segment from origin to this is at left of the segment from origin to thePoint
 - false otherwise
 */
 bool GEOL_Point::isAtLeft(const GEOL_Point& thePoint) const {
@@ -230,7 +237,7 @@ GEOL_Quadrant GEOL_Point::quadrant() const {
 
 /*!
 \return
-The quadrant of the point, respect to the passed origin
+The quadrant of the point, respect to the specified origin point
 */
 GEOL_Quadrant GEOL_Point::quadrant(double theXOrigin, double theYOrigin) const {
 	GEOL_Quadrant ret = geol_TopRight;
@@ -388,7 +395,7 @@ bool GEOL_Point::SaveBinary(ofstream *theStream) {
 	if (ret) {
 		GEOL_AttributeValue attrVal;
 		attrVal.GEOL_AttrVoidValue = NULL;
-		addAttribute(attrVal, GEOL_AttrVoid, GEOL_ID_SAVED);
+		addAttribute(attrVal, GEOL_Attribute::GEOL_AttrVoid, GEOL_ID_SAVED);
 	}
 
 	return ret;

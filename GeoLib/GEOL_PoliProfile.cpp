@@ -27,7 +27,6 @@
 #include "GEOL_PoliProfile.h"
 
 
-
 GEOL_PoliProfile::GEOL_PoliProfile() {
 	mObjType = geol_PoliProfile;
 }
@@ -35,48 +34,6 @@ GEOL_PoliProfile::GEOL_PoliProfile() {
 
 GEOL_PoliProfile::~GEOL_PoliProfile() {
 }
-
-
-/*!
-Remove the object passed from the list of object contained
-
-\param theObject
-Object that will be destroyed
-\param theDestroyFlag
-On output is true if the object notified has to be destroyed by the context, false otherwise
-
-\return
-- true if the notification is correctly carried out
-- false otherwise, or it theObject is NULL
-*/
-bool GEOL_PoliProfile::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) {
-	theDestroyFlag = false;
-	if (!theObject)
-		return false;
-	
-	bool ret = true;
-	
-	list<GEOL_Container*>::const_iterator contIt;
-	for (contIt = pContainerList.begin() ; ret && contIt != pContainerList.end() ; ) {
-		GEOL_Container *cont = *contIt;
-		contIt++;
-		if ((GEOL_Object*)cont == theObject) {
-			ret = detachContainer(cont);
-		}
-	}
-	
-	list<GEOL_Entity*>::const_iterator entIt;
-	for (entIt = pEntityList.begin() ; ret && entIt != pEntityList.end() ; ) {
-		GEOL_Entity *ent = *entIt;
-		entIt++;
-		if ((GEOL_Object*)ent == theObject) {
-			ret = detachEntity(ent);
-		}
-	}
-	
-	return ret;
-}
-
 
 
 /*!
@@ -98,7 +55,6 @@ bool GEOL_PoliProfile::addProfile(GEOL_Profile *theNewProfile) {
 }
 
 
-
 /*!
 Remove a profile from the poliprofile, the profile is destroyed if its reference counter is 0
 
@@ -118,7 +74,6 @@ bool GEOL_PoliProfile::removeProfile(GEOL_Profile *theProfile) {
 }
 
 
-
 /*!
 Detach a profile from the poliprofile, the profile is NOT destroyed, just detached from the list
 
@@ -136,7 +91,6 @@ bool GEOL_PoliProfile::detachProfile(GEOL_Profile *theProfile) {
 	invalidateBBox();
 	return detachContainer(theProfile);
 }
-
 
 
 /*!
@@ -163,6 +117,16 @@ GEOL_BBox GEOL_PoliProfile::getBBox() {
 }
 
 
+/*!
+Load the poliprofile from a binary file
+
+\param theStream
+Binary file
+
+\return
+- true if the load operation succeed
+- false otherwise
+*/
 bool GEOL_PoliProfile::LoadBinary(ifstream *theStream) {
 	if (!theStream)
 		return false;
@@ -171,12 +135,17 @@ bool GEOL_PoliProfile::LoadBinary(ifstream *theStream) {
 	if (ret) {
 		GEOL_Context *context = getContext();
 
+		// Read the number of containers
 		int containersNum = 0;
 		theStream -> read((char*)(&containersNum), sizeof(int));
+
 		GEOL_Container *newContainer = NULL;
 		for (int i = 0 ; i < containersNum && ret ; i++) {
+			
+			// Read the container type
 			GEOL_ObjectType objType = geol_Point;
 			ret = getContext() -> loadBinaryObjectType(theStream, objType);
+			
 			if (ret) {
 				switch(objType) {
 					case geol_PoliProfile:
@@ -191,7 +160,7 @@ bool GEOL_PoliProfile::LoadBinary(ifstream *theStream) {
 					case geol_Profile:
 						{
 							GEOL_Profile *profile = context -> createProfile();
-							ret = ((GEOL_Entity*)profile) -> LoadBinary(theStream);
+							ret = ((GEOL_Object*)profile) -> LoadBinary(theStream);
 							if (ret) {
 								newContainer = profile;
 							}
@@ -206,12 +175,18 @@ bool GEOL_PoliProfile::LoadBinary(ifstream *theStream) {
 			}
 		}
 		if (ret) {
+
+			// Read the number of entities
 			int entitiesNum = 0;
 			theStream -> read((char*)(&entitiesNum), sizeof(int));
+
 			GEOL_Entity *newEntity = NULL;
 			for (int i = 0 ; i < entitiesNum && ret ; i++) {
+				
+				// Read the entity type
 				GEOL_ObjectType objType = geol_Point;
 				ret = getContext() -> loadBinaryObjectType(theStream, objType);
+
 				if (ret) {
 					switch(objType) {
 						case geol_Point:
@@ -249,6 +224,8 @@ bool GEOL_PoliProfile::LoadBinary(ifstream *theStream) {
 					ret = addEntity(newEntity);
 				}
 			}
+
+			// Read the entity attributes
 			ret = laodBinaryObjectAttributes(theStream);		
 		}
 	}
@@ -259,6 +236,17 @@ bool GEOL_PoliProfile::LoadBinary(ifstream *theStream) {
 	return ret;
 }
 
+
+/*!
+Save the poliprofile in a binary file
+
+\param theStream
+Binary file
+
+\return
+- true if the save operation succeed
+- false otherwise
+*/
 bool GEOL_PoliProfile::SaveBinary(ofstream *theStream) {
 	if (!theStream)
 		return false;
@@ -290,18 +278,51 @@ bool GEOL_PoliProfile::SaveBinary(ofstream *theStream) {
 	
 	GEOL_AttributeValue attrVal;
 	attrVal.GEOL_AttrVoidValue = NULL;
-	addAttribute(attrVal, GEOL_AttrVoid, GEOL_ID_SAVED);
+	addAttribute(attrVal, GEOL_Attribute::GEOL_AttrVoid, GEOL_ID_SAVED);
 
 	return ret;
 }
 
+
+/*!
+Load a poliprofile from an ISO file
+
+\param theStream
+ISO file
+
+\return
+- true if the load operation succeed
+- false otherwise
+*/
 bool GEOL_PoliProfile::LoadISO(ifstream *theStream) {
 	if (!theStream)
 		return false;
 
-	return false;
+	bool ret = true;
+	GEOL_Context *context = getContext();
+	
+	while (ret && !theStream -> eof()) {
+		GEOL_Profile *profile = context -> createProfile();
+		ret = ((GEOL_Object*)profile) -> LoadISO(theStream);
+		if (ret) {
+			ret = addProfile(profile);
+		}
+	}
+	
+	return ret;
 }
 
+
+/*!
+Save the poliprofile in ISO format on a file
+
+\param theStream
+ISO file
+
+\return
+- true if the save operation succeed
+- false otherwise
+*/
 bool GEOL_PoliProfile::SaveISO(ofstream *theStream) {
 	if (!theStream)
 		return false;

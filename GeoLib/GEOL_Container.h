@@ -15,12 +15,15 @@
  *                                                                         *
  ***************************************************************************/
 
+
 #ifndef GEOL_CONTAINER_H
 #define GEOL_CONTAINER_H
 
 #include "GEOL_Object.h"
 
+
 class GEOL_Entity;
+
 
 /*!
 Abstract class for geometrical containers, primitive geometrical objects are grouped together to form up other
@@ -28,7 +31,7 @@ objects such as polygons, this class manage the relationship between containers 
 be entities or other containers.
 */
 class GEOL_Container : public GEOL_Object {
-friend class TestBasicIntegrity;
+friend class TestBasicIntegrity;		// Required for testing class
 public:
 	GEOL_Container();
 	virtual ~GEOL_Container();
@@ -51,7 +54,7 @@ public:
 	bool isContained(const GEOL_Entity *theEntity) const;
 	bool isContained(const GEOL_Container *theContainer) const;
 	
-	virtual bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) = 0;
+	bool notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag);
 
 	void setEntityIterator(std::list<GEOL_Entity*>::const_iterator &theIterator) const;
 	bool isEndOfEntities(std::list<GEOL_Entity*>::const_iterator &theIterator) const;
@@ -91,7 +94,6 @@ inline GEOL_Entity* GEOL_Container::getFirstEntity() const {
 		return NULL;
 	}
 	else {
-		//mEntityIt = pEntityList.begin();
 		return pEntityList.front();
 	}
 }
@@ -106,7 +108,6 @@ inline GEOL_Entity* GEOL_Container::getLastEntity() const {
 		return NULL;
 	}
 	else {
-		//mEntityIt = pEntityList.end();
 		return pEntityList.back();
 	}
 }
@@ -121,7 +122,6 @@ inline GEOL_Container* GEOL_Container::getFirstContainer() const {
 		return NULL;
 	}
 	else {
-		//mContainerIt = pContainerList.begin();
 		return pContainerList.front();
 	}
 }
@@ -136,7 +136,6 @@ inline GEOL_Container* GEOL_Container::getLastContainer() const {
 		return NULL;
 	}
 	else {
-		//mContainerIt = pContainerList.end();
 		return pContainerList.back();
 	}
 }

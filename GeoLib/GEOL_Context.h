@@ -19,12 +19,16 @@
 #ifndef GEOL_CONTEXT_H
 #define GEOL_CONTEXT_H
 
-class GEOL_Object;
+
+#include "GEOL_Object.h"
+#include "GEOL_Arc.h"
+
+
 class GEOL_Point;
 class GEOL_Segment;
-class GEOL_Arc;
 class GEOL_Profile;
 class GEOL_PoliProfile;
+
 
 /*!
 The context is "the world" of geometrical objects, all objects belongs to a context and objects in
@@ -51,9 +55,9 @@ public:
 	GEOL_Segment* createSegment(double theXStart, double theYStart, double theXEnd, double theYEnd);
 	
 	GEOL_Arc* createArc();
-	GEOL_Arc* createArc(const GEOL_Point& theBeginPoint, const GEOL_Point& theEndPoint, double theRadius, GEOL_ArcVersus theVersus);
+	GEOL_Arc* createArc(const GEOL_Point& theBeginPoint, const GEOL_Point& theEndPoint, double theRadius, GEOL_Arc::GEOL_ArcVersus theVersus);
 	GEOL_Arc* createArc(const GEOL_Arc& theArc);
-	GEOL_Arc* createArc(double theXStart, double theYStart, double theXEnd, double theYEnd, double theRadius, GEOL_ArcVersus theVersus);
+	GEOL_Arc* createArc(double theXStart, double theYStart, double theXEnd, double theYEnd, double theRadius, GEOL_Arc::GEOL_ArcVersus theVersus);
 	
 	GEOL_Profile* createProfile();
 	GEOL_Profile* createProfile(const GEOL_Profile& theProfile);
@@ -85,23 +89,22 @@ public:
 	
 	GEOL_Object* getEntityContainer(const GEOL_Object *theEntity) const;
 	GEOL_Object* getParentContainer(const GEOL_Object *theContainer) const;
+	int getSize();
 		
-	//*************
-	//* Persistency
-	//*************
+	//**********************
+	//* Persistency (binary)
+	//**********************
 
 	bool saveContext(ofstream *theStream);
 	bool loadContext(ifstream *theStream);
-	bool loadBinaryObjectType(ifstream *theStream, GEOL_ObjectType& theObjectType);
+	bool loadBinaryObjectType(ifstream *theStream, GEOL_Object::GEOL_ObjectType& theObjectType);
 	
+	//*******************
+	//* Persistency (ISO)
+	//*******************
+
 	bool saveContextISO(ofstream *theStream);
 	bool loadContextISO(ifstream *theStream);
-
-	/*!
-	\return
-	Number of objects in the context
-	*/
-	int getSize() { return pObjectList.size(); }
 	
 private:
 	bool addObject(GEOL_Object *theNewObject);

@@ -18,6 +18,7 @@
 
 #include "GEOL_Prefix.h"
 
+#include "GEOL_Point.h"
 #include "GEOL_BBox.h"
 
 
@@ -33,7 +34,6 @@ GEOL_BBox::GEOL_BBox() {
 }
 
 
-
 /*!
 */
 GEOL_BBox::GEOL_BBox(double theMinX, double theMinY, double theMaxX, double theMaxY) {
@@ -43,7 +43,6 @@ GEOL_BBox::GEOL_BBox(double theMinX, double theMinY, double theMaxX, double theM
 	mMaxY = theMaxY;
 	checkValidity();
 }
-
 
 
 /*!
@@ -58,7 +57,6 @@ GEOL_BBox::GEOL_BBox(const GEOL_BBox& theBBox) {
 }
 
 
-
 /*!
 Default destructor
 */
@@ -71,12 +69,11 @@ GEOL_BBox::~GEOL_BBox() {
 }
 
 
-
 /*!
 Set the maximum x limit of the bounding box and check its validity
 
 \param theMaxX
-The neu maximum x limit of the bounding box
+The new maximum x limit of the bounding box
 */
 void GEOL_BBox::setMaxX(double theMaxX) {
 	mMaxX = theMaxX;
@@ -84,12 +81,11 @@ void GEOL_BBox::setMaxX(double theMaxX) {
 }
 
 
-
 /*!
 Set the maximum y limit of the bounding box and check its validity
 
 \param theMaxY
-The neu maximum y limit of the bounding box
+The new maximum y limit of the bounding box
 */
 void GEOL_BBox::setMaxY(double theMaxY) {
 	mMaxY = theMaxY;
@@ -97,12 +93,11 @@ void GEOL_BBox::setMaxY(double theMaxY) {
 }
 
 
-
 /*!
 Set the minimum x limit of the bounding box and check its validity
 
 \param theMinX
-The neu minimum x limit of the bounding box
+The new minimum x limit of the bounding box
 */
 void GEOL_BBox::setMinX(double theMinX) {
 	mMinX = theMinX;
@@ -110,18 +105,16 @@ void GEOL_BBox::setMinX(double theMinX) {
 }
 
 
-
 /*!
 Set the minimum y limit of the bounding box and check its validity
 
 \param theMinY
-The neu minimum y limit of the bounding box
+The new minimum y limit of the bounding box
 */
 void GEOL_BBox::setMinY(double theMinY) {
 	mMinY = theMinY;
 	checkValidity();
 }
-
 
 
 /*!
@@ -161,7 +154,6 @@ double GEOL_BBox::area() const {
 }
 
 
-
 /*!
 Assignment operator
 */
@@ -174,7 +166,6 @@ GEOL_BBox& GEOL_BBox::operator=(const GEOL_BBox& theBBox) {
 
 	return *this;
 }
-
 
 
 /*!
@@ -192,9 +183,8 @@ bool GEOL_BBox::operator==(const GEOL_BBox& theBBox) const {
 }
 
 
-
 /*!
-Compute the union of this bounding box and the bounding box passed
+Compute the union of this bounding box and the bounding box specified
 
 \param theBBox
 Bounding box to unify with this
@@ -234,6 +224,79 @@ const GEOL_BBox GEOL_BBox::operator+(const GEOL_BBox& theBBox) const {
 }
 
 
+/*!
+Compute the intersection of this bounding box against the bounding box specified
+
+\param theBBox
+Bounding box to intersect
+
+\return
+The intersection of this and theBBox
+*/
+GEOL_BBox GEOL_BBox::intersect(const GEOL_BBox& theBBox) const {
+	GEOL_BBox ret;
+	if (isIntersected(theBBox)) {
+		ret.setMinX(theBBox.getMinX() > mMinX ? theBBox.getMinX() : mMinX);
+		ret.setMaxX(theBBox.getMaxX() < mMaxX ? theBBox.getMaxX() : mMaxX);
+		ret.setMinY(theBBox.getMinY() > mMinY ? theBBox.getMinY() : mMinY);
+		ret.setMaxY(theBBox.getMaxY() < mMaxY ? theBBox.getMaxY() : mMaxY);
+	}
+	
+	return ret;
+}
 
 
+/*!
+Intersection check between this and another bounding box
+
+\param theBBox
+Bounding box to check
+
+\return
+- true if this and theBBox intersects
+- false otherwise
+*/
+bool GEOL_BBox::isIntersected(const GEOL_BBox& theBBox) const {
+	bool ret = true;
+	if (theBBox.getMinX() > mMaxX || theBBox.getMaxX() < mMinX || theBBox.getMinY() > mMaxY || theBBox.getMaxY() < mMinY) {
+		ret = false;
+	}
+	
+	return ret;
+}
+
+
+/*!
+Containment check of a point in this bounding box
+
+\param theXCoord
+X coord of the point to check
+\param theYCoord
+Y coord of the point to check
+
+\return
+- true if this contains thePoint
+- false otherwise
+*/
+bool GEOL_BBox::isPointInBBox(double theXCoord, double theYCoord) const {
+	if (theXCoord >= mMinX && theXCoord <= mMaxX && theYCoord >= mMinY && theYCoord <= mMaxY)
+		return true;
+	else
+		return false;
+}
+
+
+/*!
+Containment check of a point in this bounding box
+
+\param thePoint
+Point to check
+
+\return
+- true if this contains thePoint
+- false otherwise
+*/
+bool GEOL_BBox::isPointInBBox(const GEOL_Point& thePoint) const {
+	return isPointInBBox(thePoint.x(), thePoint.y());
+}
 

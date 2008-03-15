@@ -26,7 +26,6 @@
 #include "GEOL_Profile.h"
 
 
-
 GEOL_Profile::GEOL_Profile() {
 	mObjType = geol_Profile;
 }
@@ -171,15 +170,13 @@ bool GEOL_Profile::removeEdge(GEOL_Entity *theEntity, bool theReshapeFlag) {
 }
 
 
-
 /*!
 Remove all the edges from profile, destroy them if its reference counter is 0
 */
 void GEOL_Profile::removeAllEdges() {
-	return removeAllEntities();
 	invalidateBBox();
+	return removeAllEntities();
 }
-
 
 
 /*!
@@ -301,48 +298,6 @@ bool GEOL_Profile::releaseEdgeAndReshape(GEOL_Entity *theEntity, bool theReshape
 
 
 /*!
-Remove the object passed from the list of object contained
-
-\param theObject
-Object that will be destroyed
-\param theDestroyFlag
-On output is true if the object notified has to be destroyed by the context, false otherwise
-
-\return
-- true if the notification is correctly carried out
-- false otherwise, or it theObject is NULL
-*/
-bool GEOL_Profile::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFlag) {
-	theDestroyFlag = false;
-	if (!theObject)
-		return false;
-	
-	bool ret = true;
-
-	list<GEOL_Container*>::const_iterator contIt;
-	for (contIt = pContainerList.begin() ; ret && contIt != pContainerList.end() ; ) {
-		GEOL_Container *cont = *contIt;
-		contIt++;
-		if ((GEOL_Object*)cont == theObject) {
-			ret = detachContainer(cont);
-		}
-	}
-	
-	list<GEOL_Entity*>::const_iterator entIt;
-	for (entIt = pEntityList.begin() ; ret && entIt != pEntityList.end() ; ) {
-		GEOL_Entity *ent = *entIt;
-		entIt++;
-		if ((GEOL_Object*)ent == theObject) {
-			ret = detachEntity(ent);
-		}
-	}
-
-	return ret;
-}
-
-
-
-/*!
 \return
 The length of profile contour
 */
@@ -356,7 +311,6 @@ double GEOL_Profile::length() const {
 	
 	return ret;
 }
-
 
 
 /*!
@@ -378,29 +332,30 @@ double GEOL_Profile::area() const {
 }
 
 
-
 /*!
-Se il profilo è chiuso.
-Cerca il punto e il segmento più a sinistra nel profilo (leftPt e leftSeg)
-Si avranno le seguenti possibilità :
-	- leftPt è uguale a una delle estremità leftSeg
-		- Considera il segmento precedente a leftSeg se leftPt è sull' estremità sinistra e
-		  il segmento seguente se è sull' estremità destra, chiama i due segmenti segPrev e segNext
-				- Le direzioni dei due segmenti sono opposte
-						Situazione indecidibile, occorre fare la somma delle differenze angolari di tutti i segmenti
-						del profilo
-				- Le direzioni dei due segmenti sono uguali
-						Se la direzione di segPrev (in y) è > 0 (il segmento sale) la direzione del profilo è oraria
-						Se la direzione di segPrev (in y) è < 0 (il segmento scende) la direzione del profilo è antioraria						
-				- Le direzioni dei due segmenti sono diverse ma non opposte
-						Se la direzione di segPrev è a sinistra rispetto a quella di segNext segPrev sta sotto
-						segNext quindi il profilo è orario
-						Se la direzione di segPrev è a destra rispetto a quella di segNext segPrev sta sopra segNext
-						quindi il profilo è antiorario
-	- leftPt non è uguale a nessuna delle estremità di leftSeg
-		Il segmento è certamente un arco, il verso del  profilo è uguale a quello dell' arco
+Compute the orientation versus of a closed profile, if this is a closed profile will do the follow :
+Find the leftmost profile point leftPt, and its segment leftSeg, then
+- If leftPt is one of the end point of leftSeg
+	- Get the segment before leftSeg if leftPt is its start point, or the segment after leftSeg if leftPt
+	  is its end point, so we will have segPrev and segNext, as the segments before and after leftPt
+		- segPrev and segNext have opposite directions
+			- Sum up all the angular differences of adjacent segments, at the end if the sum is equal to 2*PI
+			  the profile is clockwise oriented, otherwise is counterclockwise oriented
+		- segPrev and segNext have the same directions
+			- If the segPrev direction on y axis is positive (ascending segment) the profile is clockwise oriented
+			- If the segPrev direction on y axis is negative (descending segment) the profile is counterclockwise oriented
+		- segPrev and segNext have different, but not opposite, directions
+			- If segPrev direction is at left with respect to segNext direction the profile is clockwise oriented
+			- If segPrev direction is at right with respect to segNext direction the profile is counterclockwise oriented
+- If leftPt is not a segment end point, for sure it is an a circle arc segment, so the profile orientation is the same
+  of the orientation of the arc
+
+\return
+- geol_ProfClockwise if this is a clockwise oriented profile
+- geol_ProfCounterClockwise if this is a counterclockwise oriented profile
+- geol_ProfInvalid if tis is an open or invalid profile
 */
-GEOL_ProfVersus GEOL_Profile::versus() const {
+GEOL_Profile::GEOL_ProfVersus GEOL_Profile::versus() const {
 	GEOL_ProfVersus ret = geol_ProfInvalid;
 	
 	if (!isClosed()) {
@@ -412,13 +367,12 @@ GEOL_ProfVersus GEOL_Profile::versus() const {
 	if (getXLeftmost(xLeftmost, xLeftmostEntity) && xLeftmostEntity) {
 		if (fabs(((GEOL_Point*)(xLeftmostEntity -> getBeginEntity())) -> x() - xLeftmost) < GEOL_EQUAL_POINT ||
 			fabs(((GEOL_Point*)(xLeftmostEntity -> getEndEntity())) -> x() - xLeftmost) < GEOL_EQUAL_POINT) {
-			// Il punto più a sx del profilo è un' estremità del segmento più a sx
+			// The leftmost point is an end point of a segment
 		
-			// Segmenti precedente e seguente il punto più a sx del profilo	
+			// Get the segments before and after the leftmost point	
 			GEOL_Entity *segNext = NULL;
 			GEOL_Entity *segPrev = NULL;
 			if (fabs(((GEOL_Point*)(xLeftmostEntity -> getBeginEntity())) -> x() - xLeftmost) < GEOL_EQUAL_POINT) {
-				// Punto più a sx sull' estremità iniziale del segmento
 				segNext = xLeftmostEntity;
 				segPrev = getPrevEntity(xLeftmostEntity);
 				if (!segPrev) {
@@ -426,7 +380,6 @@ GEOL_ProfVersus GEOL_Profile::versus() const {
 				}
 			}
 			else {
-				// Punto più a sx sull' estremità finale del segmento
 				segPrev = xLeftmostEntity;
 				segNext = getNextEntity(xLeftmostEntity);
 				if (!segNext) {
@@ -440,11 +393,9 @@ GEOL_ProfVersus GEOL_Profile::versus() const {
 			segNext -> direction(segNextDir, (GEOL_Point*)(segNext -> getBeginEntity()));
 			
 			if (segPrevDir -> isOpposite(*segNextDir)) {
-				// I due segmenti opposta
+				// segPrev and segNext have opposite directions
 				
-				// Calcolare le differenze angolari
-				// Si sommano le differenze angolari di tutte le coppie consecutive di segmenti del profilo
-				// se la somma è 2*PI il profile è antiorario, se è -2*PI il profilo è orario
+				// Sum up the angular differences of the adjacent segments
 				double angDiffSum = 0.0;
 				for (GEOL_Entity *entity = getFirstEntity() ; entity ; entity = getNextEntity(entity)) {
 					GEOL_Entity *nextEntity = getNextEntity(entity);
@@ -454,17 +405,20 @@ GEOL_ProfVersus GEOL_Profile::versus() const {
 					angDiffSum += entity -> angleWith(nextEntity);
 				}
 				if (fabs(angDiffSum - (2,0 * GEOL_PI)) < GEOL_EQUAL_DIST) {
+					// Sum of angular differences is equal to -2*PI, the profile is counterclockwise oriented
 					ret = geol_ProfCounterClockwise;
 				}
 				else if (fabs(angDiffSum + (2,0 * GEOL_PI)) < GEOL_EQUAL_DIST) {
+					// Sum of angular differences is equal to 2*PI, the profile is clockwise oriented
 					ret = geol_ProfClockwise;					
 				}
 				else {
+					// Sum of angular differences is not valid
 					ret = geol_ProfInvalid;
 				}
 			}
 			else if (segPrevDir -> isParallel(*segNextDir)) {
-				// I due segmenti sono paralleli
+				// segPrev and segNext have the same directions
 				
 				if (segPrevDir -> y() > 0.0) {
 					ret = geol_ProfClockwise;
@@ -474,7 +428,7 @@ GEOL_ProfVersus GEOL_Profile::versus() const {
 				}
 			}
 			else {
-				// I due segmenti non sono ne paralleli ne opposti
+				// segPrev and segNext have different, but not opposite, directions
 				
 				if (segPrevDir -> isAtLeft(*segNextDir)) {
 					ret = geol_ProfClockwise;
@@ -492,11 +446,11 @@ GEOL_ProfVersus GEOL_Profile::versus() const {
 			}
 		}
 		else {
-			// Il punto più a sx del profilo NON è un' estremità del segmento più a sx, xLeftmostEntity deve essere un arco
-			// e il verso del profilo è uguale a quello dell' arco
+			// The leftmost point is not an end point of a segment, it has to be on a circle arc if so the profile direction
+			// is the same of the arc direction, otherwise the profile has an invalid orientation
 			
 			if (xLeftmostEntity -> isArc()) {
-				if (((GEOL_Arc*)xLeftmostEntity) -> versus() == geol_ArcClockwise) {
+				if (((GEOL_Arc*)xLeftmostEntity) -> versus() == GEOL_Arc::geol_ArcClockwise) {
 					ret = geol_ProfClockwise;
 				}
 				else {
@@ -511,7 +465,6 @@ GEOL_ProfVersus GEOL_Profile::versus() const {
 	
 	return ret;
 }
-
 
 
 /*!
@@ -562,7 +515,6 @@ bool GEOL_Profile::getXLeftmost(double& theXLeftmost, GEOL_Entity* &theLeftmostE
 }
 
 
-
 /*!
 \return
 The bounding box of the profile
@@ -583,7 +535,16 @@ GEOL_BBox GEOL_Profile::getBBox() {
 }
 
 
+/*!
+Load the profile from a binary file
 
+\param theStream
+Binary file
+
+\return
+- true if the load operation succeed
+- false otherwise
+*/
 bool GEOL_Profile::LoadBinary(ifstream *theStream) {
 	if (!theStream)
 		return false;
@@ -592,12 +553,17 @@ bool GEOL_Profile::LoadBinary(ifstream *theStream) {
 	if (ret) {
 		GEOL_Context *context = getContext();
 
+		// Read the number of entities in the profile
 		int entitiesNum = 0;
 		theStream -> read((char*)(&entitiesNum), sizeof(int));
+		
 		GEOL_Entity *newEntity = NULL;
 		for (int i = 0 ; i < entitiesNum && ret ; i++) {
+			
+			// Read the object type
 			GEOL_ObjectType objType = geol_Point;
-			ret = getContext() -> loadBinaryObjectType(theStream, objType);
+			ret = context -> loadBinaryObjectType(theStream, objType);
+			
 			if (ret) {
 				switch(objType) {
 					case geol_Point:
@@ -635,12 +601,25 @@ bool GEOL_Profile::LoadBinary(ifstream *theStream) {
 				ret = addEntity(newEntity);
 			}
 		}
+
+		// Load the object attributes
 		ret = laodBinaryObjectAttributes(theStream);
 	}
 	
 	return ret;
 }
 
+
+/*!
+Save the profile in a binary file
+
+\param theStream
+Binary file
+
+\return
+- true if the save operation succeed
+- false otherwise
+*/
 bool GEOL_Profile::SaveBinary(ofstream *theStream) {
 	if (!theStream)
 		return false;
@@ -666,18 +645,145 @@ bool GEOL_Profile::SaveBinary(ofstream *theStream) {
 	
 	GEOL_AttributeValue attrVal;
 	attrVal.GEOL_AttrVoidValue = NULL;
-	addAttribute(attrVal, GEOL_AttrVoid, GEOL_ID_SAVED);
+	addAttribute(attrVal, GEOL_Attribute::GEOL_AttrVoid, GEOL_ID_SAVED);
 
 	return ret;
 }
 
+
+/*!
+Load a profile from an ISO file
+
+\param theStream
+ISO file
+
+\return
+- true if the load operation succeed
+- false otherwise
+*/
 bool GEOL_Profile::LoadISO(ifstream *theStream) {
 	if (!theStream)
 		return false;
+	bool ret = true;
+	
+	GEOL_Context *context = getContext();
 
-	return false;
+	// G0 code founded (has to be the first)
+	bool g0Flag = false;
+	// Position on the file before the nex real line operation
+	streampos actualPos = 0;
+	
+	// Previous (x,y,z) position
+	double xPos = DBL_MAX;
+	double yPos = DBL_MAX;
+	double zPos = DBL_MAX;
+	
+	// Actual (x,y,z) position
+	double xRead = DBL_MAX;
+	double yRead = DBL_MAX;
+	double zRead = DBL_MAX;
+	
+	// Center point of an arc
+	double iRead = DBL_MAX;
+	double jRead = DBL_MAX;
+	
+	// Text line readed
+	std::string lineStr;
+	
+	bool exitFlag = false;
+	do {
+
+		// Read the next line
+		actualPos = theStream -> tellg();
+		ret = readLineFromISOFile(theStream, lineStr);
+		
+		if (lineStr.empty() && theStream -> eof()) {
+			// End of file reached, exit
+
+			ret = true;
+			exitFlag = true;
+		}
+		
+		if (ret && !exitFlag) {
+			if (lineStr[0] != 'G' || (getNumOfEntities() == 0 && lineStr[1] != '0' && !g0Flag)) {
+				// If the first command is not a G0, exit with error
+				ret = false;
+			}
+			else {
+
+				// Get coordinates values
+				ret = getCoordFromISOFileLine(lineStr, xRead, yRead, zRead, iRead, jRead);
+				
+				if (ret) {
+					switch (lineStr[1]) {
+						case '0':								// G0
+							{
+								if (getNumOfEntities() == 0) {
+									xPos = xRead;
+									yPos = yRead;
+									zPos = zRead;
+								}
+								else {
+									theStream -> seekg(actualPos);
+									exitFlag = true;
+								}
+								g0Flag = true;
+							}
+							break;
+						case '1':								// G1 Straight segment
+							{
+								GEOL_Entity *newSeg = context -> createSegment(xPos, yPos, xRead, yRead);
+								if (newSeg) {
+									ret = addEdgeTail(newSeg);
+								}
+								else {
+									ret = false;
+								}
+							}
+							break;
+						case '2':								// G2 Clockwise arc
+						case '3':								// G3 Counterclockwise arc
+							{
+								double dx = xRead - iRead;
+								double dy = yRead - jRead;
+								double radius = sqrt(dx*dx + dy*dy);
+								GEOL_Arc::GEOL_ArcVersus arcVersus = lineStr[1] == '2' ? GEOL_Arc::geol_ArcClockwise : GEOL_Arc::geol_ArcCounterClockwise;
+								GEOL_Entity *newArc = context -> createArc(xPos, yPos, xRead, yRead, radius, arcVersus);
+								if (newArc) {
+									ret = addEdgeTail(newArc);
+								}
+								else {
+									ret = false;
+								}
+							}
+							break;
+						default:
+							ret = false;
+							break;
+					}
+				}
+				xPos = xRead;
+				yPos = yRead;
+				zPos = zRead;
+			}
+		}
+	}
+	while (ret && !exitFlag);
+
+	return ret;
 }
 
+
+/*!
+Save the profile in ISO format on a file
+
+\param theStream
+ISO file
+
+\return
+- true if the save operation succeed
+- false otherwise
+*/
 bool GEOL_Profile::SaveISO(ofstream *theStream) {
 	if (!theStream)
 		return false;

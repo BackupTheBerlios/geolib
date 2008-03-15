@@ -82,3 +82,91 @@ GEOL_Quadrant getPrevQuadrant(GEOL_Quadrant theQuadrant) {
 	
 	return ret;
 }
+
+
+
+bool readLineFromISOFile(ifstream *theStream, std::string& theLine) {
+	if (!theStream)
+		return false;
+
+	bool ret = true;
+	
+	theLine.clear();
+	char strLine[GEOL_MAX_STRLINE];
+	theStream -> getline(strLine, GEOL_MAX_STRLINE - 1);
+	if (theStream -> good() || theStream -> eof()) {
+		theLine = strLine;
+		for (unsigned int i = 0 ; i < theLine.size() ; ) {
+			if (theLine[i] == ' ') {
+				theLine.erase(i, 1);
+			}
+			else {
+				theLine[i] = toupper(theLine[i]);
+				i++;
+			}
+		}
+		ret = true;
+	}
+	else {
+		ret = false;
+	}
+
+	return ret;
+}
+
+
+bool getCoordFromISOFileLine(std::string& theLine, double& theXCoord, double& theYCoord, double& theZCoord, double& theICoord, double& theJCoord) {
+	theXCoord = DBL_MAX;
+	theYCoord = DBL_MAX;
+	theZCoord = DBL_MAX;
+	theICoord = DBL_MAX;
+	theJCoord = DBL_MAX;
+
+	bool ret = true;
+	char coordName = 0;
+	std::string strVal;
+	for (unsigned int i = 0 ; ret && i <= theLine.size() ; i++) {
+		if (i == theLine.size() || theLine[i] == 'X' || theLine[i] == 'Y' || theLine[i] == 'Z' || theLine[i] == 'I' || theLine[i] == 'J') {
+			if (coordName != 0) {
+				errno = 0;
+				double val = strtod(strVal.c_str(), NULL);
+				if (errno == ERANGE) {
+					ret = false;
+				}
+				else {
+					switch (coordName) {
+						case 'X':
+							theXCoord = val;
+							break;
+						case 'Y':
+							theYCoord = val;
+							break;
+						case 'Z':
+							theZCoord = val;
+							break;
+						case 'I':
+							theICoord = val;
+							break;
+						case 'J':
+							theJCoord = val;
+							break;
+						default:
+							ret = false;
+							break;
+					}
+				}
+			}
+			strVal.clear();
+			coordName = theLine[i];
+		}
+		else {			
+			if (coordName != 0) {
+				strVal += theLine[i];
+			}
+		}
+	}
+	
+	return ret;
+}
+
+

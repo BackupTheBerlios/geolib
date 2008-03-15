@@ -15,10 +15,10 @@
  *                                                                         *
  ***************************************************************************/
 
+
 #include "GEOL_Prefix.h"
 
 #include "GEOL_Object.h"
-
 
 
 GEOL_Object::GEOL_Object() {
@@ -26,7 +26,6 @@ GEOL_Object::GEOL_Object() {
 	mRefCount = 0;
 	mObjType = geol_Undefined;
 	mBBox = NULL;
-	attributeIt = pAttributeList.begin();
 }
 
 
@@ -51,7 +50,7 @@ Id of the new attribute
 - true if the new attribute is correctly added to the list
 - false otherwise
 */
-bool GEOL_Object::addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, int theAttrID) {
+bool GEOL_Object::addAttribute(GEOL_AttributeValue theAttrValue, GEOL_Attribute::GEOL_AttributeType theAttrType, int theAttrID) {
 	if (!theAttrID)
 		return false;
 	
@@ -79,8 +78,7 @@ bool GEOL_Object::addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeT
 
 
 /*!
-Add a new attribute to the attribute list with specified values, only if there is no other attributes
-with the same id
+Add a new attribute to the attribute list, only if there is no other attributes with the same id
 
 \param theAttr
 The attribute to add
@@ -153,7 +151,6 @@ bool GEOL_Object::removeAttribute(int theAttrID) {
 }
 
 
-
 /*!
 Remove the attribute specified, if there is any, the attribute IS DESRTOYED attributes lives only
 within a object
@@ -201,32 +198,32 @@ void GEOL_Object::removeAllAttributes() {
 		GEOL_Attribute *toDel = *it;		
 		it++;
 		pAttributeList.remove(toDel);
+		delete toDel;
 	}
 }
-
 
 
 /*!
 Get the next of a given attribute
 
 \param theAttr
-Attribute from wich get the next
+Attribute from which get the next
 
 \return
 The next attribute of theAttr in the list, or NULL if theAttr is NULL, is the last attribute in the list, or it
 is not in the list
 */
 GEOL_Attribute* GEOL_Object::getNextAttribute(GEOL_Attribute *theAttr) {
-	if (*attributeIt != theAttr) {
-		for (attributeIt = pAttributeList.begin() ; attributeIt != pAttributeList.end() && *attributeIt != theAttr ; attributeIt++) {}
-	}
-
 	GEOL_Attribute *ret = NULL;
 
-	if (attributeIt != pAttributeList.end()) {
-		attributeIt++;
-		if (attributeIt != pAttributeList.end()) {
-			ret = *attributeIt;
+	if (theAttr) {
+		list<GEOL_Attribute*>::iterator attrIt;
+		for (attrIt = pAttributeList.begin() ; attrIt != pAttributeList.end() && *attrIt != theAttr ; attrIt++) {}
+		if (attrIt != pAttributeList.end()) {
+			attrIt++;
+			if (attrIt != pAttributeList.end()) {
+				ret = *attrIt;
+			}
 		}
 	}
 
@@ -234,29 +231,28 @@ GEOL_Attribute* GEOL_Object::getNextAttribute(GEOL_Attribute *theAttr) {
 }
 
 
-
 /*!
 Get the previous of a given attribute
 
 \param theAttr
-Attribute from wich get the previous
+Attribute from which get the previous
 
 \return
 The previous attribute of theAttr in the list, or NULL if theAttr is NULL, is the first attribute in the list,
 or it is not in the list
 */
 GEOL_Attribute* GEOL_Object::getPrevAttribute(GEOL_Attribute *theAttr) {
-	if (*attributeIt != theAttr) {
-		for (attributeIt = pAttributeList.begin() ; attributeIt != pAttributeList.end() && *attributeIt != theAttr ; attributeIt++) {}
-	}
-
 	GEOL_Attribute *ret = NULL;
 
-	if (attributeIt != pAttributeList.end()) {
-		if (attributeIt != pAttributeList.begin()) {
-			attributeIt--;
-			ret = *attributeIt;
-		}		
+	if (theAttr) {
+		list<GEOL_Attribute*>::iterator attrIt;
+		for (attrIt = pAttributeList.begin() ; attrIt != pAttributeList.end() && *attrIt != theAttr ; attrIt++) {}
+		if (attrIt != pAttributeList.end()) {
+			if (attrIt != pAttributeList.begin()) {
+				attrIt--;
+				ret = *attrIt;
+			}		
+		}
 	}
 
 	return ret;
@@ -264,14 +260,14 @@ GEOL_Attribute* GEOL_Object::getPrevAttribute(GEOL_Attribute *theAttr) {
 
 
 /*!
-Retrive the attribute of this object with the id passed
+Retrive the attribute of this object with the specified id
 
 \param theAttrID
 The id of the attribute to search for
 
 \return
-- The attribute with the passed id if it exists
-- NULL if there isn't any attribute with the passed id
+- The attribute with the specified id if it exists
+- NULL if there isn't any attribute with the specified id
 */
 GEOL_Attribute* GEOL_Object::getAttributeFromID(int theAttrID) {
 	if (!theAttrID)
@@ -328,15 +324,12 @@ bool GEOL_Object::decRefCount() {
 }
 
 
-
-
 /*!
 Reset the object reference counter
 */
 void GEOL_Object::resetRefCount() {
 	mRefCount = 0;
 }
-
 
 
 /*!
@@ -352,7 +345,6 @@ bool GEOL_Object::isEntity() const {
 }
 
 
-
 /*!
 \return
 - true if the object is a container
@@ -366,9 +358,8 @@ bool GEOL_Object::isContainer() const {
 }
 
 
-
 /*!
-Set the bounding box of the object with the parameter passed, allocate a new GEOL_BBox object if needed
+Set the bounding box of the object, allocate a new GEOL_BBox object if needed
 
 \param theBBox
 Bounding box to assign to the object
@@ -446,6 +437,17 @@ bool GEOL_Object::saveBinaryObjectAttributes(ofstream *theStream) {
 	return ret;
 }
 
+
+/*!
+Load the object attributes from a binary file
+
+\param theStream
+Binary file
+
+\return
+- true if the operation succeed
+- false otherwise
+*/
 bool GEOL_Object::laodBinaryObjectAttributes(ifstream *theStream) {
 	if (!theStream)
 		return false;

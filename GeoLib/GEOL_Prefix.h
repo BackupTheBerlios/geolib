@@ -25,8 +25,10 @@
 /************************/
 #undef min
 #undef max
+#include <string>
 #include <vector>
 #include <list>
+#include <fstream>
 using namespace std;
 
 
@@ -41,6 +43,7 @@ using namespace std;
 /****************/
 #include <float.h>
 #include <math.h>
+#include <errno.h>
 
 
 /***************/
@@ -49,26 +52,15 @@ using namespace std;
 
 
 /*!
-Type of an object
-*/
-typedef enum {geol_Point, geol_Segment, geol_Arc, geol_Profile, geol_PoliProfile, geol_Undefined} GEOL_ObjectType;
-/*!
-Versus of an arc
-*/
-typedef enum { geol_ArcClockwise, geol_ArcCounterClockwise } GEOL_ArcVersus;
-/*!
 Quadrand of a point
 */
 typedef enum { geol_TopRight, geol_TopLeft, geol_BottomLeft, geol_BottomRight } GEOL_Quadrant;
-/*!
-Versus of a profile
-*/
-typedef enum { geol_ProfClockwise, geol_ProfCounterClockwise, geol_ProfInvalid } GEOL_ProfVersus;
 
 
 /******************/
 /*    Constants   */
 /******************/
+#define						GEOL_NOTNULL					1,0E-10				// Not null real value
 #define						GEOL_EQUAL_POINT				1.0E-5				// Point equality tolerance
 #define						GEOL_EQUAL_DIST					1.0E-5				// Distance equality tolerance
 #define						GEOL_EQUAL_AREA					1.0E-10				// Area equality tolerance (GEOL_EQUAL_DIST*GEOL_EQUAL_DIST)
@@ -77,6 +69,7 @@ typedef enum { geol_ProfClockwise, geol_ProfCounterClockwise, geol_ProfInvalid }
 #define						GEOL_HPI						1.570796326795		// ¹/2
 #define						GEOL_2PI						6.28318530718		// 2*¹
 #define						GEOL_MAX_REF_COUNT				255					// Maximum value of refernce counters
+#define						GEOL_MAX_STRLINE				1024				// Maxium characters in a line while reading from ISO files
 
 
 /*********/
@@ -84,5 +77,7 @@ typedef enum { geol_ProfClockwise, geol_ProfCounterClockwise, geol_ProfInvalid }
 /*********/
 GEOL_Quadrant getNextQuadrant(GEOL_Quadrant theQuadrant);
 GEOL_Quadrant getPrevQuadrant(GEOL_Quadrant theQuadrant);
+bool readLineFromISOFile(ifstream *theStream, std::string& theLine);
+bool getCoordFromISOFileLine(std::string& theLine, double& theXCoord, double& theYCoord, double& theZCoord, double& theICoord, double& theJCoord);
 
 #endif

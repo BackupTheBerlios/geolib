@@ -49,7 +49,7 @@ GEOL_Segment::GEOL_Segment(GEOL_Point* theBeginPoint, GEOL_Point* theEndPoint) :
 
 
 /*!
-Default destructor
+Default destructor, delete extremity points if its reference counter vanishes
 */
 GEOL_Segment::~GEOL_Segment() {
 	GEOL_Point *beginPoint = (GEOL_Point*)(getBeginEntity());		
@@ -73,7 +73,7 @@ GEOL_Segment::~GEOL_Segment() {
 
 
 /*!
-Set the begin point of the segment, and update the segment length
+Set the begin point of the segment, update the segment length and invalidate the bbox
 
 \param theBeginPoint
 New begin point of the segment
@@ -87,7 +87,7 @@ void GEOL_Segment::begin(const GEOL_Point& theBeginPoint) {
 
 
 /*!
-Set the end point of the segment, and update the segment length
+Set the end point of the segment, update the segment length and invalidate the bbox
 
 \param theEndPoint
 New end point of the segment
@@ -101,7 +101,7 @@ void GEOL_Segment::end(const GEOL_Point& theEndPoint) {
 
 
 /*!
-Set the begin point of the segment, and update the segment length
+Set the begin point of the segment, update the segment length and invalidate the bbox
 
 \param theXCoord
 X coordinate of new begin point of the segment
@@ -117,7 +117,7 @@ void GEOL_Segment::begin(double theXCoord, double theYCoord) {
 
 
 /*!
-Set the end point of the segment, and update the segment length
+Set the end point of the segment, update the segment length and invalidate the bbox
 
 \param theXCoord
 X coordinate of new end point of the segment
@@ -143,15 +143,14 @@ double GEOL_Segment::angle() const {
 }
 
 
-
 /*!
-Check if the entity passed is one of the end points of the segment
+Check if an entity is one of the end points of the segment
 
 \param theEntity
 Entity to check
 
 \return
-- true if the entity passed is an end point of the segment
+- true if the entity is an end point of the segment
 - false otherwise
 */
 bool GEOL_Segment::isEndPoint(const GEOL_Entity *theEntity) {
@@ -165,7 +164,7 @@ bool GEOL_Segment::isEndPoint(const GEOL_Entity *theEntity) {
 
 
 /*!
-Notification on object destruction, if the object destroied is an end point of the segment, the segment itself has
+Notification on object destruction, if the object destroyed is an end point of the segment, the segment itself has
 to be destroyed
 
 \param theObject
@@ -191,7 +190,6 @@ bool GEOL_Segment::notifyDestruction(GEOL_Object *theObject, bool& theDestroyFla
 }
 
 
-
 /*!
 \return
 The area between the segment and the x axis (integral), is a signed value that is if the segment direction is x- or
@@ -206,7 +204,6 @@ double GEOL_Segment::area() const {
 }
 
 
-
 /*!
 Get the direction of the segment tangent to the point on segment specified
 
@@ -217,11 +214,27 @@ Tangential point on the segment
 */
 void GEOL_Segment::direction(GEOL_Point* theDir, const GEOL_Point* thePoint) const {
 	if (theDir) {
+		direction(theDir, thePoint -> x(), thePoint -> y());	
+	}
+}
+
+
+/*!
+Get the direction of the segment tangent to the point on segment specified
+
+\param theDir
+On output contains the tangent direction
+\param theXCoord
+X coordinate of the tangential point on the segment
+\param theYCoord
+Y coordinate of the tangential point on the segment
+*/
+void GEOL_Segment::direction(GEOL_Point* theDir, double theXCoord, double theYCoord) const {
+	if (theDir) {
 		theDir -> x(end() -> x() - begin() -> x());
 		theDir -> y(end() -> y() - begin() -> y());
 	}
 }
-
 
 
 /*!
@@ -256,7 +269,6 @@ GEOL_BBox GEOL_Segment::getBBox() {
 }
 
 
-
 /*!
 Translate a segment
 
@@ -269,7 +281,6 @@ void GEOL_Segment::translate(double theDX, double theDY) {
 	((GEOL_Point*)getBeginEntity()) -> translate(theDX, theDY);
 	((GEOL_Point*)getEndEntity()) -> translate(theDX, theDY);
 }
-
 
 
 /*!
@@ -319,7 +330,16 @@ bool GEOL_Segment::operator!=(const GEOL_Segment& theSegment) const {
 }
 
 
+/*!
+Load the segment from a binary file
 
+\param theStream
+Binary file
+
+\return
+- true if the load operation succeed
+- false otherwise
+*/
 bool GEOL_Segment::LoadBinary(ifstream *theStream) {
 	if (!theStream)
 		return false;
@@ -353,6 +373,17 @@ bool GEOL_Segment::LoadBinary(ifstream *theStream) {
 	return ret;
 }
 
+
+/*!
+Save the segment in a binary file
+
+\param theStream
+Binary file
+
+\return
+- true if the save operation succeed
+- false otherwise
+*/
 bool GEOL_Segment::SaveBinary(ofstream *theStream) {
 	if (!theStream)
 		return false;
@@ -377,18 +408,33 @@ bool GEOL_Segment::SaveBinary(ofstream *theStream) {
 	
 	GEOL_AttributeValue attrVal;
 	attrVal.GEOL_AttrVoidValue = NULL;
-	addAttribute(attrVal, GEOL_AttrVoid, GEOL_ID_SAVED);
+	addAttribute(attrVal, GEOL_Attribute::GEOL_AttrVoid, GEOL_ID_SAVED);
 
 	return ret;
 }
 
-bool GEOL_Segment::LoadISO(ifstream *theStream) {
-	if (!theStream)
-		return false;
 
-	return false;
+/*!
+Load in ISO format is entilrely performed at GEOL_Profile level
+
+\return
+Always true
+*/
+bool GEOL_Segment::LoadISO(ifstream *theStream) {
+	return true;
 }
 
+
+/*!
+Save the segment in ISO format on a file
+
+\param theStream
+ISO file
+
+\return
+- true if the save operation succeed
+- false otherwise
+*/
 bool GEOL_Segment::SaveISO(ofstream *theStream) {
 	if (!theStream)
 		return false;

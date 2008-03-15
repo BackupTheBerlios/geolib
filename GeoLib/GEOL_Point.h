@@ -39,6 +39,7 @@ public:
 	void xy(double theXCoord, double theYCoord);
 	double pointDistance(const GEOL_Point& thePoint) const;
 	double pointDistance(const GEOL_Point* thePoint) const;
+	double pointDistance(double theXCoord, double theYCoord) const;
 	double originDistance() const;
 	double angle() const;
 	double angle(double theXOrigin, double theYOrigin) const;
@@ -57,6 +58,7 @@ public:
 	double length() const { return 0.0; }
 	double area() const { return 0.0; }
 	void direction(GEOL_Point* theDir, const GEOL_Point* thePoint) const { theDir -> x(0.0); theDir -> y(0.0); }
+	void direction(GEOL_Point* theDir, double theXCoord, double theYCoord) const { theDir -> x(0.0); theDir -> y(0.0); }
 
 	void translate(double theDX, double theDY);
 

@@ -15,22 +15,22 @@
  *                                                                         *
  ***************************************************************************/
 
+
 #ifndef GEOL_ATTRIBUTE_H
 #define GEOL_ATTRIBUTE_H
 
+
 #include "GEOL_Persistency.h"
+
 
 class GEOL_Entity;
 class GEOL_Container;
+
 
 #define				GEOL_ID_UNSET	-1
 #define				GEOL_ID_SAVED	1
 #define				GEOL_ID_USED	2
 
-/*!
-Types of an attribute
-*/
-typedef enum { GEOL_AttrInt, GEOL_AttrDouble, GEOL_AttrString, GEOL_AttrEntity, GEOL_AttrContainer, GEOL_AttrVoid } GEOL_AttributeType;
 
 union GEOL_AttributeValue {
 	int GEOL_AttrIntValue;
@@ -47,6 +47,18 @@ auxiliary informations not belonging to the object structure, such as markers
 */
 class GEOL_Attribute : public GEOL_Persistency {
 public:
+
+	/*!
+	Types of an attribute
+	*/
+	typedef enum {
+					GEOL_AttrInt,			// Integer
+					GEOL_AttrDouble,		// Double
+					GEOL_AttrString,		// String
+					GEOL_AttrEntity,		// Pointer to an entity
+					GEOL_AttrContainer,		// Pointer to a container
+					GEOL_AttrVoid			// Void pointer
+				 } GEOL_AttributeType;
 
 	GEOL_Attribute();
 	GEOL_Attribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, int theAttrID);
@@ -86,7 +98,6 @@ private:
 	Id of the attribute, used to distinguish between many attributes of the same type, must be unique
 	*/
 	int mAttrID;
-
 };
 
 
@@ -109,13 +120,15 @@ inline void GEOL_Attribute::setValue(GEOL_AttributeValue theValue) {
 	mValue = theValue;
 }
 
+
 /*!
 \return
 The attribute type
 */
-inline GEOL_AttributeType GEOL_Attribute::getType() {
+inline GEOL_Attribute::GEOL_AttributeType GEOL_Attribute::getType() {
 	return mType;
 }
+
 
 /*!
 Set the attribute type
@@ -125,6 +138,22 @@ New attribute type
 */
 inline void GEOL_Attribute::setType(GEOL_AttributeType theType) {
 	mType = theType;
+}
+
+
+/*!
+Attributes will not saved/loaded in iso format
+*/
+inline bool GEOL_Attribute::LoadISO(ifstream *theStream) {
+	return true;
+}
+
+
+/*!
+Attributes will not saved/loaded in iso format
+*/
+inline bool GEOL_Attribute::SaveISO(ofstream *theStream) {
+	return true;
 }
 
 

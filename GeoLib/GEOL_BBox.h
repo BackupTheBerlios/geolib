@@ -16,10 +16,11 @@
  ***************************************************************************/
 
 
-
 #ifndef GEOL_BBOX_H
 #define GEOL_BBOX_H
 
+
+class GEOL_Point;
 
 
 /*!
@@ -47,6 +48,11 @@ public:
 	
 	double area() const;
 
+	GEOL_BBox intersect(const GEOL_BBox& theBBox) const;
+	bool isIntersected(const GEOL_BBox& theBBox) const;
+	bool isPointInBBox(double theXCoord, double theYCoord) const;
+	bool isPointInBBox(const GEOL_Point& thePoint) const;
+	
 	GEOL_BBox& operator=(const GEOL_BBox& theBBox);
 	const GEOL_BBox operator+(const GEOL_BBox& theBBox) const;
 	bool operator==(const GEOL_BBox& theBBox) const;
@@ -76,7 +82,6 @@ private:
 };
 
 
-
 /*!
 \return
 - true if the bounding box is valid
@@ -85,7 +90,6 @@ private:
 inline bool GEOL_BBox::isValid() const {
 	return mValid;
 }
-
 
 
 /*!
@@ -97,7 +101,6 @@ inline double GEOL_BBox::getMinX() const {
 }
 
 
-
 /*!
 \return
 The x maximum value
@@ -105,7 +108,6 @@ The x maximum value
 inline double GEOL_BBox::getMaxX() const {
 	return mMaxX;
 }
-
 
 
 /*!
@@ -117,7 +119,6 @@ inline double GEOL_BBox::getMinY() const {
 }
 
 
-
 /*!
 \return
 The y maximum value
@@ -125,7 +126,6 @@ The y maximum value
 inline double GEOL_BBox::getMaxY() const {
 	return mMaxY;
 }
-
 
 
 #endif

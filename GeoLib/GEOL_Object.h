@@ -19,11 +19,14 @@
 #ifndef GEOL_OBJECT_H
 #define GEOL_OBJECT_H
 
+
 #include "GEOL_BBox.h"
 #include "GEOL_Attribute.h"
 #include "GEOL_Persistency.h"
 
+
 class GEOL_Context;
+
 
 /*!
 This abstract class is the abstraction of a geometrical object, at this level all abjects within a context has the
@@ -31,6 +34,19 @@ same properties and functionalities, all the aspects common to all objects is ma
 */
 class GEOL_Object : public GEOL_Persistency {
 public:
+
+	/*!
+	Object types
+	*/
+	typedef enum {
+					geol_Point,			/// Point
+					geol_Segment,		/// Segment
+					geol_Arc,			/// Arc
+					geol_Profile,		/// Profile
+					geol_PoliProfile,	/// Poli profile
+					geol_Undefined		/// Not defined
+				 } GEOL_ObjectType;
+
 	GEOL_Object();
 	virtual ~GEOL_Object();
 	
@@ -45,7 +61,7 @@ public:
 	//*******************
 	//* Object attributes
 	//*******************
-	bool addAttribute(GEOL_AttributeValue theAttrValue, GEOL_AttributeType theAttrType, int theAttrID);
+	bool addAttribute(GEOL_AttributeValue theAttrValue, GEOL_Attribute::GEOL_AttributeType theAttrType, int theAttrID);
 	bool addAttribute(GEOL_Attribute *theAttr);
 	bool removeAttribute(int theAttrID);
 	bool removeAttribute(GEOL_Attribute *theAttr);
@@ -56,8 +72,13 @@ public:
 	GEOL_Attribute *getPrevAttribute(GEOL_Attribute *theAttr);
 	int getAttributesNum();
 	GEOL_Attribute *getAttributeFromID(int theAttrID);
+
+	//**************
+	//* Bounding box
+	//**************
 	virtual GEOL_BBox getBBox() = 0;
 	void setBBox(GEOL_BBox theBBox);
+	void invalidateBBox();
 	
 	//********************
 	//* Reference counting
@@ -78,18 +99,13 @@ public:
 	bool isEntity() const;
 	bool isContainer() const;
 
-	//****************************
-	//* Bounding Box
-	//****************************
-	void invalidateBBox();
-
 protected:
 	bool saveBinaryObjectInfo(ofstream *theStream);
 	bool saveBinaryObjectAttributes(ofstream *theStream);
 	bool laodBinaryObjectAttributes(ifstream *theStream);
 
 	/*!
-	Type of the object
+	Object type
 	*/
 	GEOL_ObjectType mObjType;
 
@@ -111,12 +127,7 @@ private:
 	/*!
 	List of attributes
 	*/
-	list<GEOL_Attribute*> pAttributeList;
-	
-	/*!
-	Attributes iterator
-	*/
-	list<GEOL_Attribute*>::iterator attributeIt;	
+	list<GEOL_Attribute*> pAttributeList;	
 };
 
 
@@ -153,6 +164,7 @@ inline GEOL_Attribute* GEOL_Object::getFirstAttribute() {
 	}
 }
 
+
 /*!
 \return
 Number of attributes of the object
@@ -160,6 +172,7 @@ Number of attributes of the object
 inline int GEOL_Object::getAttributesNum() {
 	return pAttributeList.size();
 }
+
 
 /*!
 \return
